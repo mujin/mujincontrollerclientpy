@@ -15,24 +15,26 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for bin picking task
     """
     tasktype = 'binpicking'
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotcontrollerhostname, robotcontrollerport, binpickingzmqport, scenepk, robotname, robotspeed, containername, targetname, toolname, envclearance, usewebapi=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotcontrollerhostname, robotcontrollerport, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
         :param controllerpassword: password of the mujin controller
         :param robotcontrollerhostname: hostname of the robot controller, e.g. 192.168.13.201
         :param robotcontrollerport: port of the robot controller, e.g. 5007
-        :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7100
+        :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7110
+        :param binpickingheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
+        :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no hearbeat is received, e.g. 7
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param robotname: name of the robot, e.g. VP-5243I
         :param robotspeed: speed of the robot, e.g. 0.4
-        :param containername: name of the bin, e.g. container1
+        :param regionname: name of the bin, e.g. container1
         :param targetname: name of the target, e.g. plasticnut-center
         :param toolname: name of the manipulator, e.g. 2BaseZ
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, self.tasktype, scenepk)
+        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk)
 
         # robot controller
         self.robotcontrollerhostname = robotcontrollerhostname
@@ -42,7 +44,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.scenepk = scenepk
         self.robotname = robotname
         self.robotspeed = robotspeed
-        self.containername = containername
+        self.regionname = regionname
         self.targetname = targetname
         self.toolname = toolname
         self.envclearance = envclearance
@@ -73,8 +75,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         robotcontrollerhostname = self.robotcontrollerhostname
         robotcontrollerport = self.robotcontrollerport
         taskparameters['robot'] = robotname
-        taskparameters['robotcontrollerip'] = robotcontrollerhostname
-        taskparameters['robotcontrollerport'] = robotcontrollerport
+        taskparameters['robotControllerIp'] = robotcontrollerhostname
+        taskparameters['robotControllerPort'] = robotcontrollerport
         
         if taskparameters.get('speed',None) is None:
             # taskparameters does not have robotspeed, so set the global speed
@@ -157,33 +159,28 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteRobotCommand(taskparameters)
     
-    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, containername=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
+    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
         
-        :param desttargetname: The destination target name where the destination goal ikparams come from
-        :param destikparamnames: A list of lists of ikparam names for the destinations of the target. Only destikparamnames[0] is looked at and tells the system to place the part in any of the ikparams in destikparamnames[0]
-        
-        :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
+        :param goaltype: type of the goal, e.g. translationdirection5d
+        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+
+        :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname)
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
         :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]
         :param deletetarget: whether to delete target after pick and place is done
         :param toolname: name of the manipulator
-        :param containername: name of the container of the objects
+        :param regionname: name of the region of the objects
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
         :param envclearance: environment clearance in milimeter
         low level planning parameters:
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter
-        :param iksolverfreeinc: discretization parameter of the ik solver free joints
+        :param freeinc: planning parameter
         :param worksteplength: planning parameter
         :param armgroup: planning parameter
         :param graspSetIndex: the index of the grasp set to use for the target. Grasp sets are the ikparams with extra fields in them.
-
-        Manual Destination Specification (deprecated)
-        :param goaltype: type of the goal, e.g. translationdirection5d or transform6d
-        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-        
         """
         if worksteplength is None:
             worksteplength = min(0.25, 0.1/robotspeed)
@@ -191,8 +188,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             toolname=self.toolname
         if targetnamepattern is None:
             targetnamepattern='%s_\d+'%(self.targetname)
-        if containername is None:
-            containername = self.containername
+        if regionname is None:
+            regionname = self.regionname
         taskparameters = {'command': 'PickAndPlace',
                           'toolname': toolname,
                           'goaltype': goaltype,
@@ -206,37 +203,33 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'freeinc': freeinc,
                           'worksteplength': worksteplength,
                           'targetnamepattern':targetnamepattern,
-                          'containername':containername,
+                          'containername':regionname,
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
-    def StartPickAndPlaceThread(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, containername=None, envclearance=15, toolname=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, regionname=None, envclearance=15, toolname=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
         
-        :param desttargetname: The destination target name where the destination goal ikparams come from
-        :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
-        :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
+        :param goaltype: type of the goal, e.g. translationdirection5d
+        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+
+        :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname)
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
         :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]
         :param deletetarget: whether to delete target after pick and place is done
         :param toolname: name of the manipulator
-        :param containername: name of the container of the objects
+        :param regionname: name of the region of the objects
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
         :param envclearance: environment clearance in milimeter
         Low level planning parameters:
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter
-        :param iksolverfreeinc: discretization parameter of the ik solver free joints
+        :param freeinc: planning parameter
         :param worksteplength: planning parameter
         :param armgroup: planning parameter
         :param graspSetIndex: the index of the grasp set to use for the target. Grasp sets are the ikparams with extra fields in them.
-
-
-      :param goaltype: type of the goal, e.g. translationdirection5d
-        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-
         """        
         if worksteplength is None:
             worksteplength = 0.01
@@ -246,8 +239,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             goals = GetOrderedGoals(self.targetname,envclearance,numparts)
         if targetnamepattern is None:
             targetnamepattern='%s_\d+'%(self.targetname)
-        if containername is None:
-            containername = self.containername
+        if regionname is None:
+            regionname = self.regionname
         taskparameters = {'command': 'StartPickAndPlaceThread',
                           'toolname': toolname,
                           'goaltype': goaltype,
@@ -261,7 +254,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'freeinc': freeinc,
                           'worksteplength': worksteplength,
                           'targetnamepattern':targetnamepattern,
-                          'containername':containername
+                          'containername':regionname
                           }
         taskparameters.update(kwargs);
         return self.ExecuteRobotCommand(taskparameters, robotspeed=taskparameters.get('robotspeed',None))
@@ -311,7 +304,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param translation: grasp (but basically the just the ikparam) translation in world cooordinates in mm, float array
         :param direction: grasp (but basically the just the ikparam) direction in world cooordinates, float array
         :param angle: grasp (but basically the just the ikparam) angle in world cooordinates, float
-        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
+        :param freeinc: the discretization of the free joints of the robot when computing ik.
         :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
         :param preshape: If the tool has fingers after the end effector, specify their values. The gripper DOFs come from **gripper_dof_pks** field from the tool., float array
 
@@ -366,18 +359,21 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteCommand(taskparameters)
 
-    def GetPickedPositions(self):
+    def GetPickedPositions(self,unit='m'):
         """returns the poses and the timestamps of the picked objects
         :param robotname: name of the robot
-        :return: the positions and the timestamps of the picked objects in a json dictionary, info of each object has the format of quaternion (w,x,y,z) followed by x,y,z translation in milimeter followed by timestamp in milisecond e.g. {'positions': [[1,0,0,0,100,200,300,1389774818.8366449],[1,0,0,0,200,200,300,1389774828.8366449]]}
+        :param unit: unit of the translation
+        :return: the positions and the timestamps of the picked objects in a json dictionary, info of each object has the format of quaternion (w,x,y,z) followed by x,y,z translation (in mm) followed by timestamp in milisecond e.g. {'positions': [[1,0,0,0,100,200,300,1389774818.8366449],[1,0,0,0,200,200,300,1389774828.8366449]]}
         """
         taskparameters = {'command': 'GetPickedPositions',
-                          'robotname': self.robotname}
+                          'robotname': self.robotname,
+                          'unit': unit}
         return self.ExecuteCommand(taskparameters)
 
-    def UpdateObjects(self, envstate, targetname=None):
+    def UpdateObjects(self, envstate, targetname=None, unit="m"):
         """updates objects in the scene with the envstate
-        :param envstate: a list of dictionaries for each instance object. translation is in milimeter. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [100,200,300], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [200,200,300], 'quat_': [1,0,0,0]}]
+        :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
+        :param unit: unit of envstate
         """
         if targetname is None:
             targetname = self.targetname
@@ -386,6 +382,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                            'object_uri': u'mujin:/%s.mujin.dae'%(targetname),
                            'robot': self.robotname,
                            'envstate': envstate,
+                           'unit': unit
                            }
         return self.ExecuteCommand(taskparameters)
 
@@ -414,25 +411,29 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteCommand(taskparameters)
 
-    def GetTransform(self,targetname):
+    def GetTransform(self,targetname,unit='mm'):
         """gets the transform of an object
         :param targetname: name of the object
+        :param unit: unit of the result translation
         :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
         """
         taskparameters = {'command': 'GetTransform',
                           'targetname': targetname,
+                          'unit': unit,
                           }
         return self.ExecuteCommand(taskparameters)
 
-    def SetTransform(self,targetname,translation,rotationmat=None,quaternion=None):
+    def SetTransform(self,targetname,translation,unit='mm',rotationmat=None,quaternion=None):
         """sets the transform of an object
         :param targetname: name of the object
         :param translation: list of x,y,z value of the object in milimeter
+        :param unit: unit of translation
         :param rotationmat: list specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
         :param quaternion: list specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0]
         """
         taskparameters = {'command': 'SetTransform',
                           'targetname': targetname,
+                          'unit': unit,
                           'translation': translation,
                           }
         if rotationmat is not None:
@@ -442,6 +443,18 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if rotationmat is None and quaternion is None:
             taskparameters['quaternion'] = [1,0,0,0]
             log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
+        return self.ExecuteCommand(taskparameters)
+
+    def GetAABB(self, targetname, unit='mm'):
+        """Gets the axis aligned bounding box of object
+        :param targetname: name of the object
+        :param unit: unit of the AABB
+        :return: AABB of the object, e.g. {'pos': [1000,400,100], 'extents': [100,200,50]}
+        """
+        taskparameters = {'command': 'GetAABB',
+                          'targetname': targetname,
+                          'unit': unit                         
+                          }
         return self.ExecuteCommand(taskparameters)
 
     def RemoveObjectsWithPrefix(self,prefix):
@@ -464,8 +477,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteCommand(taskparameters)
 
     def GetTrajectoryLog(self,**kwargs):
-        """Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
-        
+        """gets the trajectories executed on the binpicking server
         :param startindex: int, start of the trajectory to get
         :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
         :param includejointvalues: bool, If True will include timedjointvalues, if False will just give back the trajectories. Defautl is False
@@ -520,7 +532,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters = {'command':'StopBackgroundTask'}
         return self.ExecuteRobotCommand(taskparameters)
 
-    def __PickAndMove(self,goaltype,armjointvaluesgoals,destinationgoals=None,targetnames=None,movetodestination=0,deletetarget=1, startvalues=None,toolname=None,envclearance=20,boxname=None, robotspeed=None):
+    def __PickAndMove(self,goaltype,armjointvaluesgoals,destinationgoals=None,targetnames=None,movetodestination=0,deletetarget=1, startvalues=None,toolname=None,envclearance=20,regionname=None, robotspeed=None):
         """deprecated
         """
         if toolname is None:
@@ -533,8 +545,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'deletetarget': deletetarget,
                           'armjointvaluesgoals':list(armjointvaluesgoals),
                           }
-        if boxname is not None:
-            taskparameters['boxname']=boxname
+        if regionname is not None:
+            taskparameters['boxname']=regionname # TODO: update backend
         if destinationgoals is not None:
             taskparameters['goals']=destinationgoals
         if targetnames is not None:

@@ -57,5 +57,8 @@ class ZmqClient(object):
             return self._socket.recv_json()
         else:
             starttime = time.time()
-            return self._socket.recv_json(zmq.NOBLOCK)
-            
+            result = ""
+            while len(result)==0 and time.time()-starttime<timeout:
+                result= self._socket.recv_json(zmq.NOBLOCK)
+                time.sleep(0.1)
+            return result
