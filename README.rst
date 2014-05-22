@@ -11,8 +11,6 @@ This is an open-source client library communicating with the MUJIN Controller We
 Releases and Versioning
 -----------------------
 
-TODO: put on github
-
 - The latest stable build is managed by the **latest_stable** branch, please use it.  It is tested on Linux with python 2.6.5.
   
   - **Do not use master branch** if you are not a developer. 
