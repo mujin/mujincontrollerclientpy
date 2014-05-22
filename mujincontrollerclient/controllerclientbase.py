@@ -18,14 +18,17 @@ import simplejson
 class ControllerClientBase(object):
     """mujin controller client base
     """
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, tasktype, scenepk):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
         :param controllerpassword: password of the mujin controller
-        :param taskzmqport: port of the task's zmq server, e.g. 7100
+        :param taskzmqport: port of the task's zmq server, e.g. 7110
+        :param taskheartbeatport: port of the task's zmq server's heartbeat publisher, e.g. 7111
+        :param taskheartbeattimeout: seconds until reinitializing task's zmq server if no hearbeat is received, e.g. 7
         :param tasktype: type of the task
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
+        :param initializezmq: whether to initialize controller zmq server
         """
         # task
         self.tasktype = tasktype
@@ -33,6 +36,11 @@ class ControllerClientBase(object):
 
         # logs in via web api
         self.controllerurl = controllerurl
+        self.controllerIp = controllerurl[len('http://'):].split(":")[0]
+        if len(controllerurl[len('http://'):].split(":"))>1:
+            self.controllerPort = controllerurl[len('http://'):].split(":")[1]
+        else:
+            self.controllerPort = 80
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
         self.LogIn(controllerurl, controllerusername, controllerpassword)
@@ -40,9 +48,15 @@ class ControllerClientBase(object):
         # connects to task's zmq server
         self._zmqclient = None
         if taskzmqport is not None:
-            log.info('initializing controller zmq server...')
-            self.InitializeControllerZmqServer(taskzmqport)
-            self._zmqclient = zmqclient.ZmqClient(controllerurl[len('http://'):].split(":")[0],taskzmqport)
+            self.taskzmqport = taskzmqport
+            self.taskheartbeatport = taskheartbeatport
+            self.taskheartbeattimeout = taskheartbeattimeout
+            if initializezmq:
+                log.info('initializing controller zmq server...')
+                self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
+                # TODO add heartbeat logic
+            
+            self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport)
 
     def LogIn(self, controllerurl, controllerusername, controllerpassword):
         """logs into the mujin controller via web api
@@ -83,11 +97,12 @@ class ControllerClientBase(object):
             raise ControllerClientError(u'response is string, not json! response: %s'%response)
         return response    
 
-    def InitializeControllerZmqServer(self, taskzmqport=7100):
+    def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
         """starts the zmq server on mujin controller
         no need to call this for visionserver initialization, visionserver calls this during initialization
         """
-        taskparameters = {'command': 'InitZMQ',
+        taskparameters = {'command': 'InitializeZMQ',
                           'port': taskzmqport,
+                          'heartbeatPort': taskheartbeatport,
                           }
         return self.ExecuteCommand(taskparameters, usewebapi=True)
