@@ -326,6 +326,26 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['envclearance'] = self.envclearance
         return self.ExecuteRobotCommand(taskparameters)
     
+    def ComputeIKFromParameters(self, **kwargs):
+        """
+        :param toolname: tool name, string
+        :param limit: number of solutions to return, int
+        :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
+        :param targetname: the target object name that the ikparamnames belong to
+        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
+        :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
+        
+        :return: A dictionary of:
+        - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
+        """
+        taskparameters = {'command': 'ComputeIKFromParameters'}
+        taskparameters.update(kwargs)
+        if not 'toolname' in taskparameters:
+            taskparameters['toolname'] = self.toolname
+        if not 'envclearance' in taskparameters:
+            taskparameters['envclearance'] = self.envclearance
+        return self.ExecuteRobotCommand(taskparameters)
+    
     def InitializePartsWithPhysics(self, **kwargs):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.
         :param targeturi: the target uri to initialize the scene with
@@ -351,7 +371,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     ####################
     # scene commands
     ####################
-
+    
     def IsRobotOccludingBody(self,bodyname,cameraname):
         """returns if the robot is occluding body in the view of the specified camera
         :param bodyname: name of the object
@@ -365,7 +385,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'cameraname': cameraname,
                           }
         return self.ExecuteCommand(taskparameters)
-
+    
     def GetPickedPositions(self):
         """returns the poses and the timestamps of the picked objects
         :param robotname: name of the robot
