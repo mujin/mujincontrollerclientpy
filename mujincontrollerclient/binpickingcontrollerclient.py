@@ -172,13 +172,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param containername: name of the container of the objects
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
         :param envclearance: environment clearance in milimeter
-        low level planning parameters:
+        
+        Low level planning parameters:
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter
         :param iksolverfreeinc: discretization parameter of the ik solver free joints
         :param worksteplength: planning parameter
         :param armgroup: planning parameter
-        :param graspSetIndex: the index of the grasp set to use for the target. Grasp sets are the ikparams with extra fields in them.
+        :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams
 
         Manual Destination Specification (deprecated)
         :param goaltype: type of the goal, e.g. translationdirection5d or transform6d
@@ -231,10 +232,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param iksolverfreeinc: discretization parameter of the ik solver free joints
         :param worksteplength: planning parameter
         :param armgroup: planning parameter
-        :param graspSetIndex: the index of the grasp set to use for the target. Grasp sets are the ikparams with extra fields in them.
-
-
-      :param goaltype: type of the goal, e.g. translationdirection5d
+        :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams
+        
+        :param goaltype: type of the goal, e.g. translationdirection5d
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
 
         """        
@@ -368,6 +368,30 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
         
+
+    def JitterPartUntilValidGrasp(self, **kwargs):
+        """Select a part that wasn't able to be grasped and jitter its location such that a grasp set is found for it that will take it to the destination.
+
+        On the backend, we should call this function "JitterPartUntilValidGrasp?", parameters should be
+        :param toolname: name of the manipulator
+        :param targetname: The target to try to grasp.
+        :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams.
+        :param approachoffset: The approach distance for simulating full grasp.
+        :param departoffsetdir: The depart distance for simulating full grasp.
+        :param desttargetname: The destination target name where the destination goal ikparams come from
+        :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
+        :param jitterdist: Amount to jitter the target object translation by
+        :param jitterangle: Amount to jitter the target object's orientation angle
+
+        :return: A dictionary with the following keys:
+          - translation: the new translation of the target part
+          - quaternion: the new quaternion of the target part
+          - jointvalues: robot joint values that are grasping the part (fingers are at their preshape)
+        """
+        taskparameters = {'command': 'JitterPartUntilValidGrasp'}
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters)
+
     ####################
     # scene commands
     ####################
