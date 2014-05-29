@@ -23,7 +23,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, None, self.tasktype, scenepk)
+        super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, None, None, None, self.tasktype, scenepk)
 
         self.usewebapi = usewebapi
         
