@@ -371,8 +371,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
 
     def JitterPartUntilValidGrasp(self, **kwargs):
         """Select a part that wasn't able to be grasped and jitter its location such that a grasp set is found for it that will take it to the destination.
-
-        On the backend, we should call this function "JitterPartUntilValidGrasp?", parameters should be
+        
         :param toolname: name of the manipulator
         :param targetname: The target to try to grasp.
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams.
@@ -386,7 +385,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :return: A dictionary with the following keys:
           - translation: the new translation of the target part
           - quaternion: the new quaternion of the target part
-          - jointvalues: robot joint values that are grasping the part (fingers are at their preshape)
+          - jointvalues: robot joint values that are grasping the part (fingers are at their preshape). If empty, then no grasp was found. 
+          - graspname: the grasp name used for jointvalues. If empty, then no grasp was found. 
         """
         taskparameters = {'command': 'JitterPartUntilValidGrasp'}
         taskparameters.update(kwargs)
