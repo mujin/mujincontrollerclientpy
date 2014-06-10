@@ -376,18 +376,22 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams.
         :param approachoffset: The approach distance for simulating full grasp.
         :param departoffsetdir: The depart distance for simulating full grasp.
+        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]
         :param desttargetname: The destination target name where the destination goal ikparams come from. If no name is specified, then robot won't consider putting the target into the destination when it searches for grasps.
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
         :param jitterdist: Amount to jitter the target object translation by
         :param jitterangle: Amount to jitter the target object's orientation angle
         :param jitteriters: Number of times to try jittering before giving up.
         
-        :return: A dictionary with the following keys:
+        :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
           - translation: the new translation of the target part
           - quaternion: the new quaternion of the target part
-          - jointvalues: robot joint values that are grasping the part (fingers are at their preshape). If empty, then no grasp was found.
+          - jointvalues: robot joint values that are grasping the part (fingers are at their preshape).
           - graspname: the grasp name used for jointvalues. If empty, then no grasp was found. 
-          - destikname: the name of the destination ikparam where the grasp is put
+          - destikname: the name of the destination ikparam that was chosen with the grasp
+          - destjointvalues: robot joint values at one of the specified destinations (fingers are at their final positions).
+          - desttranslation: the new translation of the target part
+          - destquaternion: the new quaternion of the target part
         """
         taskparameters = {'command': 'JitterPartUntilValidGrasp'}
         taskparameters.update(kwargs)
