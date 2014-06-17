@@ -504,7 +504,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     def SaveScene(self,**kwargs):
         """saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
-        :param externalref: If '*', then will save each of the objects as externally referencing their original filename.
+        :param preserveexternalrefs: If True, any bodies currently that are being externally referenced from the environment will be saved as external references.
+        :param externalref: If '*', then will save each of the objects as externally referencing their original filename. Otherwise will force saving specific bodies as external references
         :param saveclone: If 1, will save the scenes for all the cloned environments
         :return: the actual filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
         """
