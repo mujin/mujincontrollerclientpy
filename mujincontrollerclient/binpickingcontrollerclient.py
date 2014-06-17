@@ -109,8 +109,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'envclearance': self.envclearance,
                           'execute' : execute,
                           }
-        if startjointvalues is not None:
-            taskparameters['startvalues'] = list(startjointvalues)
+        if startvalues is not None:
+            taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
