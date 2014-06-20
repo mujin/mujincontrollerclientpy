@@ -24,7 +24,6 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         :param usewebapi: whether to use webapi for controller commands
         """
         super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, None, self.tasktype, scenepk)
-
         self.usewebapi = usewebapi
         
     def ComputeCalibrationPoses(self,cameraname,numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea = ""):
