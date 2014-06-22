@@ -93,7 +93,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
         
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -111,6 +111,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
+        if densowavearmgroup is not None:
+            taskparameters['densowavearmgroup'] = densowavearmgroup
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
