@@ -168,7 +168,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
-        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]
+        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
+        :param leaveoffsetintool: If 1, leaveoffsetdir is in the tool coordinate system. If 0, leaveoffsetdir is in the global coordinate system. By default this is 0.
         :param deletetarget: whether to delete target after pick and place is done
         :param toolname: name of the manipulator
         :param regionname: name of the region of the objects
@@ -218,10 +219,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         :param desttargetname: The destination target name where the destination goal ikparams come from
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
+        :param cycledests: If 1, when finished cycling through all destikparamnames, will delete all the targets and start from the first index again. By default it is 1.
+        
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
-        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]
+        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
+        :param leaveoffsetintool: If 1, leaveoffsetdir is in the tool coordinate system. If 0, leaveoffsetdir is in the global coordinate system. By default this is 0.
         :param deletetarget: whether to delete target after pick and place is done
         :param toolname: name of the manipulator
         :param regionname: name of the region of the objects
@@ -376,7 +380,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams.
         :param approachoffset: The approach distance for simulating full grasp.
         :param departoffsetdir: The depart distance for simulating full grasp.
-        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]
+        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
+        :param leaveoffsetintool: If 1, leaveoffsetdir is in the tool coordinate system. If 0, leaveoffsetdir is in the global coordinate system. By default this is 0.
         :param desttargetname: The destination target name where the destination goal ikparams come from. If no name is specified, then robot won't consider putting the target into the destination when it searches for grasps.
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
         :param jitterdist: Amount to jitter the target object translation by
