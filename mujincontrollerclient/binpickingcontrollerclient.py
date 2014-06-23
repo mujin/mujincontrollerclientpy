@@ -15,13 +15,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for bin picking task
     """
     tasktype = 'binpicking'
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotcontrollerhostname, robotcontrollerport, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerIp, robotControllerPort, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
         :param controllerpassword: password of the mujin controller
-        :param robotcontrollerhostname: hostname of the robot controller, e.g. 192.168.13.201
-        :param robotcontrollerport: port of the robot controller, e.g. 5007
+        :param robotControllerIp: hostname of the robot controller, e.g. 192.168.13.201
+        :param robotControllerPort: port of the robot controller, e.g. 5007
         :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7110
         :param binpickingheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
         :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no hearbeat is received, e.g. 7
@@ -37,8 +37,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk)
 
         # robot controller
-        self.robotcontrollerhostname = robotcontrollerhostname
-        self.robotcontrollerport = robotcontrollerport
+        self.robotControllerIp = robotControllerIp
+        self.robotControllerPort = robotControllerPort
 
         # bin picking task
         self.scenepk = scenepk
@@ -72,11 +72,11 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
           - errorcode: error code, string
         """
         robotname = self.robotname
-        robotcontrollerhostname = self.robotcontrollerhostname
-        robotcontrollerport = self.robotcontrollerport
+        robotControllerIp = self.robotControllerIp
+        robotControllerPort = self.robotControllerPort
         taskparameters['robot'] = robotname
-        taskparameters['robotControllerIp'] = robotcontrollerhostname
-        taskparameters['robotControllerPort'] = robotcontrollerport
+        taskparameters['robotControllerIp'] = robotControllerIp
+        taskparameters['robotControllerPort'] = robotControllerPort
         
         if taskparameters.get('speed',None) is None:
             # taskparameters does not have robotspeed, so set the global speed
@@ -189,19 +189,21 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
         """
         if worksteplength is None:
-            worksteplength = min(0.25, 0.1/robotspeed)
+            worksteplength = 0.01
         if toolname is None:
             toolname=self.toolname
         if targetnamepattern is None:
             targetnamepattern='%s_\d+'%(self.targetname)
         if regionname is None:
             regionname = self.regionname
+        if robotspeed is None:
+            robotspeed = self.robotspeed
         taskparameters = {'command': 'PickAndPlace',
                           'toolname': toolname,
                           'goaltype': goaltype,
                           'envclearance': envclearance,
                           'movetodestination': movetodestination,
-                          'armgroup': armgroup,
+                          'densowavearmgroup': armgroup,
                           'goals': goals,
                           'approachoffset': approachoffset,
                           'departoffsetdir': departoffsetdir,
@@ -210,11 +212,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'worksteplength': worksteplength,
                           'targetnamepattern':targetnamepattern,
                           'containername':regionname,
+                          'deletetarget':deletetarget,
+                          'robotspeed':robotspeed,
+                          'debuglevel':debuglevel,
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
-    def StartPickAndPlaceThread(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, regionname=None, envclearance=15, toolname=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
         
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -234,9 +239,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         Low level planning parameters:
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter
-        :param freeinc: planning parameter
         :param worksteplength: planning parameter
-        :param armgroup: planning parameter
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams
         
         :param goaltype: type of the goal, e.g. translationdirection5d
@@ -252,23 +255,26 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             targetnamepattern='%s_\d+'%(self.targetname)
         if regionname is None:
             regionname = self.regionname
+        if robotspeed is None:
+            robotspeed = self.robotspeed
         taskparameters = {'command': 'StartPickAndPlaceThread',
                           'toolname': toolname,
                           'goaltype': goaltype,
                           'envclearance': envclearance,
                           'movetodestination': movetodestination,
-                          'armgroup': armgroup,
                           'orderedgoals': goals,
                           'approachoffset': approachoffset,
                           'departoffsetdir': departoffsetdir,
                           'leaveoffsetdir': leaveoffsetdir,
-                          'freeinc': freeinc,
                           'worksteplength': worksteplength,
                           'targetnamepattern':targetnamepattern,
-                          'containername':regionname
+                          'containername':regionname,
+                          'deletetarget':deletetarget,
+                          'robotspeed':robotspeed,
+                          'debuglevel':debuglevel,
                           }
         taskparameters.update(kwargs);
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=taskparameters.get('robotspeed',None))
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
     def StopPickPlaceThread(self, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
