@@ -246,6 +246,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         :param goaltype: type of the goal, e.g. translationdirection5d
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+        :param useworkspaceplanner: If 1 is set, will try the workspace planner for moving the hand straight. If 2 is set, will try the RRT for moving straight. Can set 3 for trying both.
         """        
         if worksteplength is None:
             worksteplength = 0.01
@@ -572,6 +573,32 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         """
         taskparameters = {'command': 'GetTrajectoryLog',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters)
+
+    def GetPickAndPlaceLog(self,**kwargs):
+        """Gets the recent pick-and-place log executed on the binpicking server. The internal server keeps the log around until the next Pick-and-place command is executed.
+        
+        :param startindex: int, start of the trajectory to get
+        :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
+        
+        :return:
+        
+        total: 10
+        messages: [
+        {
+          "message":"message1",
+          "type":"",
+          "level":"",
+          "data": {
+             "jointvalues":[0,0,0,0,0,0]
+           }
+        },
+        ]
+        
+        """
+        taskparameters = {'command': 'GetPickAndPlaceLog',
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters)
