@@ -222,10 +222,11 @@ def APICall(request_type, api_url, url_params=None, fields=None, data=None):
             content = json.loads(content)
         except ValueError:
             # either response was empty or not JSON
-            raise APIServerError(u'%s, here is what came back in the request:\n%s'%(error_base, content))
+            raise APIServerError(u'%s, here is what came back in the request:\n%s'%(error_base, unicode(content, 'utf-8')))
 
         if content.has_key('traceback'):
-            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s'%(error_base, content['traceback']))
+            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s'%(error_base, unicode(content['traceback'], 'utf-8')))
+        
         else:
             return response.status, ConvertDictToObject(content)
 
