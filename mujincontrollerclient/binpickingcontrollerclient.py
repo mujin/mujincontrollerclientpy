@@ -226,7 +226,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         :param desttargetname: The destination target name where the destination goal ikparams come from
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
-        :param cycledests: If 1, when finished cycling through all destikparamnames, will delete all the targets and start from the first index again. By default it is 1.
+        :param cycledests: When finished cycling through all destikparamnames, will delete all the targets and start from the first index again doing this for cycledests times. By default it is 1.
         
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
@@ -552,7 +552,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     def GetTrajectoryLog(self,**kwargs):
         """Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
         
-        :param startindex: int, start of the trajectory to get
+        :param startindex: int, start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last element.
         :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
         :param includejointvalues: bool, If True will include timedjointvalues, if False will just give back the trajectories. Defautl is False
         
@@ -582,7 +582,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     def GetPickAndPlaceLog(self,**kwargs):
         """Gets the recent pick-and-place log executed on the binpicking server. The internal server keeps the log around until the next Pick-and-place command is executed.
         
-        :param startindex: int, start of the trajectory to get
+        :param startindex: int, start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last element.
         :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
         
         :return:
@@ -592,7 +592,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         {
           "message":"message1",
           "type":"",
-          "level":"",
+          "level":0,
           "data": {
              "jointvalues":[0,0,0,0,0,0]
            }
