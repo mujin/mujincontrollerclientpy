@@ -15,7 +15,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for bin picking task
     """
     tasktype = 'binpicking'
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerIp, robotControllerPort, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerIp, robotControllerPort, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False, initializezmq=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -34,7 +34,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk)
+        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq)
 
         # robot controller
         self.robotControllerIp = robotControllerIp
@@ -56,7 +56,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     # robot commands        
     #########################
 
-    def ExecuteRobotCommand(self, taskparameters, robotspeed=None):
+    def ExecuteRobotCommand(self, taskparameters, robotspeed=None,usewebapi=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -85,7 +85,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             else:
                 taskparameters['robotspeed'] = robotspeed
                 
-        return self.ExecuteCommand(taskparameters)
+        return self.ExecuteCommand(taskparameters,usewebapi)
 
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, **kwargs):
         """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
@@ -95,7 +95,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
         
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, usewebapi=False, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -116,7 +116,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if densowavearmgroup is not None:
             taskparameters['densowavearmgroup'] = densowavearmgroup
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed,usewebapi=usewebapi)
     
     def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None):
         """unchucks the manipulator and releases the target
