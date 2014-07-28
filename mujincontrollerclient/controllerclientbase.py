@@ -18,6 +18,7 @@ import simplejson
 class ControllerClientBase(object):
     """mujin controller client base
     """
+    sceneparams = {}
     def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
@@ -44,6 +45,7 @@ class ControllerClientBase(object):
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
         self.LogIn(controllerurl, controllerusername, controllerpassword)
+        self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': self.scenepk, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
 
         # connects to task's zmq server
         self._zmqclient = None
@@ -104,5 +106,7 @@ class ControllerClientBase(object):
         taskparameters = {'command': 'InitializeZMQ',
                           'port': taskzmqport,
                           'heartbeatPort': taskheartbeatport,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteCommand(taskparameters, usewebapi=True)
