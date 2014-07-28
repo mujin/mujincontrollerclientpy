@@ -15,6 +15,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for bin picking task
     """
     tasktype = 'binpicking'
+    sceneparams = {}
     def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerIp, robotControllerPort, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False, initializezmq=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
@@ -48,6 +49,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.targetname = targetname
         self.toolname = toolname
         self.envclearance = envclearance
+
+        self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': self.scenepk, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
 
         # whether to use webapi for bin picking task commands
         self.usewebapi = usewebapi
@@ -91,7 +94,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
         """
         taskparameters = {'command': 'ExecuteTrajectory',
-                          'trajectory': trajectoryxml }
+                          'trajectory': trajectoryxml,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
         
@@ -110,6 +116,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'jointindices': list(jointindices),
                           'envclearance': self.envclearance,
                           'execute' : execute,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
@@ -130,6 +138,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters = {'command': 'UnchuckGripper',
                           'toolname': toolname,
                           'targetname': targetname,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
@@ -141,6 +151,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             toolname=self.toolname
         taskparameters = {'command': 'ChuckGripper',
                           'toolname': toolname,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
@@ -150,6 +162,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         - currentjointvalues: [0,0,0,0,0,0]
         """
         taskparameters = {'command': 'GetJointValues',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters)
     
@@ -158,6 +172,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :return: current transform of the manipulator in robot frame in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
         """
         taskparameters = {'command': 'GetManipTransformToRobot',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters)
     
@@ -217,6 +233,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'deletetarget':deletetarget,
                           'robotspeed':robotspeed,
                           'debuglevel':debuglevel,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
@@ -277,6 +295,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'deletetarget':deletetarget,
                           'robotspeed':robotspeed,
                           'debuglevel':debuglevel,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         taskparameters.update(kwargs);
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
@@ -284,7 +304,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     def StopPickPlaceThread(self, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         """
-        taskparameters = {'command': 'StopPickPlaceThread'}
+        taskparameters = {'command': 'StopPickPlaceThread',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,}
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
     
@@ -292,7 +314,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """gets the status of the pick and place thread
         :return: status (0: not running, 1: no error, 2: error) of the pick and place thread in a json dictionary, e.g. {'status': 2, 'error': 'an error happened'}
         """
-        taskparameters = {'command': 'GetPickPlaceStatus'}
+        taskparameters = {'command': 'GetPickPlaceStatus',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
     
@@ -314,6 +339,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'toolname': toolname,
                           'envclearance':envclearance,
                           'closegripper':closegripper,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
@@ -333,7 +360,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :return: A dictionary of:
         - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
         """
-        taskparameters = {'command': 'ComputeIK'}
+        taskparameters = {'command': 'ComputeIK',    
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         if not 'toolname' in taskparameters:
             taskparameters['toolname'] = self.toolname
@@ -353,7 +383,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :return: A dictionary of:
         - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
         """
-        taskparameters = {'command': 'ComputeIKFromParameters'}
+        taskparameters = {'command': 'ComputeIKFromParameters',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         if not 'toolname' in taskparameters:
             taskparameters['toolname'] = self.toolname
@@ -370,7 +403,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
         :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
         """
-        taskparameters = {'command': 'InitializePartsWithPhysics'}
+        taskparameters = {'command': 'InitializePartsWithPhysics',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         if not 'containername' in taskparameters:
             taskparameters['containername'] = self.containername
@@ -379,7 +415,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     def StopPhysicsThread(self, **kwargs):
         """stops the physics simulation started with InitializePartsWithPhysics
         """
-        taskparameters = {'command': 'StopPhysicsThread'}
+        taskparameters = {'command': 'StopPhysicsThread',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
     
@@ -409,7 +448,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
           - desttranslation: the new translation of the target part
           - destquaternion: the new quaternion of the target part
         """
-        taskparameters = {'command': 'JitterPartUntilValidGrasp'}
+        taskparameters = {'command': 'JitterPartUntilValidGrasp',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,}
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
     
@@ -428,6 +469,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'robotname': self.robotname,
                           'bodyname': bodyname,
                           'cameraname': cameraname,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -439,7 +482,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """
         taskparameters = {'command': 'GetPickedPositions',
                           'robotname': self.robotname,
-                          'unit': unit}
+                          'unit': unit,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         return self.ExecuteCommand(taskparameters)
 
     def UpdateObjects(self, envstate, targetname=None, unit="m"):
