@@ -500,7 +500,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                            'object_uri': u'mujin:/%s.mujin.dae'%(targetname),
                            'robot': self.robotname,
                            'envstate': envstate,
-                           'unit': unit
+                           'sceneparams' : self.sceneparams,
+                           'tasktype' : self.tasktype,
+                           'unit': unit,
                            }
         return self.ExecuteCommand(taskparameters)
 
@@ -517,6 +519,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'targetname': targetname,
                           'robotname': self.robotname,
                           'toolname': toolname,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -526,6 +530,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """
         taskparameters = {'command': 'GetGrabbed',
                           'robotname': self.robotname,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -538,6 +544,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters = {'command': 'GetTransform',
                           'targetname': targetname,
                           'unit': unit,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -553,6 +561,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'targetname': targetname,
                           'unit': unit,
                           'translation': translation,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         if rotationmat is not None:
             taskparameters['rotationmat'] = rotationmat
@@ -571,7 +581,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """
         taskparameters = {'command': 'GetAABB',
                           'targetname': targetname,
-                          'unit': unit                         
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          'unit': unit,                         
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -580,6 +592,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
                           'prefix': prefix,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -591,7 +605,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param saveclone: If 1, will save the scenes for all the cloned environments
         :return: the actual filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
         """
-        taskparameters = {'command': 'SaveScene'}
+        taskparameters = {'command': 'SaveScene',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters)
 
@@ -621,6 +638,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         """
         taskparameters = {'command': 'GetTrajectoryLog',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters)
@@ -647,6 +666,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         """
         taskparameters = {'command': 'GetPickAndPlaceLog',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters)
@@ -668,14 +689,20 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param taskname: name of the background task
         """
         taskparameters = {'command':'ExecuteBackgroundTask',
-                          'taskname':taskname}
+                          'taskname':taskname,
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
 
     def __StopBackgroundTask(self):
         """stops the background task (need testing)
         assumes that only one background task is running
         """
-        taskparameters = {'command':'StopBackgroundTask'}
+        taskparameters = {'command':'StopBackgroundTask',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          }
         return self.ExecuteRobotCommand(taskparameters)
 
     def __PickAndMove(self,goaltype,armjointvaluesgoals,destinationgoals=None,targetnames=None,movetodestination=0,deletetarget=1, startvalues=None,toolname=None,envclearance=20,regionname=None, robotspeed=None):
@@ -690,6 +717,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'movetodestination': movetodestination,
                           'deletetarget': deletetarget,
                           'armjointvaluesgoals':list(armjointvaluesgoals),
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
                           }
         if regionname is not None:
             taskparameters['boxname']=regionname # TODO: update backend
