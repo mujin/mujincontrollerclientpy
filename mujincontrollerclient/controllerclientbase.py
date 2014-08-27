@@ -79,7 +79,8 @@ class ControllerClientBase(object):
         if self.tasktype == 'binpicking':
             results = webapiclient.ExecuteBinPickingTask(self.scenepk, taskparameters, timeout=webapitimeout)
         elif self.tasktype == 'handeyecalibration':
-            results = webapiclient.ExecuteHandEyeCalibrationTask(self.scenepk, taskparameters, timeout=webapitimeout)
+            # results = webapiclient.ExecuteHandEyeCalibrationTaskAsync(self.scenepk, taskparameters, timeout=webapitimeout)
+            results = webapiclient.ExecuteHandEyeCalibrationTaskSync(self.scenepk, taskparameters)
         else:
             raise ControllerClientError(u'unknown task type: %s'%self.tasktype)
         return results
