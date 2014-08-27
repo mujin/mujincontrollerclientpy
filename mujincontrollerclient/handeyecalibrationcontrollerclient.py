@@ -15,7 +15,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
     """mujin controller client for hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
-    def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, usewebapi=True):
+    def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, usewebapi=True):
         """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -23,7 +23,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, None, None, None, self.tasktype, scenepk)
+        super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, self.tasktype, scenepk)
         self.usewebapi = usewebapi
         
     def ComputeCalibrationPoses(self,cameraname,numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea = ""):
@@ -34,7 +34,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           'numsamples': numsamples,
                           'toolname' : toolname,
                           'targetarea': targetarea,
-                          'samplingmethod': "boardexposure" #"boardexposure"
+                          'samplingmethod': "boardexposure",
                           }
         result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
         return result
@@ -49,8 +49,8 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           'numsamples': numsamples,
                           'toolname' : toolname,
                           'targetarea': targetarea,
-                          'samplingmethod': samplingmethod
+                          'samplingmethod': samplingmethod,
                           }
-        result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
+        result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout = 3000)
         return result
 

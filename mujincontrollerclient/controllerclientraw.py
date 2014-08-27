@@ -365,7 +365,21 @@ def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
             log.info('deleting previous job')
             APICall('DELETE', 'job/%s'%jobpk)
 
-def ExecuteHandEyeCalibrationTask(scenepk, taskparameters, timeout=1000):
+def ExecuteHandEyeCalibrationTaskSync(scenepk, taskparameters):
+    '''
+    :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+    '''
+    taskpk = GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
+    # set the task parameters
+    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'handeyecalibration', 'taskparameters':taskparameters})
+    # # just in case, delete all previous tasks
+    APICall('DELETE', 'job')    
+    # execute the task
+    status, response = APICall('POST', u'scene/%s/task/%s/result'%(scenepk, taskpk))
+    assert(status==200)
+    return response
+
+def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
     """
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
     """
@@ -377,6 +391,7 @@ def ExecuteHandEyeCalibrationTask(scenepk, taskparameters, timeout=1000):
     # execute the task
     status, response = APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
     assert(status==200)
+
     # the jobpk allows us to track the job
     jobpk=response['jobpk']
     # query the task results
