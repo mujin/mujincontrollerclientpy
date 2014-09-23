@@ -15,7 +15,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
     """mujin controller client for hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
-    def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, usewebapi=True):
+    def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, robot, taskzmqport, taskheartbeatport, taskheartbeattimeout, usewebapi=True):
         """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -24,9 +24,12 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         :param usewebapi: whether to use webapi for controller commands
         """
         super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, self.tasktype, scenepk)
+        self.robot = robot
         self.usewebapi = usewebapi
         
-    def ComputeCalibrationPoses(self,cameraname,numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea = ""):
+    def ComputeCalibrationPoses(self,cameraname,numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea = "", samplingmethod=""):
+        if samplingmethod == "":
+            samplingmethod = "boardexposure" #"boardexposure"
         taskparameters = {'command': 'ComputeCalibrationPoses',
                           'cameraname': cameraname,
                           'halconpatternparameters': halconpatternparameters,
@@ -34,8 +37,10 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           'numsamples': numsamples,
                           'toolname' : toolname,
                           'targetarea': targetarea,
-                          'samplingmethod': "boardexposure",
+                          'samplingmethod': samplingmethod
                           }
+        if self.robot is not None:
+            taskparameters["robot"] = self.robot
         result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
         return result
 
@@ -51,6 +56,8 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           'targetarea': targetarea,
                           'samplingmethod': samplingmethod,
                           }
-        result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout = 3000)
+        if self.robot is not None:
+            taskparameters["robot"] = self.robot
+        result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
         return result
 

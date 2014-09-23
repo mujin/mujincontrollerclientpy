@@ -156,7 +156,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
-    def GetJointValues(self):
+    def GetJointValues(self,**kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
         - currentjointvalues: [0,0,0,0,0,0]
@@ -165,6 +165,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'sceneparams' : self.sceneparams,
                           'tasktype' : self.tasktype,
                           }
+        # NOTE: if you are using densowave robot, you always need to set "densowavearmgroup"
+        taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
     
     def GetManipulatorTransformInRobotFrame(self):
