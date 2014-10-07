@@ -1,15 +1,82 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2014 MUJIN Inc.
 # Mujin controller client for bin picking task
+import os
+from urlparse import urlparse
+from urllib import quote, unquote
 
 # logging
 import logging
 log = logging.getLogger(__name__)
 
-# system imports
-
 # mujin imports
+from . import ControllerClientError
 from . import controllerclientbase
+
+# the outside world uses this specifier to signify a '#' specifier. This is needed
+# because '#' in URL parsing is a special role
+id_separator = u'@'
+
+def GetFilenameFromURI(uri,mujinpath):
+    """returns the filesystem path that the URI points to.
+    :param uri: points to mujin:/ resource
+    
+    example:
+    
+      GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
+      returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
+    """
+    index = uri.find(id_separator)
+    if index >= 0:
+        res = urlparse(uri[:index])
+    else:
+        res = urlparse(uri)
+    if res.scheme != 'mujin':
+        raise ControllerClientError(_('Only mujin: sceheme supported of %s')%uri)
+    
+    if len(res.path) == 0 or res.path[0] != '/':
+        raise ControllerClientError(_('path is not absolute on URI %s')%uri)
+    
+    return res, os.path.join(mujinpath,res.path[1:])
+
+def GetURIFromPrimaryKey(pk):
+    """Given the encoded primary key (has to be str object), returns the unicode URL.
+    If pk is a unicode object, will use inside url as is, otherwise will decode
+    
+    example:
+
+      GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
+      returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
+    """
+    pkunicode = GetUnicodeFromPrimaryKey(pk)
+    # check if separator is present
+    index = pkunicode.find(id_separator)
+    if index >= 0:
+        basefilename = pkunicode[0:index]
+        if len(os.path.splitext(basefilename)[1]) == 0:
+            # no extension present in basefilename, so default to mujin.dae
+            basefilename += u'.mujin.dae'
+        return u'mujin:/'+basefilename+pkunicode[index:]
+    
+    if len(os.path.splitext(pkunicode)[1]) == 0:
+        # no extension present in basefilename, so default to mujin.dae
+        pkunicode += u'.mujin.dae'
+    return u'mujin:/'+pkunicode
+
+def GetUnicodeFromPrimaryKey(pk):
+    """Given the encoded primary key (has to be str object), returns the unicode string.
+    If pk is a unicode object, will return the string as is.
+    
+    example:
+
+      GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
+      returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
+    """
+    if not isinstance(pk,unicode):
+        return unicode(unquote(str(pk)),'utf-8')    
+    
+    else:
+        return pk
 
 class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for bin picking task
@@ -50,8 +117,11 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.toolname = toolname
         self.envclearance = envclearance
 
-        self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': self.scenepk, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
-
+        # for now (HACK) need to set the correct scenefilename
+        mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR','/var/www/media/u'), controllerusername)
+        scenefilename = GetFilenameFromURI(GetURIFromPrimaryKey(self.scenepk), mujinpath)[1]
+        self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': scenefilename, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
+        
         # whether to use webapi for bin picking task commands
         self.usewebapi = usewebapi
         
@@ -179,7 +249,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteRobotCommand(taskparameters)
     
-    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
+    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], destdepartoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
         
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -188,8 +258,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
-        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
-        :param leaveoffsetintool: If 1, leaveoffsetdir is in the tool coordinate system. If 0, leaveoffsetdir is in the global coordinate system. By default this is 0.
+        :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
+        :param leaveoffsetintool: If 1, destdepartoffsetdir is in the tool coordinate system. If 0, destdepartoffsetdir is in the global coordinate system. By default this is 0.
         :param deletetarget: whether to delete target after pick and place is done
         :param toolname: name of the manipulator
         :param regionname: name of the region of the objects
@@ -227,7 +297,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'goals': goals,
                           'approachoffset': approachoffset,
                           'departoffsetdir': departoffsetdir,
-                          'leaveoffsetdir': leaveoffsetdir,
+                          'destdepartoffsetdir': destdepartoffsetdir,
                           'freeinc': freeinc,
                           'worksteplength': worksteplength,
                           'targetnamepattern':targetnamepattern,
@@ -241,7 +311,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
-    def StartPickAndPlaceThread(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], leaveoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], destdepartoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
         
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -251,8 +321,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
-        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
-        :param leaveoffsetintool: If 1, leaveoffsetdir is in the tool coordinate system. If 0, leaveoffsetdir is in the global coordinate system. By default this is 0.
+        :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
+        :param leaveoffsetintool: If 1, destdepartoffsetdir is in the tool coordinate system. If 0, destdepartoffsetdir is in the global coordinate system. By default this is 0.
         :param deletetarget: whether to delete target after pick and place is done
         :param toolname: name of the manipulator
         :param regionname: name of the region of the objects
@@ -274,8 +344,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             worksteplength = 0.01
         if toolname is None:
             toolname=self.toolname
-        if goals is None:
-            goals = GetOrderedGoals(self.targetname,envclearance,numparts)
         if targetnamepattern is None:
             targetnamepattern='%s_\d+'%(self.targetname)
         if regionname is None:
@@ -284,13 +352,11 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             robotspeed = self.robotspeed
         taskparameters = {'command': 'StartPickAndPlaceThread',
                           'toolname': toolname,
-                          'goaltype': goaltype,
                           'envclearance': envclearance,
                           'movetodestination': movetodestination,
-                          'orderedgoals': goals,
                           'approachoffset': approachoffset,
                           'departoffsetdir': departoffsetdir,
-                          'leaveoffsetdir': leaveoffsetdir,
+                          'destdepartoffsetdir': destdepartoffsetdir,
                           'worksteplength': worksteplength,
                           'targetnamepattern':targetnamepattern,
                           'containername':regionname,
@@ -300,6 +366,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'sceneparams' : self.sceneparams,
                           'tasktype' : self.tasktype,
                           }
+        if goals is not None:
+            taskparameters['orderedgoals'] = goals
+            taskparameters['goaltype'] = goaltype
         taskparameters.update(kwargs);
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
     
@@ -432,8 +501,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams.
         :param approachoffset: The approach distance for simulating full grasp.
         :param departoffsetdir: The depart distance for simulating full grasp.
-        :param leaveoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
-        :param leaveoffsetintool: If 1, leaveoffsetdir is in the tool coordinate system. If 0, leaveoffsetdir is in the global coordinate system. By default this is 0.
+        :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
+        :param leaveoffsetintool: If 1, destdepartoffsetdir is in the tool coordinate system. If 0, destdepartoffsetdir is in the global coordinate system. By default this is 0.
         :param desttargetname: The destination target name where the destination goal ikparams come from. If no name is specified, then robot won't consider putting the target into the destination when it searches for grasps.
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
         :param jitterdist: Amount to jitter the target object translation by
