@@ -252,7 +252,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteRobotCommand(taskparameters)
     
-    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], destdepartoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, armgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
+    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], destdepartoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
         
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -274,7 +274,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param movetodestination: planning parameter
         :param freeinc: planning parameter
         :param worksteplength: planning parameter
-        :param armgroup: planning parameter
+        :param densowavearmgroup: planning parameter
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams
 
         Manual Destination Specification (deprecated)
@@ -296,7 +296,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'goaltype': goaltype,
                           'envclearance': envclearance,
                           'movetodestination': movetodestination,
-                          'densowavearmgroup': armgroup,
                           'goals': goals,
                           'approachoffset': approachoffset,
                           'departoffsetdir': departoffsetdir,
@@ -335,7 +334,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter
         :param worksteplength: planning parameter
-        :param densowavearmgroup: planning parameter
+        :param densowavearmgroup: robot parameters
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams
         
         :param goaltype: type of the goal, e.g. translationdirection5d
