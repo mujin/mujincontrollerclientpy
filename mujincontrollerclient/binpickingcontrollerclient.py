@@ -54,7 +54,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
 
         # whether to use webapi for bin picking task commands
         self.usewebapi = usewebapi
-        
+
+    def ReloadModule(self, **kwargs):
+        return self.ExecuteCommand({'command':'ReloadModule', 'sceneparams':self.sceneparams, 'tasktype':self.tasktype}, **kwargs)
+    
     #########################
     # robot commands        
     #########################
@@ -731,4 +734,3 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-
