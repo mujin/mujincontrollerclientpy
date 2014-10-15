@@ -83,13 +83,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """
     tasktype = 'binpicking'
     sceneparams = {}
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerIp, robotControllerPort, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False, initializezmq=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False, initializezmq=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
         :param controllerpassword: password of the mujin controller
-        :param robotControllerIp: hostname of the robot controller, e.g. 192.168.13.201
-        :param robotControllerPort: port of the robot controller, e.g. 5007
+        :param robotControllerUri: URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
         :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7110
         :param binpickingheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
         :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no hearbeat is received, e.g. 7
@@ -105,8 +104,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq)
 
         # robot controller
-        self.robotControllerIp = robotControllerIp
-        self.robotControllerPort = robotControllerPort
+        self.robotControllerUri = robotControllerUri
 
         # bin picking task
         self.scenepk = scenepk
@@ -148,11 +146,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
           - errorcode: error code, string
         """
         robotname = self.robotname
-        robotControllerIp = self.robotControllerIp
-        robotControllerPort = self.robotControllerPort
+        robotControllerUri = self.robotControllerUri
         taskparameters['robot'] = robotname
-        taskparameters['robotControllerIp'] = robotControllerIp
-        taskparameters['robotControllerPort'] = robotControllerPort
+        taskparameters['robotControllerUri'] = robotControllerUri
         
         if taskparameters.get('speed',None) is None:
             # taskparameters does not have robotspeed, so set the global speed
