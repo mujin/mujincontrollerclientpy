@@ -83,7 +83,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """
     tasktype = 'binpicking'
     sceneparams = {}
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False, initializezmq=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -101,7 +101,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq)
+        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi)
 
         # robot controller
         self.robotControllerUri = robotControllerUri
@@ -119,9 +119,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR','/var/www/media/u'), controllerusername)
         scenefilename = GetFilenameFromURI(GetURIFromPrimaryKey(self.scenepk), mujinpath)[1]
         self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': scenefilename, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
-        
-        # whether to use webapi for bin picking task commands
-        self.usewebapi = usewebapi
 
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({'command':'ReloadModule', 'sceneparams':self.sceneparams, 'tasktype':self.tasktype}, **kwargs)
@@ -130,7 +127,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     # robot commands        
     #########################
 
-    def ExecuteRobotCommand(self, taskparameters, robotspeed=None,usewebapi=False):
+    def ExecuteRobotCommand(self, taskparameters, robotspeed=None,usewebapi=None):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -170,7 +167,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
         
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, usewebapi=False, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, usewebapi=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -574,7 +571,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                            'unit': unit,
                            }
         return self.ExecuteCommand(taskparameters)
-
 
     def Grab(self, targetname, toolname=None):
         """grabs an object with tool

@@ -305,6 +305,20 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
             APICall('DELETE', 'job/%s'%jobpk)
 
 
+def ExecuteBinPickingTaskSync(scenepk, taskparameters):
+    '''
+    :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+    '''
+    taskpk = GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
+    # set the task parameters
+    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'binpicking', 'taskparameters':taskparameters})
+    # # just in case, delete all previous tasks
+    APICall('DELETE', 'job')    
+    # execute the task
+    status, response = APICall('POST', u'scene/%s/task/%s/result'%(scenepk, taskpk))
+    assert(status==200)
+    return response
+
 def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
     """
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
