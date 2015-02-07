@@ -20,9 +20,9 @@ id_separator = u'@'
 def GetFilenameFromURI(uri,mujinpath):
     """returns the filesystem path that the URI points to.
     :param uri: points to mujin:/ resource
-    
+
     example:
-    
+
       GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
       returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
     """
@@ -33,16 +33,16 @@ def GetFilenameFromURI(uri,mujinpath):
         res = urlparse(uri)
     if res.scheme != 'mujin':
         raise ControllerClientError(_('Only mujin: sceheme supported of %s')%uri)
-    
+
     if len(res.path) == 0 or res.path[0] != '/':
         raise ControllerClientError(_('path is not absolute on URI %s')%uri)
-    
+
     return res, os.path.join(mujinpath,res.path[1:])
 
 def GetURIFromPrimaryKey(pk):
     """Given the encoded primary key (has to be str object), returns the unicode URL.
     If pk is a unicode object, will use inside url as is, otherwise will decode
-    
+
     example:
 
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
@@ -57,7 +57,7 @@ def GetURIFromPrimaryKey(pk):
             # no extension present in basefilename, so default to mujin.dae
             basefilename += u'.mujin.dae'
         return u'mujin:/'+basefilename+pkunicode[index:]
-    
+
     if len(os.path.splitext(pkunicode)[1]) == 0:
         # no extension present in basefilename, so default to mujin.dae
         pkunicode += u'.mujin.dae'
@@ -66,15 +66,15 @@ def GetURIFromPrimaryKey(pk):
 def GetUnicodeFromPrimaryKey(pk):
     """Given the encoded primary key (has to be str object), returns the unicode string.
     If pk is a unicode object, will return the string as is.
-    
+
     example:
 
       GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
     """
     if not isinstance(pk,unicode):
-        return unicode(unquote(str(pk)),'utf-8')    
-    
+        return unicode(unquote(str(pk)),'utf-8')
+
     else:
         return pk
 
@@ -119,20 +119,20 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR','/var/www/media/u'), controllerusername)
         scenefilename = GetFilenameFromURI(GetURIFromPrimaryKey(self.scenepk), mujinpath)[1]
         self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': scenefilename, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
-        
+
         # whether to use webapi for bin picking task commands
         self.usewebapi = usewebapi
 
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({'command':'ReloadModule', 'sceneparams':self.sceneparams, 'tasktype':self.tasktype}, **kwargs)
-    
+
     #########################
-    # robot commands        
+    # robot commands
     #########################
 
     def ExecuteRobotCommand(self, taskparameters, robotspeed=None,usewebapi=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
-        
+
         executes a command on the task.
 
         :return: a dictionary that contains:
@@ -149,14 +149,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         robotControllerUri = self.robotControllerUri
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = robotControllerUri
-        
+
         if taskparameters.get('speed',None) is None:
             # taskparameters does not have robotspeed, so set the global speed
             if robotspeed is None:
                 taskparameters['robotspeed'] = self.robotspeed
             else:
                 taskparameters['robotspeed'] = robotspeed
-                
+
         return self.ExecuteCommand(taskparameters,usewebapi)
 
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, **kwargs):
@@ -169,7 +169,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-        
+
     def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, usewebapi=False, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
@@ -194,7 +194,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['densowavearmgroup'] = densowavearmgroup
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed,usewebapi=usewebapi)
-    
+
     def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None):
         """unchucks the manipulator and releases the target
         :param toolname: name of the manipulator, default is self.toolname
@@ -211,7 +211,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-    
+
     def ChuckGripper(self,toolname=None, robotspeed=None):
         """chucks the manipulator
         :param toolname: name of the manipulator, default is self.toolname
@@ -224,7 +224,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-    
+
     def GetJointValues(self,**kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
@@ -237,7 +237,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         # NOTE: if you are using densowave robot, you always need to set "densowavearmgroup"
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def GetManipulatorTransformInRobotFrame(self):
         """gets the transform of the manipulator in robot frame
         :return: current transform of the manipulator in robot frame in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
@@ -247,13 +247,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], destdepartoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
-        
+
         :param desttargetname: The destination target name where the destination goal ikparams come from
         :param destikparamnames: A list of lists of ikparam names for the destinations of the target. Only destikparamnames[0] is looked at and tells the system to place the part in any of the ikparams in destikparamnames[0]
-        
+
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
@@ -264,7 +264,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param regionname: name of the region of the objects
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
         :param envclearance: environment clearance in milimeter
-        
+
         Low level planning parameters:
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter
@@ -308,14 +308,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-    
+
     def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0,0,50], destdepartoffsetdir=[0,0,30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
-        
+
         :param desttargetname: The destination target name where the destination goal ikparams come from
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
         :param cycledests: When finished cycling through all destikparamnames, will delete all the targets and start from the first index again doing this for cycledests times. By default it is 1.
-        
+
         :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
@@ -332,12 +332,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param worksteplength: planning parameter
         :param densowavearmgroup: robot parameters
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams
-        
+
         :param goaltype: type of the goal, e.g. translationdirection5d
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-        
+
         :param useworkspaceplanner: If 1 is set, will try the workspace planner for moving the hand straight. If 2 is set, will try the RRT for moving straight. Can set 3 for trying both.
-        """        
+        """
         if worksteplength is None:
             worksteplength = 0.01
         if toolname is None:
@@ -369,7 +369,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['goaltype'] = goaltype
         taskparameters.update(kwargs);
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-    
+
     def StopPickPlaceThread(self, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         """
@@ -378,7 +378,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'tasktype' : self.tasktype,}
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def GetPickPlaceStatus(self, **kwargs):
         """gets the status of the pick and place thread
         :return: status (0: not running, 1: no error, 2: error) of the pick and place thread in a json dictionary, e.g. {'status': 2, 'error': 'an error happened'}
@@ -389,14 +389,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def MoveToHandPosition(self,goaltype,goals,toolname=None,envclearance=None,closegripper=0, robotspeed=None):
         """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
         :param goaltype: type of the goal, e.g. translationdirection5d
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
         :param toolname: name of the manipulator, default is self.toolname
         :param envclearance: clearance in milimeter, default is self.envclearance
-        :param closegripper: whether to close gripper once the goal is reached, default is 0        
+        :param closegripper: whether to close gripper once the goal is reached, default is 0
         """
         if toolname is None:
             toolname = self.toolname
@@ -412,7 +412,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'tasktype' : self.tasktype,
                           }
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
-    
+
     def ComputeIK(self, **kwargs):
         """
         :param toolname: tool name, string
@@ -429,7 +429,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :return: A dictionary of:
         - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
         """
-        taskparameters = {'command': 'ComputeIK',    
+        taskparameters = {'command': 'ComputeIK',
                           'sceneparams' : self.sceneparams,
                           'tasktype' : self.tasktype,
                           }
@@ -439,7 +439,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if not 'envclearance' in taskparameters:
             taskparameters['envclearance'] = self.envclearance
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def ComputeIKFromParameters(self, **kwargs):
         """
         :param toolname: tool name, string
@@ -448,7 +448,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param targetname: the target object name that the ikparamnames belong to
         :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
         :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
-        
+
         :return: A dictionary of:
         - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
         """
@@ -462,7 +462,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if not 'envclearance' in taskparameters:
             taskparameters['envclearance'] = self.envclearance
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def InitializePartsWithPhysics(self, **kwargs):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.
         :param targeturi: the target uri to initialize the scene with
@@ -480,7 +480,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if not 'containername' in taskparameters:
             taskparameters['containername'] = self.containername
         return self.ExecuteRobotCommand(taskparameters)
-        
+
     def StopPhysicsThread(self, **kwargs):
         """stops the physics simulation started with InitializePartsWithPhysics
         """
@@ -490,10 +490,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     def JitterPartUntilValidGrasp(self, **kwargs):
         """Select a part that wasn't able to be grasped and jitter its location such that a grasp set is found for it that will take it to the destination.
-        
+
         :param toolname: name of the manipulator
         :param targetname: The target to try to grasp.
         :param graspsetname: the name of the grasp set belong to the target objects to use for the target. Grasp sets are a list of ikparams.
@@ -506,12 +506,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param jitterdist: Amount to jitter the target object translation by
         :param jitterangle: Amount to jitter the target object's orientation angle
         :param jitteriters: Number of times to try jittering before giving up.
-        
+
         :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
           - translation: the new translation of the target part
           - quaternion: the new quaternion of the target part
           - jointvalues: robot joint values that are grasping the part (fingers are at their preshape).
-          - graspname: the grasp name used for jointvalues. If empty, then no grasp was found. 
+          - graspname: the grasp name used for jointvalues. If empty, then no grasp was found.
           - destikname: the name of the destination ikparam that was chosen with the grasp
           - destjointvalues: robot joint values at one of the specified destinations (fingers are at their final positions).
           - desttranslation: the new translation of the target part
@@ -522,16 +522,15 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'tasktype' : self.tasktype,}
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters)
-    
+
     ####################
     # scene commands
     ####################
-    
-    def IsRobotOccludingBody(self,bodyname,cameraname):
+
+    def IsRobotOccludingBody(self, bodyname, cameraname):
         """returns if the robot is occluding body in the view of the specified camera
         :param bodyname: name of the object
         :param cameraname: name of the camera
-        :param robotname: name of the robot
         :return: the occlusion state in a json dictionary, e.g. {'occluded': 0}
         """
         taskparameters = {'command' : 'IsRobotOccludingBody',
@@ -652,7 +651,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'targetname': targetname,
                           'sceneparams' : self.sceneparams,
                           'tasktype' : self.tasktype,
-                          'unit': unit,                         
+                          'unit': unit,
                           }
         return self.ExecuteCommand(taskparameters)
 
@@ -683,13 +682,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
 
     def GetTrajectoryLog(self,**kwargs):
         """Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
-        
+
         :param startindex: int, start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last element.
         :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
         :param includejointvalues: bool, If True will include timedjointvalues, if False will just give back the trajectories. Defautl is False
-        
+
         :return:
-        
+
         total: 10
         trajectories: [
         {
@@ -704,7 +703,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
 
         Where timedjointvalues is a list joint values and the trajectory time. For a 3DOF robot sampled at 0.008s, this is
         [J1, J2, J3, 0, J1, J2, J3, 0.008, J1, J2, J3, 0.016, ...]
-        
+
         """
         taskparameters = {'command': 'GetTrajectoryLog',
                           'sceneparams' : self.sceneparams,
@@ -715,12 +714,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
 
     def GetPickAndPlaceLog(self,**kwargs):
         """Gets the recent pick-and-place log executed on the binpicking server. The internal server keeps the log around until the next Pick-and-place command is executed.
-        
+
         :param startindex: int, start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last element.
         :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
-        
+
         :return:
-        
+
         total: 10
         messages: [
         {
@@ -732,7 +731,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
            }
         },
         ]
-        
+
         """
         taskparameters = {'command': 'GetPickAndPlaceLog',
                           'sceneparams' : self.sceneparams,
@@ -748,11 +747,11 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     def UnchuckManipulator(self, *args, **kwargs):
         log.warn('deprecated')
         return self.UnchuckGripper(*args, **kwargs)
-    
+
     def ChuckManipulator(self, *args, **kwargs):
         log.warn('deprecated')
         return self.ChuckGripper(*args, **kwargs)
-    
+
     def __StartBackgroundTask(self, taskname, robotspeed=None):
         """starts a background task (need testing)
         :param taskname: name of the background task
