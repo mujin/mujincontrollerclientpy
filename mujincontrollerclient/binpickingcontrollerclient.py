@@ -467,7 +467,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.
         :param targeturi: the target uri to initialize the scene with
         :param numtargets: the number of targets to create
-        :param containername: the container name to drop the targets into
+        :param regionname: the container name to drop the targets into
         :param duration: the duration in seconds to continue the physics until it is stopped.
         :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
         :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
@@ -478,7 +478,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         if not 'containername' in taskparameters:
-            taskparameters['containername'] = self.containername
+            taskparameters['containername'] = self.regionname
         return self.ExecuteRobotCommand(taskparameters)
 
     def StopPhysicsThread(self, **kwargs):
@@ -739,7 +739,26 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters)
+    
+    def MoveRobotOutOfCameraOcclusion(self, regionname = None, robotspeed=None, toolname=None, **kwargs):
+        """moves the robot out of camera occlusion and deletes targets if it was in occlusion.
 
+        :param toolname: name of the tool to move when avoiding
+        :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
+        """
+        if regionname is None:
+            regionname = self.regionname
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'MoveRobotOutOfCameraOcclusion',
+                          'sceneparams' : self.sceneparams,
+                          'tasktype' : self.tasktype,
+                          'containername':regionname,
+                          'toolname':toolname
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
+    
     #######################
     # unsupported commands
     #######################
