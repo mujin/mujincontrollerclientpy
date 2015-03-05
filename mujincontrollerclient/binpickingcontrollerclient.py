@@ -2,8 +2,6 @@
 # Copyright (C) 2013-2014 MUJIN Inc.
 # Mujin controller client for bin picking task
 import os
-from urlparse import urlparse
-from urllib import quote, unquote
 
 # logging
 import logging
@@ -13,77 +11,12 @@ log = logging.getLogger(__name__)
 from . import ControllerClientError
 from . import controllerclientbase
 
-# the outside world uses this specifier to signify a '#' specifier. This is needed
-# because '#' in URL parsing is a special role
-id_separator = u'@'
-
-def GetFilenameFromURI(uri,mujinpath):
-    """returns the filesystem path that the URI points to.
-    :param uri: points to mujin:/ resource
-
-    example:
-
-      GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
-      returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
-    """
-    index = uri.find(id_separator)
-    if index >= 0:
-        res = urlparse(uri[:index])
-    else:
-        res = urlparse(uri)
-    if res.scheme != 'mujin':
-        raise ControllerClientError(_('Only mujin: sceheme supported of %s')%uri)
-
-    if len(res.path) == 0 or res.path[0] != '/':
-        raise ControllerClientError(_('path is not absolute on URI %s')%uri)
-
-    return res, os.path.join(mujinpath,res.path[1:])
-
-def GetURIFromPrimaryKey(pk):
-    """Given the encoded primary key (has to be str object), returns the unicode URL.
-    If pk is a unicode object, will use inside url as is, otherwise will decode
-
-    example:
-
-      GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
-      returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
-    """
-    pkunicode = GetUnicodeFromPrimaryKey(pk)
-    # check if separator is present
-    index = pkunicode.find(id_separator)
-    if index >= 0:
-        basefilename = pkunicode[0:index]
-        if len(os.path.splitext(basefilename)[1]) == 0:
-            # no extension present in basefilename, so default to mujin.dae
-            basefilename += u'.mujin.dae'
-        return u'mujin:/'+basefilename+pkunicode[index:]
-
-    if len(os.path.splitext(pkunicode)[1]) == 0:
-        # no extension present in basefilename, so default to mujin.dae
-        pkunicode += u'.mujin.dae'
-    return u'mujin:/'+pkunicode
-
-def GetUnicodeFromPrimaryKey(pk):
-    """Given the encoded primary key (has to be str object), returns the unicode string.
-    If pk is a unicode object, will return the string as is.
-
-    example:
-
-      GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
-      returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
-    """
-    if not isinstance(pk,unicode):
-        return unicode(unquote(str(pk)),'utf-8')
-
-    else:
-        return pk
-
 class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for bin picking task
     """
     tasktype = 'binpicking'
     sceneparams = {}
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, usewebapi=False, initializezmq=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -101,8 +34,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq)
-
+        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi)
+        
         # robot controller
         self.robotControllerUri = robotControllerUri
 
@@ -114,15 +47,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.targetname = targetname
         self.toolname = toolname
         self.envclearance = envclearance
-
+        
         # for now (HACK) need to set the correct scenefilename
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR','/var/www/media/u'), controllerusername)
-        scenefilename = GetFilenameFromURI(GetURIFromPrimaryKey(self.scenepk), mujinpath)[1]
+        scenefilename = controllerclientbase.GetFilenameFromURI(controllerclientbase.GetURIFromPrimaryKey(self.scenepk), mujinpath)[1]
         self.sceneparams = {'scenetype':'mujincollada', 'scenefilename': scenefilename, 'scale':[1.0,1.0,1.0]} #TODO: set scenetype according to the scene
-
-        # whether to use webapi for bin picking task commands
-        self.usewebapi = usewebapi
-
+        
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({'command':'ReloadModule', 'sceneparams':self.sceneparams, 'tasktype':self.tasktype}, **kwargs)
 
@@ -130,7 +60,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     # robot commands
     #########################
 
-    def ExecuteRobotCommand(self, taskparameters, robotspeed=None,usewebapi=False):
+    def ExecuteRobotCommand(self, taskparameters, robotspeed=None,usewebapi=None):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -169,8 +99,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed)
+<<<<<<< HEAD
 
     def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, usewebapi=False, **kwargs):
+=======
+        
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup = None, usewebapi=None, **kwargs):
+>>>>>>> d6b25f8cc5655bd9b0f86fd5d5111fbeacb972d3
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -573,7 +508,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                            'unit': unit,
                            }
         return self.ExecuteCommand(taskparameters)
-
 
     def Grab(self, targetname, toolname=None):
         """grabs an object with tool
