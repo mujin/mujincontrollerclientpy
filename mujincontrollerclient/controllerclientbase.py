@@ -5,6 +5,7 @@ Mujin controller client base
 """
 from urlparse import urlparse
 from urllib import quote, unquote
+import os
 
 # logging
 import logging
@@ -16,7 +17,6 @@ log = logging.getLogger(__name__)
 from . import ControllerClientError
 from . import controllerclientraw as webapiclient
 from . import zmqclient
-import simplejson
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
 # because '#' in URL parsing is a special role
@@ -86,7 +86,7 @@ def GetUnicodeFromPrimaryKey(pk):
 def GetPrimaryKeyFromURI(uri):
     """
     example:
-    
+
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
@@ -99,7 +99,7 @@ class ControllerClientBase(object):
     """
     _usewebapi = True # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
     sceneparams = {}
-    
+
     def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False,usewebapi=True):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
@@ -138,7 +138,7 @@ class ControllerClientBase(object):
                 log.info('initializing controller zmq server...')
                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
-            
+
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport)
 
     def LogIn(self, controllerurl, controllerusername, controllerpassword):
@@ -150,7 +150,7 @@ class ControllerClientBase(object):
         webapiclient.config.PASSWORD = controllerpassword
         webapiclient.Login()
         log.info('successfully logged into mujin controller as %s'%(controllerusername))
-        
+
     def ExecuteCommandViaWebapi(self,taskparameters, webapitimeout=3000):
         """executes command via web api
         """
@@ -181,7 +181,7 @@ class ControllerClientBase(object):
             response = self._zmqclient.SendCommand(taskparameters)
         if type(response) == str:
             raise ControllerClientError(u'response is string, not json! response: %s'%response)
-        return response    
+        return response
 
     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
         """starts the zmq server on mujin controller
