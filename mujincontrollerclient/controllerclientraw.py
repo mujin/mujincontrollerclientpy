@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2013-2014 MUJIN Inc.
-# 
+# Copyright (C) 2013-2015 MUJIN Inc.
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License. 
+# limitations under the License.
 import httplib2
 from httplib2 import Http
-from urllib import urlencode, quote
-import os, sys, re, time, shutil
+from urllib import urlencode
+import re
+import time
 import logging
 import socket
 log = logging.getLogger(__name__)
@@ -24,25 +25,26 @@ try:
 except ImportError:
     import json
 
-from traceback import format_exc
 
-from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError
+from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError
 
 #import webdav
 #from webdav import WebdavClient
+
 
 class Configuration(object):
     BASE_CONTROLLER_URL = u'http://localhost:8000'
     BASE_WEBDAV_URL = u'http://localhost:8000'
     USERNAME = 'testuser2'
     PASSWORD = 'pass'
-    
+
 config = Configuration()
 
 g_HTTP = None
 g_HTTPHeaders = None
 
 #media_root = os.path.join(os.environ['MUJIN_MEDIA_ROOT_DIR'], config.USERNAME)
+
 
 class DictContainerObject:
     """Converts a python dictionary to a python object
@@ -59,7 +61,7 @@ class DictContainerObject:
       2
 
     """
-    def __init__(self, **entries): 
+    def __init__(self, **entries):
         self.__dict__.update(entries)
 
     def __getitem__(self, key):
@@ -92,10 +94,12 @@ class DictContainerObject:
         return self.__dict__.keys()
 
     def has_key(self, key):
-        return self.__dict__.has_key(key)
+        return key in self.__dict__
+
 
 def ConvertDictToObject(dictionary):
     return DictContainerObject(**dictionary)
+
 
 def Login():
     global g_HTTP, g_HTTPHeaders
@@ -116,12 +120,12 @@ def Login():
         csrftoken = csrfpattern.findall(sessioncookie)[0]
         g_HTTPHeaders = {'Cookie': sessioncookie}
         if 'location' in responsefirst:
-            g_HTTPHeaders['Referer'] = responsefirst['location']    
+            g_HTTPHeaders['Referer'] = responsefirst['location']
         # the get API CSRF token
         g_HTTPHeaders['X-CSRFToken'] = csrftoken
         g_HTTPHeaders['Content-Type'] = 'application/json; charset=UTF-8'
         if 'location' in responsefirst:
-            g_HTTPHeaders['Referer'] = response['location']
+            g_HTTPHeaders['Referer'] = responsefirst['location']
         return
 
     firstcsrftoken = None
@@ -149,12 +153,10 @@ def Login():
     response, content = g_HTTP.request(config.BASE_CONTROLLER_URL + '/login/', 'POST', headers=g_HTTPHeaders, body=urlencode(loginbody))
 
     if response['status'] != '302' and response['status'] != '200':
-        raise ValueError(u'failed to authenticate: %r'%response)
-
+        raise ValueError(u'failed to authenticate: %r' % response)
 
     sessioncookie = response.get('set-cookie', responsefirst['set-cookie'])
 
-        
     g_HTTPHeaders = {'Cookie': sessioncookie}
     if 'location' in response:
         g_HTTPHeaders['Referer'] = response['location']
@@ -168,15 +170,18 @@ def Login():
     if 'location' in response:
         g_HTTPHeaders['Referer'] = response['location']
 
+
 def RestartPlanningServer():
     if g_HTTP is None or g_HTTPHeaders is None:
         Login()
     return g_HTTP.request(config.BASE_CONTROLLER_URL + '/restartserver/', 'POST', headers=g_HTTPHeaders)
-    
+
+
 def IsVerified():
     if g_HTTP is None or g_HTTPHeaders is None:
         return False
     return True
+
 
 # python port of the javascript API Call function
 def APICall(request_type, api_url, url_params=None, fields=None, data=None):
@@ -194,7 +199,7 @@ def APICall(request_type, api_url, url_params=None, fields=None, data=None):
         url_params['fields'] = fields
 
     # implicit order by pk
-    if not url_params.has_key('order_by'):
+    if 'order_by' not in url_params:
         url_params['order_by'] = 'pk'
 
     for param, value in url_params.iteritems():
@@ -217,31 +222,31 @@ def APICall(request_type, api_url, url_params=None, fields=None, data=None):
 
     # try to convert everything else
     else:
-        error_base = u'\n\nError with %s to %s\n\nThe API call failed (status: %s)'%(request_type, url, response.status)
+        error_base = u'\n\nError with %s to %s\n\nThe API call failed (status: %s)' % (request_type, url, response.status)
         try:
             content = json.loads(content)
         except ValueError:
             # either response was empty or not JSON
-            raise APIServerError(u'%s, here is what came back in the request:\n%s'%(error_base, unicode(content, 'utf-8')))
+            raise APIServerError(u'%s, here is what came back in the request:\n%s' % (error_base, unicode(content, 'utf-8')))
 
-        if content.has_key('traceback'):
-            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s'%(error_base, unicode(content['traceback'], 'utf-8')))
-        
+        if 'traceback' in content:
+            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s' % (error_base, unicode(content['traceback'], 'utf-8')))
         else:
             return response.status, ConvertDictToObject(content)
+
 
 def GetOrCreateTask(scenepk, taskname, tasktype=None):
     """gets or creates a task, returns its pk
     """
-    status, response = APICall(u'GET', u'scene/%s/task'%scenepk, url_params={'limit':1, 'name':taskname, 'fields':'pk,tasktype'})
-    assert(status==200)
+    status, response = APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'})
+    assert(status == 200)
     if len(response['objects']) > 0:
         if tasktype is not None:
-            assert(response['objects'][0]['tasktype']==tasktype)
+            assert(response['objects'][0]['tasktype'] == tasktype)
         return response['objects'][0]['pk']
 
-    status, response = APICall(u'POST', u'scene/%s/task'%scenepk, url_params={'fields':'pk'}, data={"name":taskname, "tasktype":tasktype, "scenepk":scenepk})
-    assert(status==201)
+    status, response = APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk})
+    assert(status == 201)
     return response['pk']
 
 
@@ -251,30 +256,30 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
     """
     taskpk = GetOrCreateTask(scenepk, 'test0', 'fluidplanning')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'fluidplanning', 'taskparameters':taskparameters})
+    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters})
     # just in case, delete all previous tasks
-    APICall('DELETE', 'job')    
+    APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
-    assert(status==200)
+    status, response = APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
+    assert(status == 200)
     # the jobpk allows us to track the job
-    jobpk=response['jobpk']
+    jobpk = response['jobpk']
     # query the task results
     status_text_prev = None
     starttime = time.time()
     try:
         while True:
             try:
-                if timeout is not None and time.time()-starttime > timeout:
+                if timeout is not None and time.time() - starttime > timeout:
                     raise TimeoutError('failed to get result in time, quitting')
-                
+
                 try:
-                    status, response = APICall('GET', u'job/%s'%jobpk)
+                    status, response = APICall('GET', u'job/%s' % jobpk)
                     if status == 200:
                         if status_text_prev is not None and status_text_prev != response['status_text']:
                             log.info(response['status_text'])
                         status_text_prev = response['status_text']
-                        
+
                     jobstatus = response['status']
                 except APIServerError, e:
                     # most likely job finished
@@ -282,27 +287,27 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
                     jobstatus = '2'
                 if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                     # job finished, so check for results:
-                    status, response = APICall('GET', u'task/%s/result'%taskpk, url_params={'limit':1, 'optimization':'None'})
-                    assert(status==200)
+                    status, response = APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                    assert(status == 200)
                     if len(response['objects']) > 0:
                         # have a response, so return!
                         jobpk = None
                         result = response['objects'][0]
                         if 'errormessage' in result and len(result['errormessage']) > 0:
                             raise FluidPlanningError(result['errormessage'])
-                        
+
                         return result['output']
-                    
+
             except socket.error, e:
                 log.error(e)
-                
+
             # tasks can be long, so sleep
             time.sleep(1)
-            
+
     finally:
         if jobpk is not None:
             log.info('deleting previous job')
-            APICall('DELETE', 'job/%s'%jobpk)
+            APICall('DELETE', 'job/%s' % jobpk)
 
 
 def ExecuteBinPickingTaskSync(scenepk, taskparameters):
@@ -311,13 +316,14 @@ def ExecuteBinPickingTaskSync(scenepk, taskparameters):
     '''
     taskpk = GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'binpicking', 'taskparameters':taskparameters})
+    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
     # # just in case, delete all previous tasks
-    APICall('DELETE', 'job')    
+    APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s/result'%(scenepk, taskpk))
-    assert(status==200)
+    status, response = APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
+    assert(status == 200)
     return response
+
 
 def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
     """
@@ -325,31 +331,31 @@ def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
     """
     taskpk = GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'binpicking', 'taskparameters':taskparameters})
+    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
     # just in case, delete all previous tasks
-    APICall('DELETE', 'job')    
+    APICall('DELETE', 'job')
     # execute the task
     #status, response = APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
-    status, response = APICall('POST', u'job', data={'resource_type':'task', 'target_pk':taskpk})
-    assert(status==200)
+    status, response = APICall('POST', u'job', data={'resource_type': 'task', 'target_pk': taskpk})
+    assert(status == 200)
     # the jobpk allows us to track the job
-    jobpk=response['jobpk']
+    jobpk = response['jobpk']
     # query the task results
     status_text_prev = None
     starttime = time.time()
     try:
         while True:
             try:
-                if timeout is not None and time.time()-starttime > timeout:
+                if timeout is not None and time.time() - starttime > timeout:
                     raise TimeoutError('failed to get result in time, quitting')
-                
+
                 try:
-                    status, response = APICall('GET', u'job/%s'%jobpk)
+                    status, response = APICall('GET', u'job/%s' % jobpk)
                     if status == 200:
                         if status_text_prev is not None and status_text_prev != response['status_text']:
                             log.info(response['status_text'])
                         status_text_prev = response['status_text']
-                        
+
                     jobstatus = response['status']
                 except APIServerError, e:
                     # most likely job finished
@@ -357,27 +363,28 @@ def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
                     jobstatus = '2'
                 if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                     # job finished, so check for results:
-                    status, response = APICall('GET', u'task/%s/result'%taskpk, url_params={'limit':1, 'optimization':'None'})
-                    assert(status==200)
+                    status, response = APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                    assert(status == 200)
                     if len(response['objects']) > 0:
                         # have a response, so return!
                         jobpk = None
                         result = response['objects'][0]
                         if 'errormessage' in result and len(result['errormessage']) > 0:
                             raise BinPickingError(result['errormessage'])
-                        
+
                         return result['output']
-                    
+
             except socket.error, e:
                 log.error(e)
-                
+
             # tasks can be long, so sleep
             time.sleep(.1)
-            
+
     finally:
         if jobpk is not None:
             log.info('deleting previous job')
-            APICall('DELETE', 'job/%s'%jobpk)
+            APICall('DELETE', 'job/%s' % jobpk)
+
 
 def ExecuteHandEyeCalibrationTaskSync(scenepk, taskparameters):
     '''
@@ -385,13 +392,14 @@ def ExecuteHandEyeCalibrationTaskSync(scenepk, taskparameters):
     '''
     taskpk = GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'handeyecalibration', 'taskparameters':taskparameters})
+    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
     # # just in case, delete all previous tasks
-    APICall('DELETE', 'job')    
+    APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s/result'%(scenepk, taskpk))
-    assert(status==200)
+    status, response = APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
+    assert(status == 200)
     return response
+
 
 def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
     """
@@ -399,31 +407,31 @@ def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
     """
     taskpk = GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s'%(scenepk, taskpk), data={'tasktype':'handeyecalibration', 'taskparameters':taskparameters})
+    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
     # just in case, delete all previous tasks
-    APICall('DELETE', 'job')    
+    APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
-    assert(status==200)
+    status, response = APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
+    assert(status == 200)
 
     # the jobpk allows us to track the job
-    jobpk=response['jobpk']
+    jobpk = response['jobpk']
     # query the task results
     status_text_prev = None
     starttime = time.time()
     try:
         while True:
             try:
-                if timeout is not None and time.time()-starttime > timeout:
+                if timeout is not None and time.time() - starttime > timeout:
                     raise TimeoutError('failed to get result in time, quitting')
-                
+
                 try:
-                    status, response = APICall('GET', u'job/%s'%jobpk)
+                    status, response = APICall('GET', u'job/%s' % jobpk)
                     if status == 200:
                         if status_text_prev is not None and status_text_prev != response['status_text']:
                             log.info(response['status_text'])
                         status_text_prev = response['status_text']
-                        
+
                     jobstatus = response['status']
                 except APIServerError, e:
                     # most likely job finished
@@ -431,48 +439,52 @@ def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
                     jobstatus = '2'
                 if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                     # job finished, so check for results:
-                    status, response = APICall('GET', u'task/%s/result'%taskpk, url_params={'limit':1, 'optimization':'None'})
-                    assert(status==200)
+                    status, response = APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                    assert(status == 200)
                     if len(response['objects']) > 0:
                         # have a response, so return!
                         jobpk = None
                         result = response['objects'][0]
                         if 'errormessage' in result and len(result['errormessage']) > 0:
                             raise HandEyeCalibrationError(result['errormessage'])
-                        
+
                         return result['output']
-                    
+
             except socket.error, e:
                 log.error(e)
-                
+
             # tasks can be long, so sleep
             time.sleep(.1)
-            
+
     finally:
         if jobpk is not None:
             log.info('deleting previous job')
-            APICall('DELETE', 'job/%s'%jobpk)
+            APICall('DELETE', 'job/%s' % jobpk)
+
+
 def GetObjects(scenepk):
     """returns all the objects and their translations/rotations
     """
-    status, response = APICall('GET', u'scene/%s/instobject'%(scenepk), data={})
+    status, response = APICall('GET', u'scene/%s/instobject' % (scenepk), data={})
     instobjects = {}
     for objvalues in response['instobjects']:
         instobjects[objvalues['name']] = objvalues
     return instobjects
 
+
 def UpdateObjects(scenepk, objectdata):
     """updates the objects. objectdata is in the same format as returned by GetObjects
     """
-    transformtemplate = '{"pk":"%s","quaternion":[%.15f, %.15f, %.15f, %.15f], "translate":[%.15f, %.15f, %.15f] %s}'
+    #transformtemplate = '{"pk": "%s","quaternion": [%.15f, %.15f, %.15f, %.15f], "translate": [%.15f, %.15f, %.15f]}'
     objects = []
     for name, values in objectdata.iteritems():
-        objects.append({'pk': values['pk'], 'quaternion':list(values['quaternion']), 'translate':list(values['translate'])})
-    status, response = APICall('PUT', u'scene/%s/instobject'%(scenepk), data={'objects':objects})
+        objects.append({'pk': values['pk'], 'quaternion': list(values['quaternion']), 'translate': list(values['translate'])})
+        #objects.append(transformtemplate % (values['pk'], values['quaternion'][0], values['quaternion'][1], values['quaternion'][2], values['quaternion'][3], values['translate'][0], values['translate'][1], values['translate'][2]))
+    status, response = APICall('PUT', u'scene/%s/instobject' % (scenepk), data={'objects': objects})
 
 """
 FIXME
-UnicodeDecodeError: 'ascii' codec can't decode byte 0xff in position 0: ordinal not in range(128) │started densowave bcap zmq server                │www-data@controller3:~$ ~/bin/killslave.bash    
+# UnicodeDecodeError: 'ascii' codec can't decode byte 0xff in position 0: ordinal not in range(128) │started densowave bcap zmq server                │www-data@controller3:~$ ~/bin/killslave.bash
 
 def GetCameraImage(scenepk):
     #image/get/?format=jpeg&width=800&height=600&force=1

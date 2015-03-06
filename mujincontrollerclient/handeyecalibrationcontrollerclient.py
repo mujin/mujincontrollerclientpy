@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2013-2014 MUJIN Inc.
+# Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 
 # logging
@@ -11,10 +11,12 @@ log = logging.getLogger(__name__)
 # mujin imports
 from . import controllerclientbase
 
+
 class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
+
     def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, robot, taskzmqport=None, taskheartbeatport=None, taskheartbeattimeout=None, usewebapi=True):
         """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
@@ -25,16 +27,16 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         """
         super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, self.tasktype, scenepk, usewebapi=usewebapi)
         self.robot = robot
-        
-    def ComputeCalibrationPoses(self,cameraname,numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea = "", samplingmethod=""):
+
+    def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
         if samplingmethod == "":
-            samplingmethod = "boardexposure" #"boardexposure"
+            samplingmethod = "boardexposure"  # "boardexposure"
         taskparameters = {'command': 'ComputeCalibrationPoses',
                           'cameraname': cameraname,
                           'halconpatternparameters': halconpatternparameters,
                           'patternvisibility': calibboardvisibility,
                           'numsamples': numsamples,
-                          'toolname' : toolname,
+                          'toolname': toolname,
                           'targetarea': targetarea,
                           'samplingmethod': samplingmethod,
                           'debuglevel': 4
@@ -44,15 +46,15 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
         return result
 
-    def ComputeStereoCalibrationPoses(self,cameranames,numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea = "",samplingmethod=""):
+    def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
         if samplingmethod == "":
-            samplingmethod = "boardexposure" #"boardexposure"
+            samplingmethod = "boardexposure"  # "boardexposure"
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
                           'cameranames': cameranames,
                           'halconpatternparameters': halconpatternparameters,
                           'patternvisibility': calibboardvisibility,
                           'numsamples': numsamples,
-                          'toolname' : toolname,
+                          'toolname': toolname,
                           'targetarea': targetarea,
                           'samplingmethod': samplingmethod,
                           }
@@ -62,4 +64,4 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         return result
 
     def ReloadModule(self, **kwargs):
-        return self.ExecuteCommand({'command':'ReloadModule', 'sceneparams':self.sceneparams, 'tasktype':self.tasktype}, **kwargs)
+        return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self.sceneparams, 'tasktype': self.tasktype}, **kwargs)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2012-2014 MUJIN Inc
+# Copyright (C) 2012-2015 MUJIN Inc
 
 # logging
 import time
@@ -9,8 +9,9 @@ log = logging.getLogger(__name__)
 
 import zmq
 
+
 class ZmqSubscriber(object):
-    def __init__(self,host,port):
+    def __init__(self, host, port):
         self._host = host
         self._port = port
         self._thread = None
@@ -20,11 +21,11 @@ class ZmqSubscriber(object):
     def __del__(self):
         self.StopSubscription()
 
-    def Connect(self,host,port):
-        self._socket.connect("tcp://%s:%s"%(host,port))
-        self._socket.setsockopt(zmq.SUBSCRIBE,"")
+    def Connect(self, host, port):
+        self._socket.connect("tcp://%s:%s" % (host, port))
+        self._socket.setsockopt(zmq.SUBSCRIBE, "")
         self._poller.register(self._socket, zmq.POLLIN)
-    
+
     def __enter__(self):
         self.StartSubscription()
         return self
@@ -46,18 +47,17 @@ class ZmqSubscriber(object):
         self._ctx = zmq.Context()
         self._socket = self._ctx.socket(zmq.SUB)
         self._poller = zmq.Poller()
-        self.Connect(self._host,self._port)
+        self.Connect(self._host, self._port)
 
         while not self._shutdown:
             socks = dict(self._poller.poll(1000))
             if self._socket in socks and socks.get(self._socket) == zmq.POLLIN:
                 try:
                     self._msg = self._socket.recv(zmq.NOBLOCK)
-                except zmq.ZMQError,e:
+                except zmq.ZMQError, e:
                     print e
                     pass
-            time.sleep(0.01) #sec
-    
+            time.sleep(0.01)  # sec
+
     def GetMessage(self):
         return self._msg
-
