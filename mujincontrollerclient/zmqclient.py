@@ -59,7 +59,19 @@ class ZmqClient(object):
         else:
             starttime = time.time()
             result = ""
+            triedagain = False
             while len(result) == 0 and time.time() - starttime < timeout:
-                result = self._socket.recv_json(zmq.NOBLOCK)
+                try:
+                    result = self._socket.recv_json(zmq.NOBLOCK)
+                except zmq.ZMQError, e:
+                    if e.errno == zmq.EAGAIN:
+                        triedagain = True
+                    else:
+                        raise
                 time.sleep(0.1)
+            if triedagain:
+                if len(result) > 0:
+                    log.info('retry succeeded, result: %s' % result)
+                else:
+                    log.error('failed to receive from %s:%d after %f seconds' % (self.hostname, self.port, timeout))
             return result
