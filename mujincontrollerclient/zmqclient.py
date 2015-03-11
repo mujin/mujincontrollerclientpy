@@ -12,14 +12,16 @@ import zmq
 
 
 class ZmqClient(object):
-    def __init__(self, hostname, port):
+    def __init__(self, hostname, port, ctx=None):
         self.hostname = hostname
         self.port = int(port)
         self._url = 'tcp://%s:%d' % (self.hostname, self.port)
-        self._ctx = None
+        if ctx is None:
+            self._ctx = zmq.Context()
+        else:
+            self._ctx = ctx
         self._socket = None
         self._initialized = False
-
         self.ConnectToServer(self._url)
 
     def ConnectToServer(self, url):
@@ -30,7 +32,6 @@ class ZmqClient(object):
             url = self._url
         log.info("Connecting to %s...", url)
         try:
-            self._ctx = zmq.Context()
             self._socket = self._ctx.socket(zmq.REQ)
             self._socket.connect(url)
             self._initialized = True
@@ -52,8 +53,18 @@ class ZmqClient(object):
         log.debug(u'Sending command via ZMQ: ', command)
         try:
             self._socket.send_json(command)
-        except Exception, e:
+        except zmq.ZMQError, e:
             log.error(u'Failed to send command to controller. %s' % e.message)
+            # raise e
+            if e.errno == zmq.EFSM:
+                log.warn(u'Receive message and try to send again.')
+                self.ReceiveCommand(timeout)
+                try:
+                    self._socket.send_json(command)
+                except zmq.ZMQError, e:
+                    return {'status': 'error', 'exception': u'Failed to send command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
+            else:
+                return {'status': 'error', 'exception': u'Failed to send command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
         return self.ReceiveCommand(timeout)
 
     def ReceiveCommand(self, timeout=None):
@@ -70,12 +81,14 @@ class ZmqClient(object):
                     if e.errno == zmq.EAGAIN:
                         triedagain = True
                     else:
-                        raise
+                        # raise
+                        return {'status': 'error', 'error': u'Failed to receive command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
                 time.sleep(0.1)
             if triedagain:
                 if len(result) > 0:
                     log.info('retry succeeded, result: %s' % result)
                 else:
-                    log.error('failed to receive from %s:%d after %f seconds' % (self.hostname, self.port, timeout))
-                    result = {'status': 'error', 'exception': 'Timed out to get response from controller.'}
+                    log.error('Timed out to get response from %s:%d after %f seconds' % (self.hostname, self.port, timeout))
+                    # raise Exception('Timed out to get response from controller.')
+                    return {'status': 'error', 'error': u'Timed out to get response from %s:%d after %f seconds' % (self.hostname, self.port, timeout)}
             return result
