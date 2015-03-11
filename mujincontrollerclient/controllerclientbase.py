@@ -184,8 +184,10 @@ class ControllerClientBase(object):
             response = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout)
         else:
             response = self._zmqclient.SendCommand(taskparameters, timeout)
-        if type(response) == str:
-            raise ControllerClientError(u'response is string, not json! response: %s' % response)
+        if 'error' in response:
+            raise ControllerClientError(u'Got exception: %s' % response['error'])
+        elif 'exception' in response:
+            raise ControllerClientError(u'Got exception: %s' % response['exception'])
         return response
 
     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
