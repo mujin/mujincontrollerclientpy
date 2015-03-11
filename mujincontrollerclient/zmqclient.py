@@ -50,7 +50,10 @@ class ZmqClient(object):
             return
 
         log.debug(u'Sending command via ZMQ: ', command)
-        self._socket.send_json(command)
+        try:
+            self._socket.send_json(command)
+        except Exception, e:
+            log.error(u'Failed to send command to controller. %s' % e.message)
         return self.ReceiveCommand(timeout)
 
     def ReceiveCommand(self, timeout=None):
@@ -74,4 +77,5 @@ class ZmqClient(object):
                     log.info('retry succeeded, result: %s' % result)
                 else:
                     log.error('failed to receive from %s:%d after %f seconds' % (self.hostname, self.port, timeout))
+                    result = {'status': 'error', 'exception': 'Timed out to get response from controller.'}
             return result

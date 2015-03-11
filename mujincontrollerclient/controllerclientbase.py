@@ -171,7 +171,7 @@ class ControllerClientBase(object):
             raise ControllerClientError(u'unknown task type: %s' % self.tasktype)
         return results
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, webapitimeout=3000):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, webapitimeout=3000, timeout=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param webapitimeout: timeout in seconds for web api call
@@ -183,7 +183,7 @@ class ControllerClientBase(object):
         if usewebapi:
             response = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout)
         else:
-            response = self._zmqclient.SendCommand(taskparameters)
+            response = self._zmqclient.SendCommand(taskparameters, timeout)
         if type(response) == str:
             raise ControllerClientError(u'response is string, not json! response: %s' % response)
         return response
