@@ -11,12 +11,16 @@ import zmq
 
 
 class ZmqSubscriber(object):
-    def __init__(self, host, port):
+    def __init__(self, host, port, ctx=None):
         self._host = host
         self._port = port
         self._thread = None
         self._msg = ""
         self._shutdown = False
+        if ctx is None:
+            self._ctx = zmq.Context()
+        else:
+            self._ctx = ctx
 
     def __del__(self):
         self.StopSubscription()
@@ -44,7 +48,6 @@ class ZmqSubscriber(object):
 
     def _StartSubscription(self):
         self._shutdown = False
-        self._ctx = zmq.Context()
         self._socket = self._ctx.socket(zmq.SUB)
         self._poller = zmq.Poller()
         self.Connect(self._host, self._port)
