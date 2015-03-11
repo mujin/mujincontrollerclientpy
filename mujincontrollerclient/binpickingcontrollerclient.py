@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2013-2014 MUJIN Inc.
+# Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 import os
 
@@ -8,7 +8,6 @@ import logging
 log = logging.getLogger(__name__)
 
 # mujin imports
-from . import ControllerClientError
 from . import controllerclientbase
 
 
@@ -18,7 +17,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     tasktype = 'binpicking'
     sceneparams = {}
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -36,7 +35,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi)
+        super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi, ctx)
 
         # robot controller
         self.robotControllerUri = robotControllerUri

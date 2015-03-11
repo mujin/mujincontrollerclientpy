@@ -105,7 +105,7 @@ class ControllerClientBase(object):
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
     sceneparams = {}
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -144,7 +144,7 @@ class ControllerClientBase(object):
                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
 
-            self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport)
+            self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
 
     def LogIn(self, controllerurl, controllerusername, controllerpassword):
         """logs into the mujin controller via web api
