@@ -7,9 +7,12 @@ from urlparse import urlparse
 from urllib import quote, unquote
 import os
 
+from . import MujinLogger
+
 # logging
-import logging
-log = logging.getLogger(__name__)
+from logging import getLogger, setLoggerClass
+log = getLogger(__name__)
+setLoggerClass(MujinLogger)
 
 # system imports
 
@@ -140,7 +143,7 @@ class ControllerClientBase(object):
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
             if initializezmq:
-                log.info('initializing controller zmq server...')
+                log.verbose('initializing controller zmq server...')
                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
 
@@ -154,12 +157,12 @@ class ControllerClientBase(object):
     def LogIn(self, controllerurl, controllerusername, controllerpassword):
         """logs into the mujin controller via web api
         """
-        log.info('logging into controller at %s' % (controllerurl))
+        log.verbose('logging into controller at %s' % (controllerurl))
         webapiclient.config.BASE_CONTROLLER_URL = controllerurl
         webapiclient.config.USERNAME = controllerusername
         webapiclient.config.PASSWORD = controllerpassword
         webapiclient.Login()
-        log.info('successfully logged into mujin controller as %s' % (controllerusername))
+        log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
 
     def ExecuteCommandViaWebapi(self, taskparameters, webapitimeout=3000):
         """executes command via web api
