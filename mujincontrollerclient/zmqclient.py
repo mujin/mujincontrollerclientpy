@@ -24,6 +24,13 @@ class ZmqClient(object):
         self._initialized = False
         self.ConnectToServer(self._url)
 
+    def __del__(self):
+        self.Destroy()
+
+    def Destroy(self):
+        if self._socket is not None:
+            self._socket.close()
+
     def ConnectToServer(self, url):
         """connects to the zmq server
         :param url: url of the zmq server, default is self._url
