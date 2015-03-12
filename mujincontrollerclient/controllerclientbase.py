@@ -146,6 +146,11 @@ class ControllerClientBase(object):
 
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
 
+    def Destroy(self):
+        if self._zmqclient is not None:
+            self._zmqclient.Destroy()
+            self._zmqclient = None
+
     def LogIn(self, controllerurl, controllerusername, controllerpassword):
         """logs into the mujin controller via web api
         """
@@ -171,7 +176,7 @@ class ControllerClientBase(object):
             raise ControllerClientError(u'unknown task type: %s' % self.tasktype)
         return results
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, webapitimeout=3000, timeout=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param webapitimeout: timeout in seconds for web api call
@@ -181,7 +186,7 @@ class ControllerClientBase(object):
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
-            response = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout)
+            response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
         else:
             response = self._zmqclient.SendCommand(taskparameters, timeout)
         if 'error' in response:
