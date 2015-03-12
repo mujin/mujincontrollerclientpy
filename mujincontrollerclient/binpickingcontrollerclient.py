@@ -48,11 +48,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.targetname = targetname
         self.toolname = toolname
         self.envclearance = envclearance
-
-        # for now (HACK) need to set the correct scenefilename
+        
+        sceneuri = controllerclientbase.GetURIFromPrimaryKey(self.scenepk)
+        # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), controllerusername)
-        scenefilename = controllerclientbase.GetFilenameFromURI(controllerclientbase.GetURIFromPrimaryKey(self.scenepk), mujinpath)[1]
-        self.sceneparams = {'scenetype': 'mujincollada', 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
+        scenefilename = controllerclientbase.GetFilenameFromURI(sceneuri, mujinpath)[1]
+        self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri':sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
 
     def ReloadModule(self, timeout=None, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self.sceneparams, 'tasktype': self.tasktype}, timeout=timeout, **kwargs)
