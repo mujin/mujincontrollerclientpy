@@ -131,7 +131,7 @@ class ControllerClientBase(object):
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
         self.LogIn(controllerurl, controllerusername, controllerpassword)
-        self.sceneparams = {'scenetype': 'mujincollada', 'scenefilename': self.scenepk, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
+        self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri':GetURIFromPrimaryKey(self.scenepk), 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
 
         # connects to task's zmq server
         self._zmqclient = None
