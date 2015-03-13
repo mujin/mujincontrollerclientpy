@@ -14,6 +14,7 @@
 import httplib2
 from httplib2 import Http
 from urllib import urlencode
+from threading import Lock
 import re
 import time
 import logging
@@ -25,12 +26,10 @@ try:
 except ImportError:
     import json
 
-
 from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError
 
 #import webdav
 #from webdav import WebdavClient
-
 
 class Configuration(object):
     BASE_CONTROLLER_URL = u'http://localhost:8000'
@@ -42,6 +41,14 @@ config = Configuration()
 
 g_HTTP = None
 g_HTTPHeaders = None
+g_HTTPLock = Lock()
+
+def EnsureLockDecorator(fn):
+    def innerfn(*args, **kwargs):
+        with g_HTTPLock:
+            return fn(*args, **kwargs)
+    
+    return innerfn
 
 #media_root = os.path.join(os.environ['MUJIN_MEDIA_ROOT_DIR'], config.USERNAME)
 
@@ -100,7 +107,7 @@ class DictContainerObject:
 def ConvertDictToObject(dictionary):
     return DictContainerObject(**dictionary)
 
-
+@EnsureLockDecorator
 def Login():
     global g_HTTP, g_HTTPHeaders
     csrfpattern = re.compile('csrftoken=(?P<id>[0-9a-zA-Z]*);')
@@ -170,13 +177,13 @@ def Login():
     if 'location' in response:
         g_HTTPHeaders['Referer'] = response['location']
 
-
+@EnsureLockDecorator
 def RestartPlanningServer():
     if g_HTTP is None or g_HTTPHeaders is None:
         Login()
     return g_HTTP.request(config.BASE_CONTROLLER_URL + '/restartserver/', 'POST', headers=g_HTTPHeaders)
 
-
+@EnsureLockDecorator
 def IsVerified():
     if g_HTTP is None or g_HTTPHeaders is None:
         return False
@@ -184,7 +191,11 @@ def IsVerified():
 
 
 # python port of the javascript API Call function
-def APICall(request_type, api_url, url_params=None, fields=None, data=None):
+@EnsureLockDecorator
+def APICall(*args, **kwargs):
+    return _APICall(*args, **kwargs)
+
+def _APICall(request_type, api_url, url_params=None, fields=None, data=None):
     if g_HTTP is None or g_HTTPHeaders is None:
         Login()
 
@@ -235,32 +246,37 @@ def APICall(request_type, api_url, url_params=None, fields=None, data=None):
             return response.status, ConvertDictToObject(content)
 
 
-def GetOrCreateTask(scenepk, taskname, tasktype=None):
+@EnsureLockDecorator
+def GetOrCreateTask(*args, **kwargs):
+    return _GetOrCreateTask(*args, **kwargs)
+
+
+def _GetOrCreateTask(scenepk, taskname, tasktype=None):
     """gets or creates a task, returns its pk
     """
-    status, response = APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'})
+    status, response = _APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'})
     assert(status == 200)
     if len(response['objects']) > 0:
         if tasktype is not None:
             assert(response['objects'][0]['tasktype'] == tasktype)
         return response['objects'][0]['pk']
 
-    status, response = APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk})
+    status, response = _APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk})
     assert(status == 201)
     return response['pk']
 
-
+@EnsureLockDecorator
 def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
     """
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
     """
-    taskpk = GetOrCreateTask(scenepk, 'test0', 'fluidplanning')
+    taskpk = _GetOrCreateTask(scenepk, 'test0', 'fluidplanning')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters})
+    _APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters})
     # just in case, delete all previous tasks
-    APICall('DELETE', 'job')
+    _APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
+    status, response = _APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
     assert(status == 200)
     # the jobpk allows us to track the job
     jobpk = response['jobpk']
@@ -274,7 +290,7 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
                     raise TimeoutError('failed to get result in time, quitting')
 
                 try:
-                    status, response = APICall('GET', u'job/%s' % jobpk)
+                    status, response = _APICall('GET', u'job/%s' % jobpk)
                     if status == 200:
                         if status_text_prev is not None and status_text_prev != response['status_text']:
                             log.info(response['status_text'])
@@ -287,7 +303,7 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
                     jobstatus = '2'
                 if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                     # job finished, so check for results:
-                    status, response = APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                    status, response = _APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
                     assert(status == 200)
                     if len(response['objects']) > 0:
                         # have a response, so return!
@@ -307,36 +323,36 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
     finally:
         if jobpk is not None:
             log.info('deleting previous job')
-            APICall('DELETE', 'job/%s' % jobpk)
+            _APICall('DELETE', 'job/%s' % jobpk)
 
-
+@EnsureLockDecorator
 def ExecuteBinPickingTaskSync(scenepk, taskparameters):
     '''
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
     '''
-    taskpk = GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
+    taskpk = _GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
+    _APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
     # # just in case, delete all previous tasks
-    APICall('DELETE', 'job')
+    _APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
+    status, response = _APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
     assert(status == 200)
     return response
 
-
+@EnsureLockDecorator
 def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
     """
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
     """
-    taskpk = GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
+    taskpk = _GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
+    _APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
     # just in case, delete all previous tasks
-    APICall('DELETE', 'job')
+    _APICall('DELETE', 'job')
     # execute the task
-    #status, response = APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
-    status, response = APICall('POST', u'job', data={'resource_type': 'task', 'target_pk': taskpk})
+    #status, response = _APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
+    status, response = _APICall('POST', u'job', data={'resource_type': 'task', 'target_pk': taskpk})
     assert(status == 200)
     # the jobpk allows us to track the job
     jobpk = response['jobpk']
@@ -350,7 +366,7 @@ def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
                     raise TimeoutError('failed to get result in time, quitting')
 
                 try:
-                    status, response = APICall('GET', u'job/%s' % jobpk)
+                    status, response = _APICall('GET', u'job/%s' % jobpk)
                     if status == 200:
                         if status_text_prev is not None and status_text_prev != response['status_text']:
                             log.info(response['status_text'])
@@ -363,7 +379,7 @@ def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
                     jobstatus = '2'
                 if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                     # job finished, so check for results:
-                    status, response = APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                    status, response = _APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
                     assert(status == 200)
                     if len(response['objects']) > 0:
                         # have a response, so return!
@@ -383,35 +399,35 @@ def ExecuteBinPickingTask(scenepk, taskparameters, timeout=1000):
     finally:
         if jobpk is not None:
             log.info('deleting previous job')
-            APICall('DELETE', 'job/%s' % jobpk)
+            _APICall('DELETE', 'job/%s' % jobpk)
 
-
+@EnsureLockDecorator
 def ExecuteHandEyeCalibrationTaskSync(scenepk, taskparameters):
     '''
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
     '''
-    taskpk = GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
+    taskpk = _GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
+    _APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
     # # just in case, delete all previous tasks
-    APICall('DELETE', 'job')
+    _APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
+    status, response = _APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
     assert(status == 200)
     return response
 
-
+@EnsureLockDecorator
 def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
     """
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
     """
-    taskpk = GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
+    taskpk = _GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
     # set the task parameters
-    APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
+    _APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
     # just in case, delete all previous tasks
-    APICall('DELETE', 'job')
+    _APICall('DELETE', 'job')
     # execute the task
-    status, response = APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
+    status, response = _APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
     assert(status == 200)
 
     # the jobpk allows us to track the job
@@ -426,7 +442,7 @@ def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
                     raise TimeoutError('failed to get result in time, quitting')
 
                 try:
-                    status, response = APICall('GET', u'job/%s' % jobpk)
+                    status, response = _APICall('GET', u'job/%s' % jobpk)
                     if status == 200:
                         if status_text_prev is not None and status_text_prev != response['status_text']:
                             log.info(response['status_text'])
@@ -439,7 +455,7 @@ def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
                     jobstatus = '2'
                 if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                     # job finished, so check for results:
-                    status, response = APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                    status, response = _APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
                     assert(status == 200)
                     if len(response['objects']) > 0:
                         # have a response, so return!
@@ -459,19 +475,19 @@ def ExecuteHandEyeCalibrationTaskAsync(scenepk, taskparameters, timeout=1000):
     finally:
         if jobpk is not None:
             log.info('deleting previous job')
-            APICall('DELETE', 'job/%s' % jobpk)
+            _APICall('DELETE', 'job/%s' % jobpk)
 
-
+@EnsureLockDecorator
 def GetObjects(scenepk):
     """returns all the objects and their translations/rotations
     """
-    status, response = APICall('GET', u'scene/%s/instobject' % (scenepk), data={})
+    status, response = _APICall('GET', u'scene/%s/instobject' % (scenepk), data={})
     instobjects = {}
     for objvalues in response['instobjects']:
         instobjects[objvalues['name']] = objvalues
     return instobjects
 
-
+@EnsureLockDecorator
 def UpdateObjects(scenepk, objectdata):
     """updates the objects. objectdata is in the same format as returned by GetObjects
     """
@@ -480,7 +496,7 @@ def UpdateObjects(scenepk, objectdata):
     for name, values in objectdata.iteritems():
         objects.append({'pk': values['pk'], 'quaternion': list(values['quaternion']), 'translate': list(values['translate'])})
         #objects.append(transformtemplate % (values['pk'], values['quaternion'][0], values['quaternion'][1], values['quaternion'][2], values['quaternion'][3], values['translate'][0], values['translate'][1], values['translate'][2]))
-    status, response = APICall('PUT', u'scene/%s/instobject' % (scenepk), data={'objects': objects})
+    status, response = _APICall('PUT', u'scene/%s/instobject' % (scenepk), data={'objects': objects})
 
 """
 FIXME
