@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2014-2015 MUJIN Inc.
 
-from logging import addLevelName, NOTSET, getLoggerClass, setLoggerClass
+from logging import addLevelName, NOTSET, getLoggerClass
 
 VERBOSE = 5
 
@@ -15,8 +15,6 @@ class MujinLogger(getLoggerClass()):
     def verbose(self, msg, *args, **kwargs):
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, msg, args, **kwargs)
-
-setLoggerClass(MujinLogger)
 
 
 class ControllerClientError(Exception):

@@ -7,12 +7,10 @@ from urlparse import urlparse
 from urllib import quote, unquote
 import os
 
-from . import MujinLogger
 
 # logging
-from logging import getLogger, setLoggerClass
+from logging import getLogger
 log = getLogger(__name__)
-setLoggerClass(MujinLogger)
 
 # system imports
 
