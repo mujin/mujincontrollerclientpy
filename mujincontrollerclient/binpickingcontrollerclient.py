@@ -90,7 +90,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                 taskparameters['robotspeed'] = robotspeed
 
         return self.ExecuteCommand(taskparameters, usewebapi, timeout=timeout)
-
+    
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=None, **kwargs):
         """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
         """
@@ -101,8 +101,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
-
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, densowavearmgroup=None, usewebapi=False, timeout=None, **kwargs):
+    
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, timeout=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -122,10 +122,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
-        if densowavearmgroup is not None:
-            taskparameters['densowavearmgroup'] = densowavearmgroup
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
 
     def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None, timeout=None):
         """unchucks the manipulator and releases the target
@@ -670,10 +668,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def MoveRobotOutOfCameraOcclusion(self, regionname=None, robotspeed=None, toolname=None, timeout=None, **kwargs):
         """moves the robot out of camera occlusion and deletes targets if it was in occlusion.
-
+        
         :param toolname: name of the tool to move when avoiding
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
         """
@@ -689,6 +687,38 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+    
+    def GetRobotBridgePLCStatus(self, timeout=None, **kwargs):
+        taskparameters = {'command': 'GetRobotBridgePLCStatus',
+                          'sceneparams': self.sceneparams,
+                          'tasktype': self.tasktype,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def GetRobotBridgePLCIOState(self, timeout=None, **kwargs):
+        taskparameters = {'command': 'GetRobotBridgePLCIOState',
+                          'sceneparams': self.sceneparams,
+                          'tasktype': self.tasktype,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def PausePickPlace(self, timeout=None, **kwargs):
+        taskparameters = {'command': 'PausePickPlace',
+                          'sceneparams': self.sceneparams,
+                          'tasktype': self.tasktype,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def ResumePickPlace(self, timeout=None, **kwargs):
+        taskparameters = {'command': 'ResumePickPlace',
+                          'sceneparams': self.sceneparams,
+                          'tasktype': self.tasktype,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     #######################
     # unsupported commands
