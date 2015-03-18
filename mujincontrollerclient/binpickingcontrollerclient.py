@@ -726,6 +726,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+
+    def GetBinpickingState(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'GetBinpickingState',
+                          'sceneparams': self.sceneparams,
+                          'tasktype': self.tasktype,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
     #######################
     # unsupported commands

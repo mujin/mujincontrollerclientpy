@@ -46,7 +46,12 @@ def GetFilenameFromURI(uri, mujinpath):
     if len(res.path) == 0 or res.path[0] != '/':
         raise ControllerClientError(_('path is not absolute on URI %s') % uri)
 
-    return res, os.path.join(mujinpath, res.path[1:])
+    if os.path.exists(res.path):
+        # it's already an absolute path, so return as is. making sure user can read from this path is up to the filesystem permissions
+        return res, res.path
+    
+    else:
+        return res, os.path.join(mujinpath, res.path[1:])
 
 
 def GetURIFromPrimaryKey(pk):
