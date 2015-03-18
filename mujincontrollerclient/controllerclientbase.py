@@ -235,7 +235,11 @@ class ControllerClientBase(object):
             # something happened so raise exception
             raise ControllerClientError(u'Resulting status is %s'%response['status'])
         
-        return response['output']
+        if 'output' in response:
+            return response['output']
+        else:
+            log.warn(u'Result does not have \'output\' field, keys in response %s' % response.keys())
+            return response
     
     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
         """starts the zmq server on mujin controller
