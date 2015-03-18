@@ -221,25 +221,28 @@ class ControllerClientBase(object):
             usewebapi = self._usewebapi
         if usewebapi:
             response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+            if 'error' in response:
+                raise ControllerClientError(u'Got exception: %s' % response['error'])
+            
+            elif 'exception' in response:
+                raise ControllerClientError(u'Got exception: %s' % response['exception'])
+            
+            return response
+        
         else:
             response = self._zmqclient.SendCommand(taskparameters, timeout)
-
-        # raise any exceptions if the server side failed
-        if 'error' in response:
-            raise ControllerClientError(u'Got exception: %s' % response['error'])
-        
-        elif 'exception' in response:
-            raise ControllerClientError(u'Got exception: %s' % response['exception'])
-        
-        elif 'status' in response and response['status'] != 'succeeded':
-            # something happened so raise exception
-            raise ControllerClientError(u'Resulting status is %s'%response['status'])
-        
-        if 'output' in response:
+            # raise any exceptions if the server side failed
+            if 'error' in response:
+                raise ControllerClientError(u'Got exception: %s' % response['error'])
+            
+            elif 'exception' in response:
+                raise ControllerClientError(u'Got exception: %s' % response['exception'])
+            
+            elif 'status' in response and response['status'] != 'succeeded':
+                # something happened so raise exception
+                raise ControllerClientError(u'Resulting status is %s'%response['status'])
+            
             return response['output']
-        else:
-            log.warn(u'Result does not have \'output\' field, keys in response %s' % response.keys())
-            return response
     
     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
         """starts the zmq server on mujin controller
