@@ -93,7 +93,7 @@ class ZmqClient(object):
                 time.sleep(0.1)
             if triedagain:
                 if len(result) > 0:
-                    log.info('retry succeeded, result: %s' % result)
+                    log.verbose('retry succeeded, result: %s' % result)
                 else:
                     log.error('Timed out to get response from %s:%d after %f seconds' % (self.hostname, self.port, timeout))
                     # raise Exception('Timed out to get response from controller.')
