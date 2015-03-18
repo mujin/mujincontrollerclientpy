@@ -223,12 +223,20 @@ class ControllerClientBase(object):
             response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
         else:
             response = self._zmqclient.SendCommand(taskparameters, timeout)
+
+        # raise any exceptions if the server side failed
         if 'error' in response:
             raise ControllerClientError(u'Got exception: %s' % response['error'])
+        
         elif 'exception' in response:
             raise ControllerClientError(u'Got exception: %s' % response['exception'])
-        return response
-
+        
+        elif 'status' in response and response['status'] != 'succeeded':
+            # something happened so raise exception
+            raise ControllerClientError(u'Resulting status is %s'%response['status'])
+        
+        return response['output']
+    
     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
         """starts the zmq server on mujin controller
         no need to call this for visionserver initialization, visionserver calls this during initialization
