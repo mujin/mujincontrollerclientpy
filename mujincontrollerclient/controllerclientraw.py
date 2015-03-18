@@ -326,15 +326,17 @@ def ExecuteFluidTask(scenepk, taskparameters, timeout=1000):
             _APICall('DELETE', 'job/%s' % jobpk)
 
 @EnsureLockDecorator
-def ExecuteBinPickingTaskSync(scenepk, taskparameters):
+def ExecuteBinPickingTaskSync(scenepk, taskparameters, forcecancel=False):
     '''
     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+    :param forcecancel: if True, then cancel all previously running jobs before running this one
     '''
     taskpk = _GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
     # set the task parameters
     _APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
-    # # just in case, delete all previous tasks
-    _APICall('DELETE', 'job')
+    if forcecancel:
+        # # just in case, delete all previous tasks
+        _APICall('DELETE', 'job')
     # execute the task
     status, response = _APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
     assert(status == 200)

@@ -6,6 +6,8 @@ Mujin controller client base
 from urlparse import urlparse
 from urllib import quote, unquote
 import os
+import base64
+from numpy import fromstring, uint32
 
 from . import MujinLogger
 
@@ -163,6 +165,37 @@ class ControllerClientBase(object):
         webapiclient.config.PASSWORD = controllerpassword
         webapiclient.Login()
         log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
+
+    def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        status, response = webapiclient.APICall('GET', u'scene/%s/instobject/' % scenepk)
+        assert(status == 200)
+        return response['instobjects']
+
+    def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
+        """ return the attached sensors of given object
+        """
+        status, response = webapiclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk)
+        assert(status == 200)
+        return response['attachedsensors']
+
+    def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
+        """ return a list of geometries (a dictionary with key: positions, indices)) of given object
+        """
+        status, response = webapiclient.APICall('GET', u'object/%s/geometry' % objectpk)
+        assert(status == 200)
+        geometries = []
+        for encodedGeometry in response['geometries']:
+            geometry = {}
+            positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
+            positions.resize(len(positions) / 3, 3)
+            geometry['positions'] = positions
+            indices = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=uint32)
+            indices.resize(len(indices) / 3, 3)
+            geometry['indices'] = indices
+            geometries.append(geometry)
+        return geometries
 
     def ExecuteCommandViaWebapi(self, taskparameters, webapitimeout=3000):
         """executes command via web api
