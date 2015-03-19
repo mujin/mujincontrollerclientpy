@@ -95,6 +95,13 @@ class ZmqClient(object):
                         log.warn(u'Zmq is in bad state, re-creating socket...')
                         self._socket = self._ctx.socket(zmq.REQ)
                         self._socket.connect(self._url)
+                        try:
+                            triedagain = True
+                            log.warn(u'Try to receive again.')
+                            result = self._socket.recv_json(zmq.NOBLOCK)
+                        except zmq.ZMQError, e:
+                            if e.errno != zmq.EAGAIN:
+                                return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
                     else:
                         # raise
                         return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
