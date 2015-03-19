@@ -37,6 +37,8 @@ class ZmqClient(object):
         """
         if url is None:
             url = self._url
+        else:
+            self._url = url
         log.info("Connecting to %s...", url)
         try:
             self._socket = self._ctx.socket(zmq.REQ)
@@ -64,9 +66,11 @@ class ZmqClient(object):
             log.error(u'Failed to send command to controller. %s' % e.message)
             # raise e
             if e.errno == zmq.EFSM:
-                log.warn(u'Receive message and try to send again.')
-                self.ReceiveCommand(timeout)
+                log.warn(u'Zmq is in bad state, re-creating socket...')
+                self._socket = self._ctx.socket(zmq.REQ)
+                self._socket.connect(self._url)
                 try:
+                    log.warn(u'Try to send again.')
                     self._socket.send_json(command)
                 except zmq.ZMQError, e:
                     return {'status': 'error', 'exception': u'Failed to send command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
@@ -87,9 +91,13 @@ class ZmqClient(object):
                 except zmq.ZMQError, e:
                     if e.errno == zmq.EAGAIN:
                         triedagain = True
+                    elif e.errno == zmq.EFSM:
+                        log.warn(u'Zmq is in bad state, re-creating socket...')
+                        self._socket = self._ctx.socket(zmq.REQ)
+                        self._socket.connect(self._url)
                     else:
                         # raise
-                        return {'status': 'error', 'error': u'Failed to receive command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
+                        return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
                 time.sleep(0.1)
             if triedagain:
                 if len(result) > 0:
