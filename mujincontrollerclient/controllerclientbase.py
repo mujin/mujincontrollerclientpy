@@ -7,6 +7,7 @@ from urlparse import urlparse
 from urllib import quote, unquote
 import os
 import base64
+import json
 from numpy import fromstring, uint32
 
 
@@ -168,6 +169,13 @@ class ControllerClientBase(object):
         webapiclient.config.PASSWORD = controllerpassword
         webapiclient.Login()
         log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
+
+    def RestartControllerViaWebapi(self):
+        """ restarts controller
+        """
+        status, response = webapiclient.RestartPlanningServer()
+        assert(status['status'] == '200')
+        return json.loads(response)
 
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
         """ returns the instance objects of the scene
