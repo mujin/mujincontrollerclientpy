@@ -41,20 +41,22 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.robotControllerUri = robotControllerUri
 
         # bin picking task
-        self.scenepk = scenepk
         self.robotname = robotname
         self.robotspeed = robotspeed
         self.regionname = regionname
         self.targetname = targetname
         self.toolname = toolname
         self.envclearance = envclearance
+        self.SetScenePrimaryKey(scenepk)
         
-        sceneuri = controllerclientbase.GetURIFromPrimaryKey(self.scenepk)
+    def SetScenePrimaryKey(self, scenepk):
+        self.scenepk = scenepk
+        sceneuri = controllerclientbase.GetURIFromPrimaryKey(scenepk)
         # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), controllerusername)
         scenefilename = controllerclientbase.GetFilenameFromURI(sceneuri, mujinpath)[1]
         self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri':sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
-
+        
     def ReloadModule(self, timeout=10, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self.sceneparams, 'tasktype': self.tasktype}, timeout=timeout, **kwargs)
 
@@ -718,7 +720,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-
+    
     def GetRobotBridgeState(self, timeout=10, **kwargs):
         taskparameters = {'command': 'GetRobotBridgeState',
                           'sceneparams': self.sceneparams,
