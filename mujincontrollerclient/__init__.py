@@ -71,3 +71,13 @@ class HandEyeCalibrationError(Exception):
 
     def __ne__(self, r):
         return self.msg != r.msg
+
+from traceback import format_exc
+def GetExceptionStack():
+    """returns the unicode of format_exc
+    """
+    s = format_exc()
+    if isinstance(s, unicode):
+        return s
+    
+    return unicode(s,'utf-8')

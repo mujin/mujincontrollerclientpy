@@ -52,61 +52,6 @@ def EnsureLockDecorator(fn):
 
 #media_root = os.path.join(os.environ['MUJIN_MEDIA_ROOT_DIR'], config.USERNAME)
 
-
-class DictContainerObject:
-    """Converts a python dictionary to a python object
-
-    .. code-block:: python
-
-      >>> args = {'a': 1, 'b': 2}
-      >>> s = Struct(**args)
-      >>> s
-      <__main__.Struct instance at 0x01D6A738>
-      >>> s.a
-      1
-      >>> s.b
-      2
-
-    """
-    def __init__(self, **entries):
-        self.__dict__.update(entries)
-
-    def __getitem__(self, key):
-        return self.__dict__.__getitem__(key)
-
-    def __setitem__(self, key, value):
-        return self.__dict__.__setitem__(key, value)
-
-    def __delitem__(self, key):
-        return self.__dict__.__delitem__(key)
-
-    def __contains__(self, item):
-        return item in self.__dict__
-
-    def __repr__(self):
-        return str(self.__dict__)
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        elif isinstance(other, dict):
-            return self.__dict__ == other
-        else:
-            return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def keys(self):
-        return self.__dict__.keys()
-
-    def has_key(self, key):
-        return key in self.__dict__
-
-
-def ConvertDictToObject(dictionary):
-    return DictContainerObject(**dictionary)
-
 @EnsureLockDecorator
 def Login():
     global g_HTTP, g_HTTPHeaders
@@ -216,10 +161,7 @@ def _APICall(request_type, api_url, url_params=None, fields=None, data=None):
     for param, value in url_params.iteritems():
         url += '&' + str(param) + '=' + str(value)
 
-    if data is not None:
-        if isinstance(data, DictContainerObject):
-            data = data.__dict__
-    else:
+    if data is None:
         data = {}
 
     request_type = request_type.upper()
@@ -243,7 +185,7 @@ def _APICall(request_type, api_url, url_params=None, fields=None, data=None):
         if 'traceback' in content:
             raise APIServerError('%s, here is the stack trace that came back in the request:\n%s' % (error_base, unicode(content['traceback'], 'utf-8')))
         else:
-            return response.status, ConvertDictToObject(content)
+            return response.status, content
 
 
 @EnsureLockDecorator
