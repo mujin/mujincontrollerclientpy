@@ -7,7 +7,6 @@ from urlparse import urlparse
 from urllib import quote, unquote
 import os
 import base64
-import json
 from numpy import fromstring, uint32
 
 
@@ -19,7 +18,7 @@ log = getLogger(__name__)
 
 # mujin imports
 from . import ControllerClientError
-from . import controllerclientraw as webapiclient
+from controllerclientraw import ControllerWebClient
 from . import zmqclient
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
@@ -43,14 +42,11 @@ def GetFilenameFromURI(uri, mujinpath):
         res = urlparse(uri)
     if res.scheme != 'mujin':
         raise ControllerClientError(_('Only mujin: sceheme supported of %s') % uri)
-
     if len(res.path) == 0 or res.path[0] != '/':
         raise ControllerClientError(_('path is not absolute on URI %s') % uri)
-
     if os.path.exists(res.path):
         # it's already an absolute path, so return as is. making sure user can read from this path is up to the filesystem permissions
         return res, res.path
-    
     else:
         return res, os.path.join(mujinpath, res.path[1:])
 
@@ -73,7 +69,6 @@ def GetURIFromPrimaryKey(pk):
             # no extension present in basefilename, so default to mujin.dae
             basefilename += u'.mujin.dae'
         return u'mujin:/' + basefilename + pkunicode[index:]
-
     if len(os.path.splitext(pkunicode)[1]) == 0:
         # no extension present in basefilename, so default to mujin.dae
         pkunicode += u'.mujin.dae'
@@ -91,7 +86,6 @@ def GetUnicodeFromPrimaryKey(pk):
     """
     if not isinstance(pk, unicode):
         return unicode(unquote(str(pk)), 'utf-8')
-
     else:
         return pk
 
@@ -113,8 +107,9 @@ class ControllerClientBase(object):
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
     sceneparams = {}
+    _webclient = None
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, timeout=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -139,9 +134,9 @@ class ControllerClientBase(object):
             self.controllerPort = 80
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
-        self.LogIn(controllerurl, controllerusername, controllerpassword)
-        self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri':GetURIFromPrimaryKey(self.scenepk), 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
-
+        self.LogIn(controllerurl, controllerusername, controllerpassword, timeout=timeout)
+        self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri': GetURIFromPrimaryKey(self.scenepk), 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
+        
         # connects to task's zmq server
         self._zmqclient = None
         if taskzmqport is not None:
@@ -152,49 +147,44 @@ class ControllerClientBase(object):
                 log.verbose('initializing controller zmq server...')
                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
-
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
-
+            
     def Destroy(self):
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
-
-    def LogIn(self, controllerurl, controllerusername, controllerpassword):
+            
+    def LogIn(self, controllerurl, controllerusername, controllerpassword, timeout=None):
         """logs into the mujin controller via web api
         """
         log.verbose('logging into controller at %s' % (controllerurl))
-        webapiclient.config.BASE_CONTROLLER_URL = controllerurl
-        webapiclient.config.USERNAME = controllerusername
-        webapiclient.config.PASSWORD = controllerpassword
-        webapiclient.Login()
+        self._webclient = ControllerWebClient(controllerurl, controllerusername, controllerpassword)
+        self._webclient.Login(timeout=timeout)
         log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
-
+        
     def RestartControllerViaWebapi(self):
         """ restarts controller
         """
-        status, response = webapiclient.RestartPlanningServer()
-        assert(status['status'] == '200')
-        return json.loads(response)
-
+        return self._webclient.RestartPlanningServer()
+    
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
         """ returns the instance objects of the scene
         """
-        status, response = webapiclient.APICall('GET', u'scene/%s/instobject/' % scenepk)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk)
         assert(status == 200)
         return response['instobjects']
-
+    
     def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
         """
-        status, response = webapiclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk)
+        status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk)
         assert(status == 200)
         return response['attachedsensors']
-
+    
     def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
-        status, response = webapiclient.APICall('GET', u'object/%s/geometry' % objectpk)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:
@@ -207,22 +197,21 @@ class ControllerClientBase(object):
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
-
+    
     def ExecuteCommandViaWebapi(self, taskparameters, webapitimeout=3000):
         """executes command via web api
         """
-        if not webapiclient.IsVerified():
+        if not self._webclient.IsVerified():
             raise ControllerClientError('cannot execute command, need to log into the mujin controller first')
-
         if self.tasktype == 'binpicking':
-            results = webapiclient.ExecuteBinPickingTaskSync(self.scenepk, taskparameters)  # , timeout=webapitimeout)
+            results = self._webclient.ExecuteBinPickingTaskSync(self.scenepk, taskparameters)  # , timeout=webapitimeout)
         elif self.tasktype == 'handeyecalibration':
-            # results = webapiclient.ExecuteHandEyeCalibrationTaskAsync(self.scenepk, taskparameters, timeout=webapitimeout)
-            results = webapiclient.ExecuteHandEyeCalibrationTaskSync(self.scenepk, taskparameters)
+            # results = self._webclient.ExecuteHandEyeCalibrationTaskAsync(self.scenepk, taskparameters, timeout=webapitimeout)
+            results = self._webclient.ExecuteHandEyeCalibrationTaskSync(self.scenepk, taskparameters)
         else:
             raise ControllerClientError(u'unknown task type: %s' % self.tasktype)
         return results
-
+    
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
@@ -236,25 +225,19 @@ class ControllerClientBase(object):
             response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
             if 'error' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['error'])
-            
             elif 'exception' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['exception'])
-            
             return response
-        
         else:
             response = self._zmqclient.SendCommand(taskparameters, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['error'])
-            
             elif 'exception' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['exception'])
-            
             elif 'status' in response and response['status'] != 'succeeded':
                 # something happened so raise exception
-                raise ControllerClientError(u'Resulting status is %s'%response['status'])
-            
+                raise ControllerClientError(u'Resulting status is %s' % response['status'])
             return response['output']
     
     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):

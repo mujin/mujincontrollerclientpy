@@ -21,37 +21,36 @@ class ZmqSubscriber(object):
             self._ctx = zmq.Context()
         else:
             self._ctx = ctx
-
+            
     def __del__(self):
         self.StopSubscription()
-
+        
     def Connect(self, host, port):
         self._socket.connect("tcp://%s:%s" % (host, port))
         self._socket.setsockopt(zmq.SUBSCRIBE, "")
         self._poller.register(self._socket, zmq.POLLIN)
-
+        
     def __enter__(self):
         self.StartSubscription()
         return self
-
+    
     def __exit__(self, type, value, traceback):
         self.StopSubscription()
-
+        
     def StartSubscription(self):
         self._thread = threading.Thread(target=self._StartSubscription)
         self._thread.start()
-
+        
     def StopSubscription(self):
         if not self._shutdown:
             self._shutdown = True
             self._thread.join()
-
+            
     def _StartSubscription(self):
         self._shutdown = False
         self._socket = self._ctx.socket(zmq.SUB)
         self._poller = zmq.Poller()
         self.Connect(self._host, self._port)
-
         while not self._shutdown:
             socks = dict(self._poller.poll(1000))
             if self._socket in socks and socks.get(self._socket) == zmq.POLLIN:
@@ -61,6 +60,6 @@ class ZmqSubscriber(object):
                     print e
                     pass
             time.sleep(0.01)  # sec
-
+            
     def GetMessage(self):
         return self._msg

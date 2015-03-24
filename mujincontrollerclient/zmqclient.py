@@ -10,6 +10,7 @@ from . import GetExceptionStack
 import logging
 log = logging.getLogger(__name__)
 
+
 class ZmqClient(object):
     def __init__(self, hostname, port, ctx=None):
         self.hostname = hostname
@@ -22,14 +23,14 @@ class ZmqClient(object):
         self._socket = None
         self._initialized = False
         self.ConnectToServer(self._url)
-
+        
     def __del__(self):
         self.Destroy()
-
+        
     def Destroy(self):
         if self._socket is not None:
             self._socket.close()
-
+            
     def ConnectToServer(self, url):
         """connects to the zmq server
         :param url: url of the zmq server, default is self._url
