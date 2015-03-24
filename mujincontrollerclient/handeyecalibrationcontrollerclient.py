@@ -16,7 +16,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
     """mujin controller client for hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
-
+    
     def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, robot, taskzmqport=None, taskheartbeatport=None, taskheartbeattimeout=None, usewebapi=True):
         """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
@@ -27,7 +27,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         """
         super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, self.tasktype, scenepk, usewebapi=usewebapi)
         self.robot = robot
-
+        
     def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
         if samplingmethod == "":
             samplingmethod = "boardexposure"  # "boardexposure"
@@ -45,7 +45,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
             taskparameters["robot"] = self.robot
         result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
         return result
-
+    
     def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
         if samplingmethod == "":
             samplingmethod = "boardexposure"  # "boardexposure"
@@ -62,6 +62,6 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
             taskparameters["robot"] = self.robot
         result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
         return result
-
+    
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self.sceneparams, 'tasktype': self.tasktype}, **kwargs)
