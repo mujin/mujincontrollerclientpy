@@ -18,8 +18,7 @@ log = getLogger(__name__)
 
 # mujin imports
 from . import ControllerClientError
-from controllerclientraw import ControllerWebClient
-from . import zmqclient
+from . import controllerclientraw, zmqclient
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
 # because '#' in URL parsing is a special role
@@ -158,7 +157,7 @@ class ControllerClientBase(object):
         """logs into the mujin controller via web api
         """
         log.verbose('logging into controller at %s' % (controllerurl))
-        self._webclient = ControllerWebClient(controllerurl, controllerusername, controllerpassword)
+        self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
         self._webclient.Login(timeout=timeout)
         log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
         
