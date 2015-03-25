@@ -697,14 +697,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-    
-    def GetRobotBridgePLCIOState(self, timeout=10, **kwargs):
-        taskparameters = {'command': 'GetRobotBridgePLCIOState',
-                          'sceneparams': self.sceneparams,
-                          'tasktype': self.tasktype,
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
     def PausePickPlace(self, timeout=10, **kwargs):
         taskparameters = {'command': 'PausePickPlace',
