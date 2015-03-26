@@ -45,7 +45,7 @@ class ZmqClient(object):
             self._socket.connect(url)
             self._initialized = True
         except Exception, e:  # TODO better exception handling
-            log.error(GetExceptionStack())
+            log.error(u'failed to connect to %s: %s', url, GetExceptionStack())
             self._initialized = False
             raise
         
