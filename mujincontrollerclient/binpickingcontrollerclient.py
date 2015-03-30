@@ -59,13 +59,19 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
         scenefilename = controllerclientbase.GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri':sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
-
+        
     def SetRobotControllerUri(self, robotControllerUri):
         self._robotControllerUri = robotControllerUri
         
     def SetRobotDeviceIOUri(self, robotDeviceIOUri):
         self._robotDeviceIOUri = robotDeviceIOUri
+    
+    def GetRobotControllerUri(self):
+        return self._robotControllerUri
         
+    def GetRobotDeviceIOUri(self):
+        return self._robotDeviceIOUri
+    
     def ReloadModule(self, timeout=10, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self._sceneparams, 'tasktype': self.tasktype}, timeout=timeout, **kwargs)
 
