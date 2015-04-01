@@ -28,6 +28,7 @@ except ImportError:
 
 from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError
 
+g_HTTPLock = Lock()
 
 class ControllerWebClient(object):
     _baseControllerUrl = None
@@ -41,7 +42,7 @@ class ControllerWebClient(object):
         self._baseControllerUrl = basecontrollerurl
         self._username = username
         self._password = password
-        self._HTTPLock = Lock()
+        self._HTTPLock = g_HTTPLock#Lock()
         
     def Login(self, timeout=None):
         with self._HTTPLock:
