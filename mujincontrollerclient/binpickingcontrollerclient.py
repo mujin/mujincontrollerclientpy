@@ -727,11 +727,20 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-
+    
     def GetBinpickingState(self, timeout=10, **kwargs):
         taskparameters = {'command': 'GetBinpickingState',
                           'sceneparams': self._sceneparams,
                           'tasktype': self.tasktype,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+    
+    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetRobotBridgeIOVariables',
+                          'sceneparams': self._sceneparams,
+                          'tasktype': self.tasktype,
+                          'iovalues':list(iovalues)
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
