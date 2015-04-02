@@ -28,10 +28,11 @@ class APIServerError(Exception):
 class FluidPlanningError(Exception):
     pass
 
-
 class TimeoutError(Exception):
     pass
 
+class AuthenticationError(Exception):
+    pass
 
 class BinPickingError(Exception):
     def __init__(self, msg=u''):

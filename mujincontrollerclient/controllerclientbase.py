@@ -169,21 +169,21 @@ class ControllerClientBase(object):
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
         """ returns the instance objects of the scene
         """
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
         return response['instobjects']
     
     def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
         """
-        status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk)
+        status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk, timeout=timeout)
         assert(status == 200)
         return response['attachedsensors']
     
     def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:

@@ -23,7 +23,7 @@ try:
 except ImportError:
     import json
 
-from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError
+from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError
 
 class ControllerWebClient(object):
     _baseurl = None
@@ -53,6 +53,9 @@ class ControllerWebClient(object):
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
         response = self._session.get('%s/login/' % self._baseurl, timeout=timeout)
+        if response.status_code != requests.codes.ok:
+            raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
+
         csrftoken = response.cookies.get('csrftoken', None)
 
         data = {
@@ -69,7 +72,7 @@ class ControllerWebClient(object):
         response = self._session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
-            raise ValueError(u'failed to authenticate: %r' % response.content)
+            raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
 
         self._csrftoken = csrftoken
         self._isloggedin = True
