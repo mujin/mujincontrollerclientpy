@@ -31,8 +31,6 @@ class ControllerWebClient(object):
 
     def __init__(self, basecontrollerurl, username, password):
         self._session = session.Session(basecontrollerurl, username, password)
-        self._session.login()
-
         self._baseControllerUrl = basecontrollerurl
             
     def RestartPlanningServer(self):
@@ -41,13 +39,16 @@ class ControllerWebClient(object):
         return response.json()
  
     def Login(self, timeout=None):
-        pass
+        self._session.Login(timeout=timeout)
 
     def IsVerified(self):
-        return True
+        return self._session.IsLoggedIn()
         
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=None):
+        if not self.IsVerified():
+            self.Login()
+
         if not api_url.endswith('/'):
             api_url += '/'
 
@@ -85,10 +86,10 @@ class ControllerWebClient(object):
             content = response.json()
         except ValueError:
             # either response was empty or not JSON
-            raise APIServerError(u'%s, here is what came back in the request:\n%s' % (error_base, unicode(response.content, 'utf-8')))
+            raise APIServerError(u'%s, here is what came back in the request:\n%s' % (error_base, response.content.encode('utf-8')))
         
         if 'traceback' in content:
-            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s' % (error_base, unicode(content['traceback'], 'utf-8')))
+            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s' % (error_base, content['traceback'].encode('utf-8')))
         
         return response.status_code, content
             

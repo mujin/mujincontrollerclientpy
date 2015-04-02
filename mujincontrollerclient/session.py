@@ -9,6 +9,7 @@ class Session(requests.Session):
         self._username = username
         self._password = password
         self._csrftoken = ''
+        self._loggedin = False
 
     def request(self, *args, **kwargs):
         headers = {}
@@ -18,10 +19,13 @@ class Session(requests.Session):
         kwargs['headers'] = headers
         return super(Session, self).request(*args, **kwargs)
 
-    def login(self):
+    def Login(self, timeout=None):
+        if self._loggedin:
+            return
+
         self.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
-        response = self.get('%s/login/' % self._baseurl)
+        response = self.get('%s/login/' % self._baseurl, timeout=timeout)
         self._csrftoken = response.cookies['csrftoken']
 
         response = self.post('%s/login/' % self._baseurl, data={
@@ -29,8 +33,12 @@ class Session(requests.Session):
             'password': self._password,
             'this_is_the_login_form': '1',
             'next': '/',
-        })
+        }, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
             raise ValueError(u'failed to authenticate: %r' % r.text)
 
+        self._loggedin = True
+
+    def IsLoggedIn(self):
+        return self._loggedin
