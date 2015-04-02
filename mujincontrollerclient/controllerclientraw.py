@@ -112,7 +112,7 @@ class ControllerWebClient(object):
         log.debug('%s %s', request_type, url)
         response = self._session.request(method=request_type, url=url, data=json.dumps(data), timeout=timeout, headers=headers)
         
-        if request_type == 'DELETE' and response.status == 204:
+        if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
             return response.status_code, response.content
 
