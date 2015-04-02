@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import requests
+import requests.auth
 import time
 import logging
 import socket
@@ -23,36 +24,68 @@ except ImportError:
     import json
 
 from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError
-from . import session
 
 class ControllerWebClient(object):
-    _baseControllerUrl = None
+    _baseurl = None
+    _username = None
+    _password = None
+    _isloggedin = False
     _session = None
+    _csrftoken = None
 
-    def __init__(self, basecontrollerurl, username, password):
-        self._session = session.Session(basecontrollerurl, username, password)
-        self._baseControllerUrl = basecontrollerurl
+    def __init__(self, baseurl, username, password):
+        self._baseurl = baseurl
+        self._username = username
+        self._password = password
+        self._isloggedin = False
+        self._session = requests.Session()
+        self._csrftoken = None
             
     def RestartPlanningServer(self):
-        response = self._session.post(self._baseControllerUrl + '/restartserver/')
+        response = self._session.post(self._baseurl + '/restartserver/')
         assert response.status_code == requests.codes.ok
         return response.json()
  
     def Login(self, timeout=None):
-        self._session.Login(timeout=timeout)
+        if self._isloggedin:
+            return
 
-    def IsVerified(self):
-        return self._session.IsLoggedIn()
+        self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
+
+        response = self._session.get('%s/login/' % self._baseurl, timeout=timeout)
+        csrftoken = response.cookies.get('csrftoken', None)
+
+        data = {
+            'username': self._username,
+            'password': self._password,
+            'this_is_the_login_form': '1',
+            'next': '/',
+        }
+
+        headers = {
+            'X-CSRFToken': csrftoken,
+        }
+
+        response = self._session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
+
+        if response.status_code != requests.codes.ok:
+            raise ValueError(u'failed to authenticate: %r' % response.content)
+
+        self._csrftoken = csrftoken
+        self._isloggedin = True
+
+    def IsLoggedIn(self):
+        return self._isloggedin
         
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=None):
-        if not self.IsVerified():
+        if not self.IsLoggedIn():
             self.Login()
 
         if not api_url.endswith('/'):
             api_url += '/'
 
-        url = self._baseControllerUrl + '/api/v1/' + api_url + '?format=json'
+        url = self._baseurl + '/api/v1/' + api_url + '?format=json'
         
         if url_params is None:
             url_params = {}
@@ -66,14 +99,18 @@ class ControllerWebClient(object):
             
         for param, value in url_params.iteritems():
             url += '&' + str(param) + '=' + str(value)
-            
+        
         if data is None:
             data = {}
+
+        headers = {}
+        if self._csrftoken:
+            headers['X-CSRFToken'] = self._csrftoken
             
         request_type = request_type.upper()
         
         log.debug('%s %s', request_type, url)
-        response = self._session.request(method=request_type, url=url, data=json.dumps(data), timeout=timeout)
+        response = self._session.request(method=request_type, url=url, data=json.dumps(data), timeout=timeout, headers=headers)
         
         if request_type == 'DELETE' and response.status == 204:
             # just return without doing anything for deletes
@@ -83,7 +120,7 @@ class ControllerWebClient(object):
         error_base = u'\n\nError with %s to %s\n\nThe API call failed (status: %s)' % (request_type, url, response.status_code)
         content = None
         try:
-            content = response.json()
+            content = json.loads(response.content)
         except ValueError:
             # either response was empty or not JSON
             raise APIServerError(u'%s, here is what came back in the request:\n%s' % (error_base, response.content.encode('utf-8')))

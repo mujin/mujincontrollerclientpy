@@ -200,8 +200,6 @@ class ControllerClientBase(object):
     def ExecuteCommandViaWebapi(self, taskparameters, webapitimeout=3000):
         """executes command via web api
         """
-        if not self._webclient.IsVerified():
-            raise ControllerClientError('cannot execute command, need to log into the mujin controller first')
         if self.tasktype == 'binpicking':
             results = self._webclient.ExecuteBinPickingTaskSync(self.scenepk, taskparameters)  # , timeout=webapitimeout)
         elif self.tasktype == 'handeyecalibration':
