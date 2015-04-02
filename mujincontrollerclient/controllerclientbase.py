@@ -133,7 +133,7 @@ class ControllerClientBase(object):
             self.controllerPort = 80
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
-        self.LogIn(controllerurl, controllerusername, controllerpassword, timeout=timeout)
+        self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
         self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri': GetURIFromPrimaryKey(self.scenepk), 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
         
         # connects to task's zmq server
@@ -147,20 +147,18 @@ class ControllerClientBase(object):
                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
-            
+
+    def __del__(self):
+        self.Destroy()
+
     def Destroy(self):
+        if self._webclient is not None:
+            self._webclient.Destroy()
+            self._webclient = None
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
-            
-    def LogIn(self, controllerurl, controllerusername, controllerpassword, timeout=None):
-        """logs into the mujin controller via web api
-        """
-        log.verbose('logging into controller at %s' % (controllerurl))
-        self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
-        self._webclient.Login(timeout=timeout)
-        log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
-        
+
     def RestartControllerViaWebapi(self):
         """ restarts controller
         """
@@ -169,21 +167,21 @@ class ControllerClientBase(object):
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
         """ returns the instance objects of the scene
         """
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
         return response['instobjects']
     
     def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
         """
-        status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk)
+        status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk, timeout=timeout)
         assert(status == 200)
         return response['attachedsensors']
     
     def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:
@@ -200,8 +198,6 @@ class ControllerClientBase(object):
     def ExecuteCommandViaWebapi(self, taskparameters, webapitimeout=3000):
         """executes command via web api
         """
-        if not self._webclient.IsVerified():
-            raise ControllerClientError('cannot execute command, need to log into the mujin controller first')
         if self.tasktype == 'binpicking':
             results = self._webclient.ExecuteBinPickingTaskSync(self.scenepk, taskparameters)  # , timeout=webapitimeout)
         elif self.tasktype == 'handeyecalibration':
