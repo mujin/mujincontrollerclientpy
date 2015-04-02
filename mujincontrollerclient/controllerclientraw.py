@@ -56,7 +56,7 @@ class ControllerWebClient(object):
         assert response.status_code == requests.codes.ok
         return response.json()
  
-    def Login(self, timeout=None):
+    def Login(self, timeout=5):
         if self._isloggedin:
             return
 
@@ -91,7 +91,7 @@ class ControllerWebClient(object):
         return self._isloggedin
         
     # python port of the javascript API Call function
-    def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=None):
+    def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
         if not self.IsLoggedIn():
             self.Login()
 
@@ -143,17 +143,17 @@ class ControllerWebClient(object):
         
         return response.status_code, content
             
-    def GetOrCreateTask(self, scenepk, taskname, tasktype=None):
+    def GetOrCreateTask(self, scenepk, taskname, tasktype=None, timeout=5):
         """gets or creates a task, returns its pk
         """
-        status, response = self.APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'})
+        status, response = self.APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'}, timeout=timeout)
         assert(status == 200)
         if len(response['objects']) > 0:
             if tasktype is not None:
                 assert(response['objects'][0]['tasktype'] == tasktype)
             return response['objects'][0]['pk']
         else:
-            status, response = self.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk})
+            status, response = self.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk}, timeout=timeout)
             assert(status == 201)
             return response['pk']
         
@@ -163,11 +163,11 @@ class ControllerWebClient(object):
         """
         taskpk = self.GetOrCreateTask(scenepk, 'test0', 'fluidplanning')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters})
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters}, timeout=5)
         # just in case, delete all previous tasks
-        self.APICall('DELETE', 'job')
+        self.APICall('DELETE', 'job', timeout=5)
         # execute the task
-        status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
+        status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         # the jobpk allows us to track the job
         jobpk = response['jobpk']
@@ -180,7 +180,7 @@ class ControllerWebClient(object):
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
                     try:
-                        status, response = self.APICall('GET', u'job/%s' % jobpk)
+                        status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
                         if status == 200:
                             if status_text_prev is not None and status_text_prev != response['status_text']:
                                 log.info(response['status_text'])
@@ -193,7 +193,7 @@ class ControllerWebClient(object):
                         jobstatus = '2'
                     if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                         # job finished, so check for results:
-                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
                         assert(status == 200)
                         if len(response['objects']) > 0:
                             # have a response, so return!
@@ -210,21 +210,21 @@ class ControllerWebClient(object):
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
-                self.APICall('DELETE', 'job/%s' % jobpk)
+                self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
                     
-    def ExecuteBinPickingTaskSync(self, scenepk, taskparameters, forcecancel=False):
+    def ExecuteBinPickingTaskSync(self, scenepk, taskparameters, forcecancel=False, timeout=1000):
         '''
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
         taskpk = self.GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters}, timeout=5)
         if forcecancel:
             # # just in case, delete all previous tasks
-            self.APICall('DELETE', 'job')
+            self.APICall('DELETE', 'job', timeout=5)
         # execute the task
-        status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
+        status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         return response
         
@@ -234,12 +234,12 @@ class ControllerWebClient(object):
         """
         taskpk = self.GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters})
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters}, timeout=5)
         # just in case, delete all previous tasks
-        self.APICall('DELETE', 'job')
+        self.APICall('DELETE', 'job', timeout=5)
         # execute the task
         #status, response = _APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
-        status, response = self.APICall('POST', u'job', data={'resource_type': 'task', 'target_pk': taskpk})
+        status, response = self.APICall('POST', u'job', data={'resource_type': 'task', 'target_pk': taskpk}, timeout=timeout)
         assert(status == 200)
         # the jobpk allows us to track the job
         jobpk = response['jobpk']
@@ -252,7 +252,7 @@ class ControllerWebClient(object):
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
                     try:
-                        status, response = self.APICall('GET', u'job/%s' % jobpk)
+                        status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
                         if status == 200:
                             if status_text_prev is not None and status_text_prev != response['status_text']:
                                 log.info(response['status_text'])
@@ -265,7 +265,7 @@ class ControllerWebClient(object):
                         jobstatus = '2'
                     if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                         # job finished, so check for results:
-                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
                         assert(status == 200)
                         if len(response['objects']) > 0:
                             # have a response, so return!
@@ -283,7 +283,7 @@ class ControllerWebClient(object):
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
-                self.APICall('DELETE', 'job/%s' % jobpk)
+                self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
                     
     def ExecuteHandEyeCalibrationTaskSync(self, scenepk, taskparameters):
         '''
@@ -291,11 +291,11 @@ class ControllerWebClient(object):
         '''
         taskpk = self.GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters}, timeout=5)
         # # just in case, delete all previous tasks
-        self.APICall('DELETE', 'job')
+        self.APICall('DELETE', 'job', timeout=5)
         # execute the task
-        status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk))
+        status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         return response
         
@@ -305,11 +305,11 @@ class ControllerWebClient(object):
         """
         taskpk = self.GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters})
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters}, timeout=5)
         # just in case, delete all previous tasks
-        self.APICall('DELETE', 'job')
+        self.APICall('DELETE', 'job', timeout=5)
         # execute the task
-        status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk))
+        status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         # the jobpk allows us to track the job
         jobpk = response['jobpk']
@@ -322,7 +322,7 @@ class ControllerWebClient(object):
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
                     try:
-                        status, response = self.APICall('GET', u'job/%s' % jobpk)
+                        status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
                         if status == 200:
                             if status_text_prev is not None and status_text_prev != response['status_text']:
                                 log.info(response['status_text'])
@@ -335,7 +335,7 @@ class ControllerWebClient(object):
                         jobstatus = '2'
                     if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
                         # job finished, so check for results:
-                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'})
+                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
                         assert(status == 200)
                         if len(response['objects']) > 0:
                             # have a response, so return!
@@ -354,22 +354,22 @@ class ControllerWebClient(object):
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
-                self.APICall('DELETE', 'job/%s' % jobpk)
+                self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
 
-    def GetObjects(self, scenepk):
+    def GetObjects(self, scenepk, timeout=5):
         """returns all the objects and their translations/rotations
         """
-        status, response = self.APICall('GET', u'scene/%s/instobject' % (scenepk), data={})
+        status, response = self.APICall('GET', u'scene/%s/instobject' % (scenepk), data={}, timeout=timeout)
         instobjects = {}
         for objvalues in response['instobjects']:
             instobjects[objvalues['name']] = objvalues
         return instobjects
         
-    def UpdateObjects(self, scenepk, objectdata):
+    def UpdateObjects(self, scenepk, objectdata, timeout=5):
         """updates the objects. objectdata is in the same format as returned by GetObjects
         """
         objects = []
         for name, values in objectdata.iteritems():
             objects.append({'pk': values['pk'], 'quaternion': list(values['quaternion']), 'translate': list(values['translate'])})
-        status, response = self.APICall('PUT', u'scene/%s/instobject' % (scenepk), data={'objects': objects})
+        status, response = self.APICall('PUT', u'scene/%s/instobject' % (scenepk), data={'objects': objects}, timeout=timeout)
         return response

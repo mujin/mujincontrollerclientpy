@@ -108,7 +108,7 @@ class ControllerClientBase(object):
     sceneparams = {}
     _webclient = None
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, timeout=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -195,22 +195,23 @@ class ControllerClientBase(object):
             geometries.append(geometry)
         return geometries
     
-    def ExecuteCommandViaWebapi(self, taskparameters, webapitimeout=3000):
+    def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
         if self.tasktype == 'binpicking':
-            results = self._webclient.ExecuteBinPickingTaskSync(self.scenepk, taskparameters)  # , timeout=webapitimeout)
+            results = self._webclient.ExecuteBinPickingTaskSync(self.scenepk, taskparameters, timeout=timeout)
         elif self.tasktype == 'handeyecalibration':
-            # results = self._webclient.ExecuteHandEyeCalibrationTaskAsync(self.scenepk, taskparameters, timeout=webapitimeout)
-            results = self._webclient.ExecuteHandEyeCalibrationTaskSync(self.scenepk, taskparameters)
+            # results = self._webclient.ExecuteHandEyeCalibrationTaskAsync(self.scenepk, taskparameters, timeout=timeout)
+            results = self._webclient.ExecuteHandEyeCalibrationTaskSync(self.scenepk, taskparameters, timeout=timeout)
         else:
             raise ControllerClientError(u'unknown task type: %s' % self.tasktype)
+        
         return results
     
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
-        :param webapitimeout: timeout in seconds for web api call
+        :param timeout: timeout in seconds for web api call
         :return: return the server response in json format
         """
         log.debug(u'Executing task with parameters: %s', taskparameters)
