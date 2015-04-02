@@ -40,6 +40,16 @@ class ControllerWebClient(object):
         self._isloggedin = False
         self._session = requests.Session()
         self._csrftoken = None
+
+    def __del__(self):
+        self.Destroy()
+
+    def Destroy(self):
+        self._csrftoken = None
+        self._isloggedin = False
+        if self._session is not None:
+            self._session.close()
+            self._session = None
             
     def RestartPlanningServer(self):
         response = self._session.post(self._baseurl + '/restartserver/')

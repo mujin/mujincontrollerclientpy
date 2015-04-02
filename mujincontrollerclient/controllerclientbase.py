@@ -133,7 +133,7 @@ class ControllerClientBase(object):
             self.controllerPort = 80
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
-        self.LogIn(controllerurl, controllerusername, controllerpassword, timeout=timeout)
+        self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
         self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri': GetURIFromPrimaryKey(self.scenepk), 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
         
         # connects to task's zmq server
@@ -147,20 +147,18 @@ class ControllerClientBase(object):
                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
-            
+
+    def __del__(self):
+        self.Destroy()
+
     def Destroy(self):
+        if self._webclient is not None:
+            self._webclient.Destroy()
+            self._webclient = None
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
-            
-    def LogIn(self, controllerurl, controllerusername, controllerpassword, timeout=None):
-        """logs into the mujin controller via web api
-        """
-        log.verbose('logging into controller at %s' % (controllerurl))
-        self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
-        self._webclient.Login(timeout=timeout)
-        log.verbose('successfully logged into mujin controller as %s' % (controllerusername))
-        
+
     def RestartControllerViaWebapi(self):
         """ restarts controller
         """
