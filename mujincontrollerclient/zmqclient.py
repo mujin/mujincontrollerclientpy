@@ -10,14 +10,21 @@ from . import GetExceptionStack
 import logging
 log = logging.getLogger(__name__)
 
-
 class ZmqClient(object):
+    hostname = None
+    port = None
+    _url = None
+    _socket = None
+    _initialized = False
+    _ctx = None # the context to use
+    _ctxown = None # the context owned exclusively by this streamer client
+    
     def __init__(self, hostname, port, ctx=None):
         self.hostname = hostname
         self.port = int(port)
         self._url = 'tcp://%s:%d' % (self.hostname, self.port)
         if ctx is None:
-            self._ctx = zmq.Context()
+            self._ctxown = self._ctx = zmq.Context()
         else:
             self._ctx = ctx
         self._socket = None
@@ -30,7 +37,17 @@ class ZmqClient(object):
     def Destroy(self):
         if self._socket is not None:
             self._socket.close()
+            self._socket = None
+        
+        if self._ctxown is not None:
+            try:
+                self._ctxown.destroy()
+            except Exception:
+                log.error(u'caught ctx: %s', GetExceptionStack())
             
+            self._ctxown = None
+        self._ctx = None
+        
     def ConnectToServer(self, url):
         """connects to the zmq server
         :param url: url of the zmq server, default is self._url
