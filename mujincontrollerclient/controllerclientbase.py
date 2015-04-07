@@ -159,10 +159,12 @@ class ControllerClientBase(object):
             self._zmqclient.Destroy()
             self._zmqclient = None
 
-    def RestartControllerViaWebapi(self):
+    def RestartController(self):
         """ restarts controller
         """
         return self._webclient.RestartPlanningServer()
+
+    RestartControllerViaWebapi = RestartController # deprecated
     
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
         """ returns the instance objects of the scene

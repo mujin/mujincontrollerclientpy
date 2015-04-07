@@ -53,9 +53,8 @@ class ControllerWebClient(object):
             
     def RestartPlanningServer(self):
         response = self._session.post(self._baseurl + '/restartserver/')
-        assert response.status_code == requests.codes.ok
-        return response.json()
- 
+        # no reason to check response since it's probably an error (server is restarting after all)
+    
     def Login(self, timeout=5):
         if self._isloggedin:
             return
