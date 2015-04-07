@@ -607,14 +607,17 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix, timeout=10):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, timeout=10):
         """removes objects with prefix
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
-                          'prefix': prefix,
                           'sceneparams': self._sceneparams,
                           'tasktype': self.tasktype,
                           }
+        if prefix is not None:
+            taskparameters['prefix'] = unicode(prefix)
+        if prefixes is not None:
+            taskparameters['prefixes'] = [unicode(prefix) for prefix in prefixes]
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def SaveScene(self, timeout=10, **kwargs):
