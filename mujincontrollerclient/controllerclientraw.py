@@ -227,7 +227,20 @@ class ControllerWebClient(object):
         status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         return response
-        
+
+    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, forcecancel=False, timeout=1000):
+        '''executes task with a particular task type without creating a new task
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        :param forcecancel: if True, then cancel all previously running jobs before running this one
+        '''
+        if forcecancel:
+            # # just in case, delete all previous tasks
+            self.APICall('DELETE', 'job', timeout=5)
+        # execute task
+        status, response = self.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters}, timeout=timeout)
+        assert(status==200)
+        return response
+
     def ExecuteBinPickingTask(self, scenepk, taskparameters, timeout=1000):
         """
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
