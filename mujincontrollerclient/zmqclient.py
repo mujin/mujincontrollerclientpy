@@ -5,7 +5,7 @@
 import time
 import zmq
 
-from . import GetExceptionStack
+from . import GetExceptionStack, TimeoutError, ControllerClientError
 
 import logging
 log = logging.getLogger(__name__)
@@ -73,8 +73,7 @@ class ZmqClient(object):
         :return: if zmq is not initialized, returns immediately, else returns the response from the zmq server in json format
         """
         if not self._initialized:
-            log.error(u'zmq server is not initialized')
-            return
+            raise ControllerClientError(u'zmq server is not initialized')
         
         log.debug(u'Sending command via ZMQ: ', command)
         try:
@@ -92,8 +91,6 @@ class ZmqClient(object):
             self._socket.connect(self._url)
             log.warn(u'Try to send again.')
             self._socket.send_json(command)
-#             else:
-#                 return {'status': 'error', 'exception': u'Failed to send command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
         return self.ReceiveCommand(timeout)
     
     def ReceiveCommand(self, timeout=None):
@@ -132,7 +129,6 @@ class ZmqClient(object):
                 if len(result) > 0:
                     log.verbose(u'retry succeeded, result: %s', result)
                 else:
-                    log.error(u'Timed out to get response from %s:%d after %f seconds', self.hostname, self.port, timeout)
-                    # raise Exception('Timed out to get response from controller.')
-                    return {'status': 'error', 'error': u'Timed out to get response from %s:%d after %f seconds' % (self.hostname, self.port, timeout)}
+                    raise TimeoutError(u'Timed out to get response from %s:%d after %f seconds'%(self.hostname, self.port, timeout))
+                
             return result
