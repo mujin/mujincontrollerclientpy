@@ -43,7 +43,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           }
         if self.robot is not None:
             taskparameters["robot"] = self.robot
-        result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
+        result = self.ExecuteCommandViaWebapi(taskparameters, timeout=3000)
         return result
     
     def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
@@ -60,7 +60,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           }
         if self.robot is not None:
             taskparameters["robot"] = self.robot
-        result = self.ExecuteCommandViaWebapi(taskparameters, webapitimeout=3000)
+        result = self.ExecuteCommandViaWebapi(taskparameters, timeout=3000)
         return result
     
     def ReloadModule(self, **kwargs):
