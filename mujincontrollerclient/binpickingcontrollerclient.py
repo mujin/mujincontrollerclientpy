@@ -509,7 +509,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def UpdateObjects(self, envstate, targetname=None, unit="m", timeout=10):
+    def UpdateObjects(self, envstate, targetname=None, iscontainerempty=0, unit="m", timeout=10):
         """updates objects in the scene with the envstate
         :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
         :param unit: unit of envstate
@@ -524,6 +524,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'sceneparams': self._sceneparams,
                           'tasktype': self.tasktype,
                           'unit': unit,
+                          'iscontainerempty': iscontainerempty
                           }
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
