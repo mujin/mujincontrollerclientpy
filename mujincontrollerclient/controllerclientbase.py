@@ -105,8 +105,9 @@ class ControllerClientBase(object):
     """mujin controller client base
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
-    sceneparams = {}
+    _sceneparams = {}
     _webclient = None
+    scenepk = None # the scenepk this controller is configured for
 
     def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
         """logs into the mujin controller and initializes the task's zmq connection
@@ -122,7 +123,6 @@ class ControllerClientBase(object):
         """
         # task
         self.tasktype = tasktype
-        self.scenepk = scenepk
         self._usewebapi = usewebapi
         # logs in via web api
         self.controllerurl = controllerurl
@@ -134,7 +134,6 @@ class ControllerClientBase(object):
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
         self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
-        self.sceneparams = {'scenetype': 'mujincollada', 'sceneuri': GetURIFromPrimaryKey(self.scenepk), 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
         
         # connects to task's zmq server
         self._zmqclient = None
@@ -142,12 +141,14 @@ class ControllerClientBase(object):
             self.taskzmqport = taskzmqport
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
-            if initializezmq:
-                log.verbose('initializing controller zmq server...')
-                self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
+#             if initializezmq:
+#                 log.verbose('initializing controller zmq server...')
+#                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
                 # TODO add heartbeat logic
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
-
+        
+        self.SetScenePrimaryKey(scenepk)
+        
     def __del__(self):
         self.Destroy()
 
@@ -165,6 +166,14 @@ class ControllerClientBase(object):
         return self._webclient.RestartPlanningServer()
 
     RestartControllerViaWebapi = RestartController # deprecated
+    
+    def SetScenePrimaryKey(self, scenepk):
+        self.scenepk = scenepk
+        sceneuri = GetURIFromPrimaryKey(scenepk)
+        # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
+        mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
+        scenefilename = GetFilenameFromURI(sceneuri, mujinpath)[1]
+        self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
     
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
         """ returns the instance objects of the scene
@@ -230,15 +239,15 @@ class ControllerClientBase(object):
                 raise ControllerClientError(u'Resulting status is %s' % response['status'])
             return response['output']
     
-    def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
-        """starts the zmq server on mujin controller
-        no need to call this for visionserver initialization, visionserver calls this during initialization
-        """
-        taskparameters = {'command': 'InitializeZMQ',
-                          'port': taskzmqport,
-                          'heartbeatPort': taskheartbeatport,
-                          'sceneparams': self.sceneparams,
-                          'tasktype': self.tasktype,
-                          }
-        return self.ExecuteCommand(taskparameters, usewebapi=True)  # for webapi
-    
+#     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
+#         """starts the zmq server on mujin controller
+#         no need to call this for visionserver initialization, visionserver calls this during initialization
+#         """
+#         taskparameters = {'command': 'InitializeZMQ',
+#                           'port': taskzmqport,
+#                           'heartbeatPort': taskheartbeatport,
+#                           'sceneparams': self.sceneparams,
+#                           'tasktype': self.tasktype,
+#                           }
+#         return self.ExecuteCommand(taskparameters, usewebapi=True)  # for webapi
+#     
