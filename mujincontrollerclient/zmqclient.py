@@ -98,9 +98,9 @@ class ZmqClient(object):
             return self._socket.recv_json()
         else:
             starttime = time.time()
-            result = ""
+            result = None
             triedagain = False
-            while len(result) == 0 and time.time() - starttime < timeout:
+            while result is None and time.time() - starttime < timeout:
                 try:
                     result = self._socket.recv_json(zmq.NOBLOCK)
                 except zmq.ZMQError, e:
@@ -126,8 +126,8 @@ class ZmqClient(object):
 #                         return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
                 time.sleep(0.1)
             if triedagain:
-                if len(result) > 0:
-                    log.verbose(u'retry succeeded, result: %s', result)
+                if result is not None:
+                    log.verbose(u'retry succeeded, result: %r', result)
                 else:
                     raise TimeoutError(u'Timed out to get response from %s:%d after %f seconds'%(self.hostname, self.port, timeout))
                 

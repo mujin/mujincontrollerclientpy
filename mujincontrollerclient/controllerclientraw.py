@@ -29,7 +29,6 @@ class ControllerWebClient(object):
     _baseurl = None
     _username = None
     _password = None
-    _isloggedin = False
     _session = None
     _csrftoken = None
 
@@ -37,31 +36,23 @@ class ControllerWebClient(object):
         self._baseurl = baseurl
         self._username = username
         self._password = password
-        self._isloggedin = False
-        self._session = requests.Session()
+        self._session = None
         self._csrftoken = None
 
     def __del__(self):
         self.Destroy()
 
     def Destroy(self):
-        self._csrftoken = None
-        self._isloggedin = False
-        if self._session is not None:
-            self._session.close()
-            self._session = None
-            
-    def RestartPlanningServer(self):
-        response = self._session.post(self._baseurl + '/restartserver/')
-        # no reason to check response since it's probably an error (server is restarting after all)
-    
+        self.Logout()
+
     def Login(self, timeout=5):
-        if self._isloggedin:
+        if self._session is not None:
             return
 
-        self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
+        session = requests.Session()
+        session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
-        response = self._session.get('%s/login/' % self._baseurl, timeout=timeout)
+        response = session.get('%s/login/' % self._baseurl, timeout=timeout)
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
 
@@ -78,16 +69,29 @@ class ControllerWebClient(object):
             'X-CSRFToken': csrftoken,
         }
 
-        response = self._session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
+        response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
 
+        self._session = session
         self._csrftoken = csrftoken
-        self._isloggedin = True
+
+    def Logout(self):
+        self._csrftoken = None
+        if self._session is not None:
+            self._session.close()
+            self._session = None
 
     def IsLoggedIn(self):
-        return self._isloggedin
+        return self._session is not None
+
+    def RestartPlanningServer(self):
+        if not self.IsLoggedIn():
+            self.Login()
+
+        self._session.post(self._baseurl + '/restartserver/')
+        # no reason to check response since it's probably an error (server is restarting after all)
         
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
@@ -138,6 +142,9 @@ class ControllerWebClient(object):
             raise APIServerError(u'%s, here is what came back in the request:\n%s' % (error_base, response.content.encode('utf-8')))
         
         if 'traceback' in content:
+            # always logout the session when we hit an error
+            self.Logout()
+
             raise APIServerError('%s, here is the stack trace that came back in the request:\n%s' % (error_base, content['traceback'].encode('utf-8')))
         
         return response.status_code, content
