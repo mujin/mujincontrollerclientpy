@@ -318,6 +318,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     
     def StopPickPlaceThread(self, timeout=10, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
+        :params resetstate: if True, then reset the order state variables
         """
         taskparameters = {'command': 'StopPickPlaceThread',
                           'sceneparams': self._sceneparams,
