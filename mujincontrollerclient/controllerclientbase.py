@@ -17,7 +17,7 @@ log = getLogger(__name__)
 # system imports
 
 # mujin imports
-from . import ControllerClientError
+from . import ControllerClientError, APIServerError
 from . import controllerclientraw, zmqclient
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
@@ -221,11 +221,18 @@ class ControllerClientBase(object):
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
-            response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+            try:
+                response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+            except APIServerError, e:
+                # have to disguise as ControllerClientError since users only catch ControllerClientError
+                raise ControllerClientError(e.message)
+            
             if 'error' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['error'])
             elif 'exception' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['exception'])
+            #elif 'traceback' in response:
+            
             return response
         else:
             response = self._zmqclient.SendCommand(taskparameters, timeout)
