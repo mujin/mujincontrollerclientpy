@@ -228,7 +228,7 @@ class ControllerClientBase(object):
                 raise ControllerClientError(u'Got exception: %s' % response['exception'])
             return response
         else:
-            response = self._zmqclient.SendCommand(taskparameters, timeout)
+            response = self._zmqclient.SendCommand({'fnname':'RunTask', 'sceneparams':self.sceneparams, 'taskparameters':taskparameters}, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['error'])
