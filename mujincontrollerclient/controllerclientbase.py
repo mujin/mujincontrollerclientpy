@@ -17,7 +17,7 @@ log = getLogger(__name__)
 # system imports
 
 # mujin imports
-from . import ControllerClientError
+from . import ControllerClientError, APIServerError
 from . import controllerclientraw, zmqclient
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
@@ -221,14 +221,21 @@ class ControllerClientBase(object):
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
-            response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+            try:
+                response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+            except APIServerError, e:
+                # have to disguise as ControllerClientError since users only catch ControllerClientError
+                raise ControllerClientError(e.message)
+            
             if 'error' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['error'])
             elif 'exception' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['exception'])
+            #elif 'traceback' in response:
+            
             return response
         else:
-            response = self._zmqclient.SendCommand(taskparameters, timeout)
+            response = self._zmqclient.SendCommand({'fnname':'RunTask', 'taskparams':{'tasktype':self.tasktype, 'sceneparams':self._sceneparams, 'taskparameters':taskparameters}}, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
                 raise ControllerClientError(u'Got exception: %s' % response['error'])
@@ -237,7 +244,7 @@ class ControllerClientBase(object):
             elif 'status' in response and response['status'] != 'succeeded':
                 # something happened so raise exception
                 raise ControllerClientError(u'Resulting status is %s' % response['status'])
-            return response['output']
+            return response['output'][0]
     
 #     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
 #         """starts the zmq server on mujin controller
