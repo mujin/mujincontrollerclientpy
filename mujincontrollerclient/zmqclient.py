@@ -5,19 +5,26 @@
 import time
 import zmq
 
-from . import GetExceptionStack
+from . import GetExceptionStack, TimeoutError, ControllerClientError
 
 import logging
 log = logging.getLogger(__name__)
 
-
 class ZmqClient(object):
+    hostname = None
+    port = None
+    _url = None
+    _socket = None
+    _initialized = False
+    _ctx = None # the context to use
+    _ctxown = None # the context owned exclusively by this streamer client
+    
     def __init__(self, hostname, port, ctx=None):
         self.hostname = hostname
         self.port = int(port)
         self._url = 'tcp://%s:%d' % (self.hostname, self.port)
         if ctx is None:
-            self._ctx = zmq.Context()
+            self._ctxown = self._ctx = zmq.Context()
         else:
             self._ctx = ctx
         self._socket = None
@@ -30,7 +37,17 @@ class ZmqClient(object):
     def Destroy(self):
         if self._socket is not None:
             self._socket.close()
+            self._socket = None
+        
+        if self._ctxown is not None:
+            try:
+                self._ctxown.destroy()
+            except Exception:
+                log.error(u'caught ctx: %s', GetExceptionStack())
             
+            self._ctxown = None
+        self._ctx = None
+        
     def ConnectToServer(self, url):
         """connects to the zmq server
         :param url: url of the zmq server, default is self._url
@@ -56,8 +73,7 @@ class ZmqClient(object):
         :return: if zmq is not initialized, returns immediately, else returns the response from the zmq server in json format
         """
         if not self._initialized:
-            log.error(u'zmq server is not initialized')
-            return
+            raise ControllerClientError(u'zmq server is not initialized')
         
         log.debug(u'Sending command via ZMQ: ', command)
         try:
@@ -75,8 +91,6 @@ class ZmqClient(object):
             self._socket.connect(self._url)
             log.warn(u'Try to send again.')
             self._socket.send_json(command)
-#             else:
-#                 return {'status': 'error', 'exception': u'Failed to send command to controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
         return self.ReceiveCommand(timeout)
     
     def ReceiveCommand(self, timeout=None):
@@ -84,9 +98,9 @@ class ZmqClient(object):
             return self._socket.recv_json()
         else:
             starttime = time.time()
-            result = ""
+            result = None
             triedagain = False
-            while len(result) == 0 and time.time() - starttime < timeout:
+            while result is None and time.time() - starttime < timeout:
                 try:
                     result = self._socket.recv_json(zmq.NOBLOCK)
                 except zmq.ZMQError, e:
@@ -112,10 +126,9 @@ class ZmqClient(object):
 #                         return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
                 time.sleep(0.1)
             if triedagain:
-                if len(result) > 0:
-                    log.verbose(u'retry succeeded, result: %s', result)
+                if result is not None:
+                    log.verbose(u'retry succeeded, result: %r', result)
                 else:
-                    log.error(u'Timed out to get response from %s:%d after %f seconds', self.hostname, self.port, timeout)
-                    # raise Exception('Timed out to get response from controller.')
-                    return {'status': 'error', 'error': u'Timed out to get response from %s:%d after %f seconds' % (self.hostname, self.port, timeout)}
+                    raise TimeoutError(u'Timed out to get response from %s:%d after %f seconds'%(self.hostname, self.port, timeout))
+                
             return result
