@@ -90,7 +90,11 @@ class ControllerWebClient(object):
         if not self.IsLoggedIn():
             self.Login()
 
-        self._session.post(self._baseurl + '/restartserver/')
+        headers = {}
+        if self._csrftoken:
+            headers['X-CSRFToken'] = self._csrftoken
+
+        self._session.post(self._baseurl + '/restartserver/', headers=headers)
         # no reason to check response since it's probably an error (server is restarting after all)
         
     # python port of the javascript API Call function
