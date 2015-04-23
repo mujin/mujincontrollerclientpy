@@ -677,6 +677,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+
+    def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetStopPickPlaceAfterExecutionCycle',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
     #######################
     # unsupported commands
