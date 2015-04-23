@@ -464,7 +464,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def UpdateObjects(self, envstate, targetname=None, unit="m", timeout=10):
+    def UpdateObjects(self, envstate, targetname=None, iscontainerempty=0, unit="m", timeout=10):
         """updates objects in the scene with the envstate
         :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
         :param unit: unit of envstate
@@ -477,6 +477,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'robot': self.robotname,
                           'envstate': envstate,
                           'unit': unit,
+                          'iscontainerempty': iscontainerempty
                           }
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
@@ -630,6 +631,15 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
+    def GetInstObjectAndSensorInfo(self, instobjectnames, sensornames, unit='m', timeout=10, **kwargs):
+        taskparameters = {'command': 'GetInstObjectAndSensorInfo',
+                          'instobjectnames': instobjectnames,
+                          'sensornames': sensornames,
+                          'unit': unit
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     def MoveRobotOutOfCameraOcclusion(self, regionname=None, robotspeed=None, toolname=None, timeout=10, **kwargs):
         """moves the robot out of camera occlusion and deletes targets if it was in occlusion.
         
@@ -673,7 +683,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     
     def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
         taskparameters = {'command': 'SetRobotBridgeIOVariables',
-                          'iovalues':list(iovalues)
+                          'iovalues': list(iovalues)
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
