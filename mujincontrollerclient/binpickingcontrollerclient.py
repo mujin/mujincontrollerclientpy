@@ -631,6 +631,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
+    def GetInstObjectAndSensorInfo(self, instobjectnames, sensornames, timeout=10, **kwargs):
+        taskparameters = {'command': 'GetInstObjectAndSensorInfo',
+                          'instobjectnames': instobjectnames,
+                          'sensornames': sensornames
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     def MoveRobotOutOfCameraOcclusion(self, regionname=None, robotspeed=None, toolname=None, timeout=10, **kwargs):
         """moves the robot out of camera occlusion and deletes targets if it was in occlusion.
         
@@ -674,7 +682,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     
     def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
         taskparameters = {'command': 'SetRobotBridgeIOVariables',
-                          'iovalues':list(iovalues)
+                          'iovalues': list(iovalues)
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
