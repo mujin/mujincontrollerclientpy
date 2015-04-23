@@ -631,10 +631,11 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetInstObjectAndSensorInfo(self, instobjectnames, sensornames, timeout=10, **kwargs):
+    def GetInstObjectAndSensorInfo(self, instobjectnames, sensornames, unit='m', timeout=10, **kwargs):
         taskparameters = {'command': 'GetInstObjectAndSensorInfo',
                           'instobjectnames': instobjectnames,
-                          'sensornames': sensornames
+                          'sensornames': sensornames,
+                          'unit': unit
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
