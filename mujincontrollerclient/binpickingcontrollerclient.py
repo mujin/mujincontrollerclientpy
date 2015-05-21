@@ -18,7 +18,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     _robotControllerUri = None  # URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
     _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
     
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, grippersControlInfo, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None, robotDeviceIOUri=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None, robotDeviceIOUri=None):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -47,7 +47,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.regionname = regionname
         self.targetname = targetname
         self.toolname = toolname
-        self.grippersControlInfo = grippersControlInfo
         self.envclearance = envclearance
                 
     def SetRobotControllerUri(self, robotControllerUri):
@@ -88,7 +87,6 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        taskparameters['grippersControlInfo'] = self.grippersControlInfo 
         
         if taskparameters.get('speed', None) is None:
             # taskparameters does not have robotspeed, so set the global speed
