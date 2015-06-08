@@ -129,30 +129,26 @@ class ControllerWebClient(object):
             
         request_type = request_type.upper()
         
-        log.debug('%s %s', request_type, url)
+        log.verbose('%s %s', request_type, url)
         response = self._session.request(method=request_type, url=url, data=json.dumps(data), timeout=timeout, headers=headers)
         
         if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
             return response.status_code, response.content
-
+        
         # try to convert everything else
-        error_base = u'\n\nError with %s to %s\n\nThe API call failed (status: %s)' % (request_type, url, response.status_code)
-        content = None
         try:
             content = json.loads(response.content)
         except ValueError:
-            # either response was empty or not JSON
-            raise APIServerError(u'%s, here is what came back in the request:\n%s' % (error_base, response.content.encode('utf-8')))
+            self.Logout() # always logout the session when we hit an error
+            raise APIServerError(request_type, url, response.status_code, response.content)
         
-        if 'traceback' in content:
-            # always logout the session when we hit an error
-            self.Logout()
-
-            raise APIServerError('%s, here is the stack trace that came back in the request:\n%s' % (error_base, content['traceback'].encode('utf-8')))
+        if 'traceback' in content or response.status_code >= 400:
+            self.Logout() # always logout the session when we hit an error
+            raise APIServerError(request_type, url, response.status_code, response.content)
         
         return response.status_code, content
-            
+    
     def GetOrCreateTask(self, scenepk, taskname, tasktype=None, timeout=5):
         """gets or creates a task, returns its pk
         """
