@@ -225,12 +225,12 @@ class ControllerClientBase(object):
                 response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
             except APIServerError, e:
                 # have to disguise as ControllerClientError since users only catch ControllerClientError
-                raise ControllerClientError(e.message)
+                raise ControllerClientError(e.responseerror_message, e.responsetraceback)
             
             if 'error' in response:
-                raise ControllerClientError(u'Got exception: %s' % response['error'])
+                raise ControllerClientError(response['error'])
             elif 'exception' in response:
-                raise ControllerClientError(u'Got exception: %s' % response['exception'])
+                raise ControllerClientError(response['exception'])
             #elif 'traceback' in response:
             
             return response
@@ -238,9 +238,9 @@ class ControllerClientBase(object):
             response = self._zmqclient.SendCommand({'fnname':'RunTask', 'taskparams':{'tasktype':self.tasktype, 'sceneparams':self._sceneparams, 'taskparameters':taskparameters}}, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
-                raise ControllerClientError(u'Got exception: %s' % response['error'])
+                raise ControllerClientError(response['error'])
             elif 'exception' in response:
-                raise ControllerClientError(u'Got exception: %s' % response['exception'])
+                raise ControllerClientError(response['exception'])
             elif 'status' in response and response['status'] != 'succeeded':
                 # something happened so raise exception
                 raise ControllerClientError(u'Resulting status is %s' % response['status'])

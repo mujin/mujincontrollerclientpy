@@ -18,7 +18,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     _robotControllerUri = None  # URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
     _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
     
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None, robotDeviceIOUri=None, grippersControlInfo=None):
+
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None, robotDeviceIOUri=None,  robotaccelmult=None, grippersControlInfo=None):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -34,6 +35,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param toolname: name of the manipulator, e.g. 2BaseZ
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
+        :param robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(BinpickingControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, binpickingzmqport, binpickingheartbeatport, binpickingheartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi, ctx)
         
@@ -44,6 +46,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         # bin picking task
         self.robotname = robotname
         self.robotspeed = robotspeed
+        self.robotaccelmult = robotaccelmult
         self.regionname = regionname
         self.targetname = targetname
         self.toolname = toolname
@@ -92,11 +95,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         
         if taskparameters.get('speed', None) is None:
             # taskparameters does not have robotspeed, so set the global speed
-            if robotspeed is None:
-                taskparameters['robotspeed'] = self.robotspeed
-            else:
+            if robotspeed is not None:
                 taskparameters['robotspeed'] = robotspeed
-
+            elif self.robotspeed is not None:
+                taskparameters['robotspeed'] = float(self.robotspeed)
+            
+        if taskparameters.get('robotaccelmult', None) is None and self.robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = float(self.robotaccelmult)
         return self.ExecuteCommand(taskparameters, usewebapi, timeout=timeout)
     
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
