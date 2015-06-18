@@ -228,9 +228,9 @@ class ControllerClientBase(object):
                 raise ControllerClientError(e.responseerror_message, e.responsetraceback)
             
             if 'error' in response:
-                raise ControllerClientError(response['error'])
+                raise ControllerClientError(unicode(response['error'], 'utf-8'))
             elif 'exception' in response:
-                raise ControllerClientError(response['exception'])
+                raise ControllerClientError(unicode(response['exception'], 'utf-8'))
             #elif 'traceback' in response:
             
             return response
@@ -238,9 +238,9 @@ class ControllerClientBase(object):
             response = self._zmqclient.SendCommand({'fnname':'RunTask', 'taskparams':{'tasktype':self.tasktype, 'sceneparams':self._sceneparams, 'taskparameters':taskparameters}}, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
-                raise ControllerClientError(response['error'])
+                raise ControllerClientError(unicode(response['error'], 'utf-8'))
             elif 'exception' in response:
-                raise ControllerClientError(response['exception'])
+                raise ControllerClientError(unicode(response['exception'], 'utf-8'))
             elif 'status' in response and response['status'] != 'succeeded':
                 # something happened so raise exception
                 raise ControllerClientError(u'Resulting status is %s' % response['status'])
