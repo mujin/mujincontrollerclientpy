@@ -47,7 +47,7 @@ class APIServerError(Exception):
     
     def __repr__(self):
         return '<%s(%r, %r, %r, %r)>' % (self.__class__.__name__, self.request_type, self.url, self.status_code, {'traceback':self.responsetraceback, 'error_message':self.responseerror_message})
-    
+
 #     def __eq__(self, r):
 #         return self.msg == r.msg
 #     
@@ -55,24 +55,30 @@ class APIServerError(Exception):
 #         return self.msg != r.msg
 
 class ControllerClientError(Exception):
-    responseerror_message = None # the error
-    responsetraceback = None # the traceback from the error
+    responseerror_message = None # the error. should be unicode
+    responsetraceback = None # the traceback from the error. should be unicode
     def __init__(self, responseerror_message, responsetraceback=None):
-        self.responseerror_message = responseerror_message
-        self.responsetraceback = responsetraceback
-
+        if isinstance(responseerror_message, unicode):
+            self.responseerror_message = responseerror_message
+        else:
+            self.responseerror_message = unicode(responseerror_message, 'utf-8')
+        if isinstance(responsetraceback, unicode):
+            self.responsetraceback = responsetraceback
+        else:
+            self.responsetraceback = unicode(responsetraceback, 'utf-8')
+    
     def __unicode__(self):
         if self.responseerror_message is not None:
             return self.responseerror_message
-
+        
         return u'Unknown error'
-
+    
     def __str__(self):
         return unicode(self).encode('utf-8')
-
+    
     def __repr__(self):
         return '<%s(%r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsetraceback)
-    
+
 class FluidPlanningError(Exception):
     pass
 
