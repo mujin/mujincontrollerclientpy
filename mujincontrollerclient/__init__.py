@@ -60,11 +60,11 @@ class ControllerClientError(Exception):
     def __init__(self, responseerror_message, responsetraceback=None):
         if isinstance(responseerror_message, unicode):
             self.responseerror_message = responseerror_message
-        else:
+        elif responseerror_message is not None:
             self.responseerror_message = unicode(responseerror_message, 'utf-8')
         if isinstance(responsetraceback, unicode):
             self.responsetraceback = responsetraceback
-        else:
+        elif responsetraceback is not None:
             self.responsetraceback = unicode(responsetraceback, 'utf-8')
     
     def __unicode__(self):
