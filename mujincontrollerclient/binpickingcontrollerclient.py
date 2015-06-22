@@ -681,14 +681,17 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
-    def GetBinpickingState(self, request=True, timeout=10, **kwargs):
-        if request or (not request and self._taskstatus is None):
-            taskparameters = {'command': 'GetBinpickingState',
-                              }
-            taskparameters.update(kwargs)
-            return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+    def GetBinpickingState(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'GetBinpickingState',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+    
+    def GetPublishedTaskState(self, timeout=10, **kwargs):
+        if self._taskstate is None or type(self._taskstate) != dict:
+            return self.GetBinpickingState(timeout, **kwargs)
         else:
-            return self._taskstatus
+            return self._taskstate
     
     def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
         taskparameters = {'command': 'SetRobotBridgeIOVariables',
