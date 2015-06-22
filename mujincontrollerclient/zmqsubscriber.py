@@ -25,7 +25,11 @@ class ZmqSubscriber(object):
     def __del__(self):
         self.StopSubscription()
         
-    def Connect(self, host, port):
+    def Connect(self, host=None, port=None):
+        if host is None:
+            host = self._host
+        if port is None:
+            port = self._port
         self._socket.connect("tcp://%s:%s" % (host, port))
         self._socket.setsockopt(zmq.SUBSCRIBE, "")
         self._poller.register(self._socket, zmq.POLLIN)
