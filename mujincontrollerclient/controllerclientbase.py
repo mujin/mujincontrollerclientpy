@@ -15,6 +15,11 @@ from logging import getLogger
 log = getLogger(__name__)
 
 # system imports
+import time
+import zmq
+import ujson
+from threading import Thread
+import weakref
 
 # mujin imports
 from . import ControllerClientError, APIServerError
@@ -108,6 +113,10 @@ class ControllerClientBase(object):
     _sceneparams = {}
     _webclient = None
     scenepk = None # the scenepk this controller is configured for
+    _ctx = None  # zmq context shared among all clients
+    _heartbeatthread = None  # thread for monitoring controller heartbeat
+    _isokheartbeat = False  # if False, then stop heartbeat monitor
+    _taskstatus = None  # latest task status from heartbeat message
 
     def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
         """logs into the mujin controller and initializes the task's zmq connection
@@ -138,14 +147,16 @@ class ControllerClientBase(object):
         # connects to task's zmq server
         self._zmqclient = None
         if taskzmqport is not None:
+            self._ctx = ctx
             self.taskzmqport = taskzmqport
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
-#             if initializezmq:
-#                 log.verbose('initializing controller zmq server...')
-#                 self.InitializeControllerZmqServer(taskzmqport, taskheartbeatport)
-                # TODO add heartbeat logic
             self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
+            if self._heartbeatthread is None:
+                self._isokheartbeat = True
+                self._heartbeatthread = Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
+                self._heartbeatthread.start()
+                
         
         self.SetScenePrimaryKey(scenepk)
         
@@ -156,9 +167,40 @@ class ControllerClientBase(object):
         if self._webclient is not None:
             self._webclient.Destroy()
             self._webclient = None
+        if self._heartbeatthread is not None:
+            if self._heartbeatthread is not None:
+                self._isokheartbeat = False
+                self._heartbeatthread.join()
+                self._heartbeatthread = None
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
+
+    def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
+        socket = self._ctx.socket(zmq.SUB)
+        socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
+        socket.setsockopt(zmq.SUBSCRIBE, '')
+        poller = zmq.Poller()
+        poller.register(socket, zmq.POLLIN)
+
+        while self._isokheartbeat:
+            lastheartbeatts = time.time()
+            while self._isokheartbeat and time.time() - lastheartbeatts < reinitializetimeout:
+                socks = dict(poller.poll(50))
+                if socket in socks and socks.get(socket) == zmq.POLLIN:
+                    try:
+                        reply = socket.recv(zmq.NOBLOCK)
+                        if type(reply) == dict and reply.get('taskstatus', None) is not None:
+                            self._taskstatus = ujson.loads(reply.get('taskstatus', None))
+                        else:
+                            self._taskstatus = None
+                    except zmq.ZMQError, e:
+                        log.error('failed to receive from publisher')
+                        log.error(e)
+            if self._isokheartbeat:
+                log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
+        
+
 
     def RestartController(self):
         """ restarts controller
