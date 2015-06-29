@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
-import os
 
 # logging
 import logging
@@ -687,6 +686,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+    
+    def GetPublishedTaskState(self, timeout=10, **kwargs):
+        if self._taskstate is None or type(self._taskstate) != dict:
+            return self.GetBinpickingState(timeout, **kwargs)
+        else:
+            return self._taskstate
     
     def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
         taskparameters = {'command': 'SetRobotBridgeIOVariables',
