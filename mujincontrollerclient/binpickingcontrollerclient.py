@@ -687,11 +687,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
-    def GetPublishedTaskState(self, timeout=10, **kwargs):
-        if self._taskstate is None or type(self._taskstate) != dict:
-            return self.GetBinpickingState(timeout, **kwargs)
-        else:
-            return self._taskstate
+    def GetPublishedTaskState(self):
+        """return most recent published state. if publishing is disabled, then will return None
+        """
+        return self._taskstate
     
     def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
         taskparameters = {'command': 'SetRobotBridgeIOVariables',
