@@ -168,15 +168,15 @@ class ControllerClientBase(object):
             self._webclient.Destroy()
             self._webclient = None
         if self._heartbeatthread is not None:
-            if self._heartbeatthread is not None:
-                self._isokheartbeat = False
-                self._heartbeatthread.join()
-                self._heartbeatthread = None
+            self._isokheartbeat = False
+            self._heartbeatthread.join()
+            self._heartbeatthread = None
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
 
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
+        # this needs a LOT more work catching failures and recreating connections, it is not production ready at all. also use recv_json instead of recv
         while self._isokheartbeat:
             socket = self._ctx.socket(zmq.SUB)
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
