@@ -17,7 +17,6 @@ log = getLogger(__name__)
 # system imports
 import time
 import zmq
-import ujson
 from threading import Thread
 import weakref
 
@@ -176,8 +175,8 @@ class ControllerClientBase(object):
             self._zmqclient = None
 
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
-        # this needs a LOT more work catching failures and recreating connections, it is not production ready at all. also use recv_json instead of recv
         while self._isokheartbeat:
+            log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket = self._ctx.socket(zmq.SUB)
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket.setsockopt(zmq.SUBSCRIBE, '')
@@ -189,9 +188,10 @@ class ControllerClientBase(object):
                 socks = dict(poller.poll(50))
                 if socket in socks and socks.get(socket) == zmq.POLLIN:
                     try:
-                        reply = socket.recv(zmq.NOBLOCK)
-                        if type(reply) == dict and reply.get('taskstate', None) is not None:
-                            self._taskstate = ujson.loads(reply.get('taskstate', None))
+                        reply = socket.recv_json(zmq.NOBLOCK)
+                        if 'taskstate' in reply:
+                            self._taskstate = reply['taskstate']
+                            lastheartbeatts = time.time()
                         else:
                             self._taskstate = None
                     except zmq.ZMQError, e:
