@@ -18,7 +18,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
     
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None, robotDeviceIOUri=None,  robotaccelmult=None, grippersControlInfo=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, robotspeed, regionname, targetname, toolname, envclearance, binpickingzmqport=None, binpickingheartbeatport=None, binpickingheartbeattimeout=None, usewebapi=True, initializezmq=False, ctx=None, robotDeviceIOUri=None,  robotaccelmult=None, gripperControlInfo=None):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -49,7 +49,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         self.regionname = regionname
         self.targetname = targetname
         self.toolname = toolname
-        self.grippersControlInfo = grippersControlInfo
+        self.gripperControlInfo = gripperControlInfo
         self.envclearance = envclearance
                 
     def SetRobotControllerUri(self, robotControllerUri):
@@ -90,7 +90,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        taskparameters['grippersControlInfo'] = self.grippersControlInfo 
+        taskparameters['gripperControlInfo'] = self.gripperControlInfo 
         
         if taskparameters.get('speed', None) is None:
             # taskparameters does not have robotspeed, so set the global speed
