@@ -2,6 +2,8 @@
 # Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 
+import json
+
 # logging
 import logging
 log = logging.getLogger(__name__)
@@ -470,7 +472,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def UpdateObjects(self, envstate, targetname=None, iscontainerempty=0, unit="m", timeout=10):
+    def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10):
         """updates objects in the scene with the envstate
         :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
         :param unit: unit of envstate
@@ -483,8 +485,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'robot': self.robotname,
                           'envstate': envstate,
                           'unit': unit,
-                          'iscontainerempty': iscontainerempty
                           }
+        if state is not None:
+            taskparameters['state'] = json.dumps(state)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def Grab(self, targetname, toolname=None, timeout=10):
