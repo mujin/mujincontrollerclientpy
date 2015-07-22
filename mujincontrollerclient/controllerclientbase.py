@@ -179,10 +179,10 @@ class ControllerClientBase(object):
             self._zmqclient.Destroy()
             self._zmqclient = None
 
-    def SetUserInfo(self, **kwargs):
-        self._userinfo.update(**kwargs)
-        self._webclient.SetLocale(self._userinfo.get('locale', None))
-
+    def SetLocale(self, locale):
+        self._userinfo['locale'] = locale
+        self._webclient.SetLocale(locale)
+    
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
         while self._isokheartbeat:
             log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
@@ -210,7 +210,6 @@ class ControllerClientBase(object):
                 log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
         
 
-
     def RestartController(self):
         """ restarts controller
         """
@@ -226,12 +225,21 @@ class ControllerClientBase(object):
         scenefilename = GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
     
-    def GetSceneInstanceObjectsViaWebapi(self, scenepk, timeout=5):
+    def GetSceneInstanceObjectsViaWebapi(self, scenepk=None, timeout=5):
         """ returns the instance objects of the scene
         """
+        if scenepk is None:
+            scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
         return response['instobjects']
+
+    def SetInstanceObjectDataViaWebapi(self, pk, instobjectdata):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (self.scenepk, pk), data=instobjectdata, timeout=timeout)
+        assert(status == 202)
     
     def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
