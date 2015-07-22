@@ -59,6 +59,7 @@ class ControllerWebClient(object):
         # en_US.UTF-8 => en-us
         # en_US => en-us
         # en => en
+        self._language = 'en' # default to en
         if self._locale is not None and len(self._locale) > 0:
             self._language = self._locale.split('.', 1)[0].replace('_', '-').lower()
 
@@ -69,10 +70,9 @@ class ControllerWebClient(object):
         session = requests.Session()
         session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
-        headers = {}
-        if self._language is not None and len(self._language) > 0:
-            headers['Accept-Language'] = self._language+',en-us' # default to 
-        
+        headers = {
+            'Accept-Language': self._language,
+        }
         response = session.get('%s/login/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
@@ -88,10 +88,8 @@ class ControllerWebClient(object):
 
         headers = {
             'X-CSRFToken': csrftoken,
+            'Accept-Language': self._language,
         }
-        if self._language is not None and len(self._language) > 0:
-            headers['Accept-Language'] = self._language+',en-us' # default to 
-
         response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
@@ -113,11 +111,11 @@ class ControllerWebClient(object):
         if not self.IsLoggedIn():
             self.Login()
 
-        headers = {}
+        headers = {
+            'Accept-Language': self._language,
+        }
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
-        if self._language is not None and len(self._language) > 0:
-            headers['Accept-Language'] = self._language+',en-us' # default to 
 
         self._session.post(self._baseurl + '/restartserver/', headers=headers)
         # no reason to check response since it's probably an error (server is restarting after all)
@@ -148,12 +146,12 @@ class ControllerWebClient(object):
         if data is None:
             data = {}
 
-        headers = {}
+        headers = {
+            'Accept-Language': self._language,
+        }
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
-        if self._language is not None and len(self._language) > 0:
-            headers['Accept-Language'] = self._language+',en-us' # default to 
-            
+
         request_type = request_type.upper()
         
         log.verbose('%s %s', request_type, url)
