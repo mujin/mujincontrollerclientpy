@@ -548,6 +548,18 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
+    def GetOBB(self, targetname, unit='mm', timeout=10):
+        """ Get the oriented bounding box of object
+        :param targetname: name of the object
+        :param unit: unit of the OBB
+        :return: OBB of the object
+        """
+        taskparameters = {'command': 'GetOBB',
+                          'targetname': targetname,
+                          'unit': unit,
+                          }
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     def GetAABB(self, targetname, unit='mm', timeout=10):
         """Gets the axis aligned bounding box of object
         :param targetname: name of the object
