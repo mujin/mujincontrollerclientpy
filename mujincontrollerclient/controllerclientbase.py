@@ -116,6 +116,7 @@ class ControllerClientBase(object):
     _heartbeatthread = None  # thread for monitoring controller heartbeat
     _isokheartbeat = False  # if False, then stop heartbeat monitor
     _taskstate = None  # latest task status from heartbeat message
+    _userinfo = None # a dict storing user info, like locale
 
     def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
         """logs into the mujin controller and initializes the task's zmq connection
@@ -129,6 +130,11 @@ class ControllerClientBase(object):
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param initializezmq: whether to initialize controller zmq server
         """
+        self._userinfo = {
+            'username': controllerusername,
+            'locale': os.environ.get('LANG', ''),
+        }
+
         # task
         self.tasktype = tasktype
         self._usewebapi = usewebapi
@@ -142,7 +148,7 @@ class ControllerClientBase(object):
         self.controllerusername = controllerusername
         self.controllerpassword = controllerpassword
         self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
-        
+
         # connects to task's zmq server
         self._zmqclient = None
         if taskzmqport is not None:
@@ -156,7 +162,6 @@ class ControllerClientBase(object):
                 self._heartbeatthread = Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
                 self._heartbeatthread.start()
                 
-        
         self.SetScenePrimaryKey(scenepk)
         
     def __del__(self):
@@ -173,6 +178,10 @@ class ControllerClientBase(object):
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
+
+    def SetUserInfo(self, **kwargs):
+        self._userinfo.update(**kwargs)
+        self._webclient.SetLocale(self._userinfo.get('locale', None))
 
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
         while self._isokheartbeat:
@@ -277,7 +286,16 @@ class ControllerClientBase(object):
             
             return response
         else:
-            response = self._zmqclient.SendCommand({'fnname':'RunTask', 'taskparams':{'tasktype':self.tasktype, 'sceneparams':self._sceneparams, 'taskparameters':taskparameters}}, timeout)
+            command = {
+                'fnname': 'RunTask',
+                'taskparams': {
+                    'tasktype': self.tasktype,
+                    'sceneparams': self._sceneparams,
+                    'taskparameters': taskparameters,
+                },
+                'userinfo': self._userinfo,
+            }
+            response = self._zmqclient.SendCommand(command, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
                 raise ControllerClientError(response['error'])

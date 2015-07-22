@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 import requests
 import requests.auth
 import time
@@ -31,19 +32,36 @@ class ControllerWebClient(object):
     _password = None
     _session = None
     _csrftoken = None
+    _locale = None
+    _language = None
 
-    def __init__(self, baseurl, username, password):
+    def __init__(self, baseurl, username, password, locale=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
         self._session = None
         self._csrftoken = None
+        self._locale = None
+        self._language = None
+
+        self.SetLocale(locale)
 
     def __del__(self):
         self.Destroy()
 
     def Destroy(self):
         self.Logout()
+
+    def SetLocale(self, locale=None):
+        self._locale = locale or os.environ.get('LANG', None)
+
+        # convert locale to language code for http requests
+        # en_US.UTF-8 => en-us
+        # en_US => en-us
+        # en => en
+        self._language = 'en' # default to en
+        if self._locale is not None and len(self._locale) > 0:
+            self._language = self._locale.split('.', 1)[0].replace('_', '-').lower()
 
     def Login(self, timeout=5):
         if self._session is not None:
@@ -52,7 +70,10 @@ class ControllerWebClient(object):
         session = requests.Session()
         session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
-        response = session.get('%s/login/' % self._baseurl, timeout=timeout)
+        headers = {
+            'Accept-Language': self._language,
+        }
+        response = session.get('%s/login/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
 
@@ -67,8 +88,8 @@ class ControllerWebClient(object):
 
         headers = {
             'X-CSRFToken': csrftoken,
+            'Accept-Language': self._language,
         }
-
         response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
@@ -90,7 +111,9 @@ class ControllerWebClient(object):
         if not self.IsLoggedIn():
             self.Login()
 
-        headers = {}
+        headers = {
+            'Accept-Language': self._language,
+        }
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
 
@@ -123,10 +146,12 @@ class ControllerWebClient(object):
         if data is None:
             data = {}
 
-        headers = {}
+        headers = {
+            'Accept-Language': self._language,
+        }
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
-            
+
         request_type = request_type.upper()
         
         log.verbose('%s %s', request_type, url)
