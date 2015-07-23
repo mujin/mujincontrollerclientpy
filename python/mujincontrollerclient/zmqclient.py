@@ -6,6 +6,7 @@ import time
 import zmq
 
 from . import GetExceptionStack, TimeoutError, ControllerClientError
+from . import ugettext as _
 
 import logging
 log = logging.getLogger(__name__)

@@ -25,6 +25,7 @@ except ImportError:
     import json
 
 from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError
+from . import ugettext as _
 
 class ControllerWebClient(object):
     _baseurl = None
@@ -75,7 +76,7 @@ class ControllerWebClient(object):
         }
         response = session.get('%s/login/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
-            raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
+            raise AuthenticationError(_('Failed to authenticate: %r') % response.content)
 
         csrftoken = response.cookies.get('csrftoken', None)
 
@@ -93,7 +94,7 @@ class ControllerWebClient(object):
         response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
-            raise AuthenticationError(u'Failed to authenticate: %r' % response.content)
+            raise AuthenticationError(_('Failed to authenticate: %r') % response.content)
 
         self._session = session
         self._csrftoken = csrftoken
@@ -119,7 +120,7 @@ class ControllerWebClient(object):
 
         self._session.post(self._baseurl + '/restartserver/', headers=headers)
         # no reason to check response since it's probably an error (server is restarting after all)
-        
+
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
         if not self.IsLoggedIn():
@@ -129,20 +130,20 @@ class ControllerWebClient(object):
             api_url += '/'
 
         url = self._baseurl + '/api/v1/' + api_url + '?format=json'
-        
+
         if url_params is None:
             url_params = {}
-            
+
         if fields is not None:
             url_params['fields'] = fields
-            
+
         # implicit order by pk
         if 'order_by' not in url_params:
             url_params['order_by'] = 'pk'
-            
+
         for param, value in url_params.iteritems():
             url += '&' + str(param) + '=' + str(value)
-        
+
         if data is None:
             data = {}
 
@@ -153,27 +154,27 @@ class ControllerWebClient(object):
             headers['X-CSRFToken'] = self._csrftoken
 
         request_type = request_type.upper()
-        
+
         log.verbose('%s %s', request_type, url)
         response = self._session.request(method=request_type, url=url, data=json.dumps(data), timeout=timeout, headers=headers)
-        
+
         if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
             return response.status_code, response.content
-        
+
         # try to convert everything else
         try:
             content = json.loads(response.content)
         except ValueError:
             self.Logout() # always logout the session when we hit an error
             raise APIServerError(request_type, url, response.status_code, response.content)
-        
+
         if 'traceback' in content or response.status_code >= 400:
             self.Logout() # always logout the session when we hit an error
             raise APIServerError(request_type, url, response.status_code, response.content)
-        
+
         return response.status_code, content
-    
+
     def GetOrCreateTask(self, scenepk, taskname, tasktype=None, timeout=5):
         """gets or creates a task, returns its pk
         """
@@ -187,7 +188,7 @@ class ControllerWebClient(object):
             status, response = self.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk}, timeout=timeout)
             assert(status == 201)
             return response['pk']
-        
+
     def ExecuteFluidTask(self, scenepk, taskparameters, timeout=1000):
         """
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
@@ -216,7 +217,7 @@ class ControllerWebClient(object):
                             if status_text_prev is not None and status_text_prev != response['status_text']:
                                 log.info(response['status_text'])
                             status_text_prev = response['status_text']
-                            
+
                         jobstatus = response['status']
                     except APIServerError, e:
                         # most likely job finished
@@ -235,14 +236,14 @@ class ControllerWebClient(object):
                             return result['output']
                 except socket.error, e:
                     log.error(e)
-                    
+
                 # tasks can be long, so sleep
                 time.sleep(1)
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
                 self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
-                    
+
     def ExecuteBinPickingTaskSync(self, scenepk, taskparameters, forcecancel=False, timeout=1000):
         '''
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
@@ -301,7 +302,7 @@ class ControllerWebClient(object):
                             if status_text_prev is not None and status_text_prev != response['status_text']:
                                 log.info(response['status_text'])
                             status_text_prev = response['status_text']
-                            
+
                         jobstatus = response['status']
                     except APIServerError, e:
                         # most likely job finished
@@ -320,15 +321,15 @@ class ControllerWebClient(object):
                             return result['output']
                 except socket.error, e:
                     log.error(e)
-                    
+
                 # tasks can be long, so sleep
                 time.sleep(.1)
-                
+
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
                 self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
-                    
+
     def ExecuteHandEyeCalibrationTaskSync(self, scenepk, taskparameters):
         '''
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
@@ -342,7 +343,7 @@ class ControllerWebClient(object):
         status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         return response
-        
+
     def ExecuteHandEyeCalibrationTaskAsync(self, scenepk, taskparameters, timeout=1000):
         """
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
@@ -371,7 +372,7 @@ class ControllerWebClient(object):
                             if status_text_prev is not None and status_text_prev != response['status_text']:
                                 log.info(response['status_text'])
                             status_text_prev = response['status_text']
-                            
+
                         jobstatus = response['status']
                     except APIServerError, e:
                         # most likely job finished
@@ -388,13 +389,13 @@ class ControllerWebClient(object):
                             if 'errormessage' in result and len(result['errormessage']) > 0:
                                 raise HandEyeCalibrationError(result['errormessage'])
                             return result['output']
-                        
+
                 except socket.error, e:
                     log.error(e)
 
                 # tasks can be long, so sleep
                 time.sleep(.1)
-                
+
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
@@ -408,7 +409,7 @@ class ControllerWebClient(object):
         for objvalues in response['instobjects']:
             instobjects[objvalues['name']] = objvalues
         return instobjects
-        
+
     def UpdateObjects(self, scenepk, objectdata, timeout=5):
         """updates the objects. objectdata is in the same format as returned by GetObjects
         """

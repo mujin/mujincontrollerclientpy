@@ -23,6 +23,7 @@ import weakref
 # mujin imports
 from . import ControllerClientError, APIServerError
 from . import controllerclientraw, zmqclient
+from . import ugettext as _
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
 # because '#' in URL parsing is a special role

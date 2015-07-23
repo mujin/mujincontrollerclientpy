@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2014-2015 MUJIN Inc.
+
+try:
+    import mujincommon.i18n
+    ugettext, ungettext = mujincommon.i18n.GetDomain('mujincontrollerclientpy').GetTranslationFunctions()
+except ImportError:
+    import gettext
+    _null_translations = gettext.NullTranslations()
+    ugettext = _null_translations.ugettext
+    ungettext = _null_translations.ugettext
+
+_ = ugettext
+
 import json
 
 from logging import addLevelName, NOTSET, getLoggerClass
@@ -71,7 +83,7 @@ class ControllerClientError(Exception):
         if self.responseerror_message is not None:
             return self.responseerror_message
         
-        return u'Unknown error'
+        return _('Unknown error')
     
     def __str__(self):
         return unicode(self).encode('utf-8')
