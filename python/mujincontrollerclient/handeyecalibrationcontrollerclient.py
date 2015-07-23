@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 # mujin imports
 from . import controllerclientbase
-
+from . import ugettext as _
 
 class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for hand-eye calibration task

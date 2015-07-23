@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 # mujin imports
 from . import controllerclientbase
+from . import ugettext as _
 
 
 class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
