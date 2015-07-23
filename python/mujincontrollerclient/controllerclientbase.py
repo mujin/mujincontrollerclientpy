@@ -235,7 +235,7 @@ class ControllerClientBase(object):
         assert(status == 200)
         return response['instobjects']
 
-    def SetInstanceObjectDataViaWebapi(self, pk, instobjectdata):
+    def SetInstanceObjectDataViaWebapi(self, pk, instobjectdata, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
