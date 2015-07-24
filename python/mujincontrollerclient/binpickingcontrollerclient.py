@@ -714,61 +714,60 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-
+    
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         taskparameters = {'command': 'SetStopPickPlaceAfterExecutionCycle',
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+
+    def SetViewerFromParameters(self, viewerparameters, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetViewerFromParameters',
+                          'viewerparameters':viewerparameters
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
+    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=0.02, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraZoomOut',
+                          'zoomdelta':float(zoomdelta),
+                          'zoommult': float(zoommult)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    #######################
-    # unsupported commands
-    #######################
+    def MoveCameraZoomIn(self, zoomdelta=0.02, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraZoomIn',
+                          'zoomdelta':float(zoomdelta),
+                          'zoommult':float(zoommult)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def UnchuckManipulator(self, *args, **kwargs):
-        log.warn('deprecated')
-        return self.UnchuckGripper(*args, **kwargs)
+    def MoveCameraLeft(self, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraLeft',
+                          'pandelta':float(pandelta),
+                          'panangle':float(panangle)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def ChuckManipulator(self, *args, **kwargs):
-        log.warn('deprecated')
-        return self.ChuckGripper(*args, **kwargs)
+    def MoveCameraRight(self, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraRight',
+                          'pandelta':float(pandelta),
+                          'panangle':float(panangle)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def __StartBackgroundTask(self, taskname, robotspeed=None, timeout=10):
-        """starts a background task (need testing)
-        :param taskname: name of the background task
-        """
-        taskparameters = {'command': 'ExecuteBackgroundTask',
-                          'taskname': taskname,
+    def SetCameraTransform(self, transform, focalDistance, usewebapi=False, timeout=10, **kwargs):
+        """sets the camera transform
+        :param transform: 4x4 matrix
+        """        
+        taskparameters = {'command': 'SetCameraTransform',
+                          'transform':[list(row) for row in transform],
+                          'focalDistance':float(focalDistance),
                           }
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
-    
-    def __StopBackgroundTask(self, timeout=10):
-        """stops the background task (need testing)
-        assumes that only one background task is running
-        """
-        taskparameters = {'command': 'StopBackgroundTask',
-                          }
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-    
-    def __PickAndMove(self, goaltype, armjointvaluesgoals, destinationgoals=None, targetnames=None, movetodestination=0, deletetarget=1, startvalues=None, toolname=None, envclearance=20, regionname=None, robotspeed=None, timeout=10):
-        """deprecated
-        """
-        if toolname is None:
-            toolname = self.toolname
-        taskparameters = {'command': 'PickAndMove',
-                          'toolname': toolname,
-                          'goaltype': goaltype,
-                          'envclearance': envclearance,
-                          'movetodestination': movetodestination,
-                          'deletetarget': deletetarget,
-                          'armjointvaluesgoals': list(armjointvaluesgoals),
-                          }
-        if regionname is not None:
-            taskparameters['boxname'] = regionname  # TODO: update backend
-        if destinationgoals is not None:
-            taskparameters['goals'] = destinationgoals
-        if targetnames is not None:
-            taskparameters['targetnames'] = targetnames
-        if startvalues is not None:
-            taskparameters['startvalues'] = list(startvalues)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
