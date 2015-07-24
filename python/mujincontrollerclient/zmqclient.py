@@ -76,7 +76,7 @@ class ZmqClient(object):
         if not self._initialized:
             raise ControllerClientError(u'zmq server is not initialized')
         
-        log.debug(u'Sending command via ZMQ: ', command)
+        log.verbose(u'Sending command via ZMQ: %s', command)
         try:
             self._socket.send_json(command)
         except zmq.ZMQError, e:
