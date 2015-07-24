@@ -759,7 +759,21 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def MoveCameraUp(self, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraLeft',
+                          'angledelta':float(angledelta)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
+    def MoveCameraDown(self, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraRight',
+                          'angledelta':float(angledelta)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
     def SetCameraTransform(self, transform, focalDistance, usewebapi=False, timeout=10, **kwargs):
         """sets the camera transform
         :param transform: 4x4 matrix
