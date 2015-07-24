@@ -736,7 +736,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraZoomIn(self, zoomdelta=0.02, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=0.02, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraZoomIn',
                           'zoomdelta':float(zoomdelta),
                           'zoommult':float(zoommult)
@@ -761,14 +761,14 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def MoveCameraUp(self, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraLeft',
+        taskparameters = {'command': 'MoveCameraUp',
                           'angledelta':float(angledelta)
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
     def MoveCameraDown(self, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraRight',
+        taskparameters = {'command': 'MoveCameraDown',
                           'angledelta':float(angledelta)
         }
         taskparameters.update(kwargs)
