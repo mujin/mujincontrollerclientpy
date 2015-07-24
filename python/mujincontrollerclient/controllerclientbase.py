@@ -265,7 +265,7 @@ class ControllerClientBase(object):
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
-    
+
     def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
@@ -277,7 +277,7 @@ class ControllerClientBase(object):
         :param timeout: timeout in seconds for web api call
         :return: return the server response in json format
         """
-        log.debug(u'Executing task with parameters: %s', taskparameters)
+        log.verbose(u'Executing task with parameters: %r', taskparameters)
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
