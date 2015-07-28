@@ -744,43 +744,58 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraLeft(self, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraLeft(self, ispan=True, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraLeft',
                           'pandelta':float(pandelta),
-                          'panangle':float(panangle)
+                          'panangle':float(panangle),
+                          'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraRight(self, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraRight(self, ispan=True, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraRight',
                           'pandelta':float(pandelta),
-                          'panangle':float(panangle)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def MoveCameraUp(self, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraUp',
-                          'angledelta':float(angledelta)
+                          'panangle':float(panangle),
+                          'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraDown(self, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraDown',
-                          'angledelta':float(angledelta)
+    def MoveCameraUp(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraUp',
+                          'angledelta':float(angledelta),
+                          'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def SetCameraTransform(self, transform, focalDistance, usewebapi=False, timeout=10, **kwargs):
+    
+    def MoveCameraDown(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'MoveCameraDown',
+                          'angledelta':float(angledelta),
+                          'ispan':bool(ispan)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, **kwargs):
         """sets the camera transform
         :param transform: 4x4 matrix
         """        
         taskparameters = {'command': 'SetCameraTransform',
-                          'transform':[list(row) for row in transform],
-                          'focalDistance':float(focalDistance),
+                          'distanceToFocus':float(distanceToFocus),
+                          }
+        if transform is not None:
+            taskparameters['transform'] = [list(row) for row in transform]
+        if pose is not None:
+            taskparameters['pose'] = [float(f) for f in pose]
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetCameraTransform(self, usewebapi=False, timeout=10, **kwargs):
+        """gets the camera transform, and other
+        """
+        taskparameters = {'command': 'GetCameraTransform'
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
