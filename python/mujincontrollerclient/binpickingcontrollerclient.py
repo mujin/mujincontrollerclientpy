@@ -728,7 +728,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
         
-    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=0.02, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraZoomOut',
                           'zoomdelta':float(zoomdelta),
                           'zoommult': float(zoommult)
@@ -736,7 +736,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=0.02, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraZoomIn',
                           'zoomdelta':float(zoomdelta),
                           'zoommult':float(zoommult)
@@ -744,7 +744,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraLeft(self, ispan=True, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraLeft',
                           'pandelta':float(pandelta),
                           'panangle':float(panangle),
@@ -753,7 +753,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveCameraRight(self, ispan=True, panangle=0.1, pandelta=0.04, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, **kwargs):
         taskparameters = {'command': 'MoveCameraRight',
                           'pandelta':float(pandelta),
                           'panangle':float(panangle),
