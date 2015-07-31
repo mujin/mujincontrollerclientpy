@@ -569,7 +569,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GetInnerEmptyRegionOBB(self, targetname, unit='mm', linkname=None, timeout=10, **kwargs):
+    def GetInnerEmptyRegionOBB(self, targetname, linkname=None, unit='mm', timeout=10, **kwargs):
         """ Get the inner empty oriented bounding box of a container
         :param targetname: name of the object
         :param linkname: can target a specific link
