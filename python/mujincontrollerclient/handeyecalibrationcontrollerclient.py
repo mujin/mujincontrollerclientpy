@@ -28,7 +28,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, self.tasktype, scenepk, usewebapi=usewebapi)
         self.robot = robot
         
-    def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
+    def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", timeout=3000, **kwargs):
         if samplingmethod == "":
             samplingmethod = "boardexposure"  # "boardexposure"
         taskparameters = {'command': 'ComputeCalibrationPoses',
@@ -41,12 +41,13 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           'samplingmethod': samplingmethod,
                           'debuglevel': 4
                           }
+        taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters["robot"] = self.robot
-        result = self.ExecuteCommandViaWebapi(taskparameters, timeout=3000)
+        result = self.ExecuteCommandViaWebapi(taskparameters, timeout=timeout)
         return result
     
-    def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=""):
+    def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", timeout=3000, **kwargs):
         if samplingmethod == "":
             samplingmethod = "boardexposure"  # "boardexposure"
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
@@ -58,9 +59,10 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
                           'targetarea': targetarea,
                           'samplingmethod': samplingmethod,
                           }
+        taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters["robot"] = self.robot
-        result = self.ExecuteCommandViaWebapi(taskparameters, timeout=3000)
+        result = self.ExecuteCommandViaWebapi(taskparameters, timeout=timeout)
         return result
     
     def ReloadModule(self, **kwargs):
