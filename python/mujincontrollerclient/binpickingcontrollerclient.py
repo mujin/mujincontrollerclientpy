@@ -448,7 +448,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
     # scene commands
     ####################
     
-    def IsRobotOccludingBody(self, bodyname, cameraname, timeout=10):
+    def IsRobotOccludingBody(self, bodyname, cameraname, timeout=10, **kwargs):
         """returns if the robot is occluding body in the view of the specified camera
         :param bodyname: name of the object
         :param cameraname: name of the camera
@@ -459,9 +459,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'bodyname': bodyname,
                           'cameraname': cameraname,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetPickedPositions(self, unit='m', timeout=10):
+    def GetPickedPositions(self, unit='m', timeout=10, **kwargs):
         """returns the poses and the timestamps of the picked objects
         :param robotname: name of the robot
         :param unit: unit of the translation
@@ -471,9 +472,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'robotname': self.robotname,
                           'unit': unit,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10):
+    def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
         :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
         :param unit: unit of envstate
@@ -487,11 +489,12 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'envstate': envstate,
                           'unit': unit,
                           }
+        taskparameters.update(kwargs)
         if state is not None:
             taskparameters['state'] = json.dumps(state)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def Grab(self, targetname, toolname=None, timeout=10):
+    def Grab(self, targetname, toolname=None, timeout=10, **kwargs):
         """grabs an object with tool
         :param targetname: name of the object
         :param robotname: name of the robot
@@ -504,18 +507,20 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'robotname': self.robotname,
                           'toolname': toolname,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetGrabbed(self, timeout=10):
+    def GetGrabbed(self, timeout=10, **kwargs):
         """gets the names of the grabbed objects
         :return: names of the grabbed object in a json dictionary, e.g. {'names': ['target_0']}
         """
         taskparameters = {'command': 'GetGrabbed',
                           'robotname': self.robotname,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetTransform(self, targetname, unit='mm', timeout=10):
+    def GetTransform(self, targetname, unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
         :param targetname: name of the object
         :param unit: unit of the result translation
@@ -525,9 +530,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'targetname': targetname,
                           'unit': unit,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10):
+    def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
         """sets the transform of an object
         :param targetname: name of the object
         :param translation: list of x,y,z value of the object in milimeter
@@ -540,6 +546,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'unit': unit,
                           'translation': translation,
                           }
+        taskparameters.update(kwargs)
         if rotationmat is not None:
             taskparameters['rotationmat'] = rotationmat
         if quaternion is not None:
@@ -549,7 +556,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetOBB(self, targetname, unit='mm', timeout=10):
+    def GetOBB(self, targetname, unit='mm', timeout=10, **kwargs):
         """ Get the oriented bounding box of object
         :param targetname: name of the object
         :param unit: unit of the OBB
@@ -559,9 +566,26 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'targetname': targetname,
                           'unit': unit,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
-    def GetAABB(self, targetname, unit='mm', timeout=10):
+
+    def GetInnerEmptyRegionOBB(self, targetname, unit='mm', linkname=None, timeout=10, **kwargs):
+        """ Get the inner empty oriented bounding box of a container
+        :param targetname: name of the object
+        :param linkname: can target a specific link
+        :param unit: unit of the OBB
+        :return: OBB of the object
+        """
+        taskparameters = {'command': 'GetInnerEmptyRegionOBB',
+                          'targetname': targetname,
+                          'unit': unit,
+                          }
+        if linkname is not None:
+            taskparameters['linkname'] = unicode(linkname)
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def GetAABB(self, targetname, unit='mm', timeout=10, **kwargs):
         """Gets the axis aligned bounding box of object
         :param targetname: name of the object
         :param unit: unit of the AABB
@@ -571,13 +595,15 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'targetname': targetname,
                           'unit': unit,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, timeout=10):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, timeout=10, **kwargs):
         """removes objects with prefix
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
                           }
+        taskparameters.update(kwargs)
         if prefix is not None:
             taskparameters['prefix'] = unicode(prefix)
         if prefixes is not None:
