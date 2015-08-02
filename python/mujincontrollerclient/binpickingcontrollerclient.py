@@ -93,8 +93,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        taskparameters['gripperControlInfo'] = self.gripperControlInfo 
-        
+        if not 'gripperControlInfo' in taskparameters and self.gripperControlInfo is not None:
+            taskparameters['gripperControlInfo'] = self.gripperControlInfo 
+        if not 'toolname' in taskparameters and self.toolname is not None:
+            taskparameters['toolname'] = self.toolname
         if taskparameters.get('speed', None) is None:
             # taskparameters does not have robotspeed, so set the global speed
             if robotspeed is not None:
@@ -136,7 +138,18 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
-    def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None, timeout=10):
+    def CalibrateGripper(self, toolname=None, timeout=20, **kwargs):
+        """goes through the gripper calibration procedure
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'CalibrateGripper',
+                          'toolname': toolname,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+    
+    def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None, timeout=10, **kwargs):
         """unchucks the manipulator and releases the target
         :param toolname: name of the manipulator, default is self.toolname
         :param targetname: name of the target, default is self.targetname
@@ -149,9 +162,10 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'toolname': toolname,
                           'targetname': targetname,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
-    def ChuckGripper(self, toolname=None, robotspeed=None, timeout=10):
+    def ChuckGripper(self, toolname=None, robotspeed=None, timeout=10, **kwargs):
         """chucks the manipulator
         :param toolname: name of the manipulator, default is self.toolname
         """
@@ -160,6 +174,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters = {'command': 'ChuckGripper',
                           'toolname': toolname,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
     def GetJointValues(self, timeout=10, **kwargs):
