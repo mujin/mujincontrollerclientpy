@@ -316,7 +316,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
-    def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, timeout=10):
+    def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, timeout=10, **kwargs):
         """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
         :param goaltype: type of the goal, e.g. translationdirection5d
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
@@ -335,6 +335,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'envclearance': envclearance,
                           'closegripper': closegripper,
                           }
+        taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
     def ComputeIK(self, timeout=10, **kwargs):
