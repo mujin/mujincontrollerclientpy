@@ -93,9 +93,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        if not 'gripperControlInfo' in taskparameters and self.gripperControlInfo is not None:
+        if taskparameters.get('gripperControlInfo', None) is None and self.gripperControlInfo is not None:
             taskparameters['gripperControlInfo'] = self.gripperControlInfo 
-        if not 'toolname' in taskparameters and self.toolname is not None:
+        if taskparameters.get('toolname', None) is None and self.toolname is not None:
             taskparameters['toolname'] = self.toolname
         if taskparameters.get('speed', None) is None:
             # taskparameters does not have robotspeed, so set the global speed
