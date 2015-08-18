@@ -177,6 +177,20 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
+    def MoveGripper(self, toolname=None, grippervalues=None, timeout=10, **kwargs):
+        """chucks the manipulator
+        :param toolname: name of the manipulator, default is self.toolname
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'ChuckGripper',
+                          'toolname': toolname,
+                          }
+        if grippervalues is not None:
+            taskparameters['grippervalues'] = grippervalues
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+    
     def GetJointValues(self, timeout=10, **kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
