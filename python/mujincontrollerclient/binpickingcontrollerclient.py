@@ -177,7 +177,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
-    def MoveGripper(self, toolname=None, grippervalues=None, timeout=10, **kwargs):
+    def MoveGripper(self, toolname=None, robotspeed=None, grippervalues=None, timeout=10, **kwargs):
         """chucks the manipulator
         :param toolname: name of the manipulator, default is self.toolname
         """
