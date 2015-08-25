@@ -183,7 +183,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         """
         if toolname is None:
             toolname = self.toolname
-        taskparameters = {'command': 'ChuckGripper',
+        taskparameters = {'command': 'MoveGripper',
                           'toolname': toolname,
                           }
         if grippervalues is not None:
