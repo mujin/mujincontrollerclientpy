@@ -108,9 +108,9 @@ class ControllerWebClient(object):
     def IsLoggedIn(self):
         return self._session is not None
 
-    def RestartPlanningServer(self):
+    def RestartPlanningServer(self, timeout=1):
         if not self.IsLoggedIn():
-            self.Login()
+            self.Login(timeout=timeout)
 
         headers = {
             'Accept-Language': self._language,
@@ -118,13 +118,13 @@ class ControllerWebClient(object):
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
 
-        self._session.post(self._baseurl + '/restartserver/', headers=headers)
+        self._session.post(self._baseurl + '/restartserver/', headers=headers, timeout=timeout)
         # no reason to check response since it's probably an error (server is restarting after all)
 
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
         if not self.IsLoggedIn():
-            self.Login()
+            self.Login(timeout=timeout)
 
         if not api_url.endswith('/'):
             api_url += '/'
