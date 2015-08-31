@@ -16,7 +16,13 @@ log = getLogger(__name__)
 
 # system imports
 import time
-import zmq
+
+try:
+    import zmq
+except ImportError:
+    # cannot use zmq
+    pass
+
 from threading import Thread
 import weakref
 
@@ -114,6 +120,7 @@ class ControllerClientBase(object):
     _webclient = None
     scenepk = None # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
+    _ctxown = None # zmq context owned by this class
     _heartbeatthread = None  # thread for monitoring controller heartbeat
     _isokheartbeat = False  # if False, then stop heartbeat monitor
     _taskstate = None  # latest task status from heartbeat message
@@ -153,7 +160,11 @@ class ControllerClientBase(object):
         # connects to task's zmq server
         self._zmqclient = None
         if taskzmqport is not None:
-            self._ctx = ctx
+            if ctx is None:
+                self._ctx = zmq.Context()
+                self._ctxown = self._ctx
+            else:
+                self._ctx = ctx
             self.taskzmqport = taskzmqport
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
@@ -179,7 +190,13 @@ class ControllerClientBase(object):
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
-
+            if self._ctxown is not None:
+                try:
+                    self._ctxown.destroy()
+                except:
+                    pass
+                self._ctxown = None
+    
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
         self._webclient.SetLocale(locale)
