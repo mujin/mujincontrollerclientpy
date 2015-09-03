@@ -258,6 +258,20 @@ class ControllerClientBase(object):
         """
         status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (self.scenepk, pk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
+
+    def GetObjectViaWebapi(self, objectpk, fields=None, timeout=5):
+        """returns the object given objectpk
+        """
+        status, response = self._webclient.APICall('GET', u'object/%s/' % objectpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def SetObjectViaWebapi(self, objectpk, objectdata, timeout=5):
+        """sets the object values via a WebAPI PUT call
+        :param objectdata: key-value pairs of the data to modify on the object
+        """
+        status, response = self._webclient.APICall('PUT', u'object/%s/' % objectpk, data=objectdata, timeout=timeout)
+        assert(status == 202)
     
     def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
@@ -269,7 +283,7 @@ class ControllerClientBase(object):
     def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:
