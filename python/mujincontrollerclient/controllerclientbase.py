@@ -110,7 +110,7 @@ class ControllerClientBase(object):
     """mujin controller client base
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
-    _sceneparams = {}
+    _sceneparams = None
     _webclient = None
     scenepk = None # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
@@ -119,7 +119,7 @@ class ControllerClientBase(object):
     _taskstate = None  # latest task status from heartbeat message
     _userinfo = None # a dict storing user info, like locale
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, slaverequestid=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -131,6 +131,8 @@ class ControllerClientBase(object):
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param initializezmq: whether to initialize controller zmq server
         """
+        self._slaverequestid = slaverequestid
+        self._sceneparams = {}
         self._userinfo = {
             'username': controllerusername,
             'locale': os.environ.get('LANG', ''),
@@ -278,6 +280,7 @@ class ControllerClientBase(object):
         :return: return the server response in json format
         """
         log.verbose(u'Executing task with parameters: %r', taskparameters)
+        taskparameters['slaverequestid'] = self._slaverequestid
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
