@@ -24,6 +24,7 @@ try:
 except ImportError:
     import json
 
+from . import ControllerClientError
 from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError
 from . import ugettext as _
 
@@ -247,6 +248,12 @@ class ControllerWebClient(object):
                 for i in range(10):
                     if self._isok:
                         time.sleep(0.1)
+                    else:
+                        break
+                
+            if not self._isok:
+                raise ControllerClientError(_('is ok false'))
+            
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')

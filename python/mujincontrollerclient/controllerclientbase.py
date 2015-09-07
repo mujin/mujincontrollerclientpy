@@ -200,7 +200,7 @@ class ControllerClientBase(object):
                 except:
                     pass
                 self._ctxown = None
-
+    
     def SetDestroy(self):
         self._isok = False
         if self._webclient is not None:
