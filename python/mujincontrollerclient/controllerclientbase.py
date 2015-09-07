@@ -182,7 +182,8 @@ class ControllerClientBase(object):
         self.Destroy()
 
     def Destroy(self):
-        self._isok = False
+        self.SetDestroy()
+
         if self._webclient is not None:
             self._webclient.Destroy()
             self._webclient = None
@@ -204,6 +205,8 @@ class ControllerClientBase(object):
         self._isok = False
         if self._webclient is not None:
             self._webclient.SetDestroy()
+        if self._zmqclient is not None:
+            self._zmqclient.SetDestroy()
     
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale

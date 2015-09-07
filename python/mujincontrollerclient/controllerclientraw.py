@@ -53,7 +53,7 @@ class ControllerWebClient(object):
         self.Destroy()
 
     def Destroy(self):
-        self._isok = False
+        self.SetDestroy()
         self.Logout()
 
     def SetDestroy(self):
