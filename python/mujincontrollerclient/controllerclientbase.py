@@ -121,6 +121,7 @@ class ControllerClientBase(object):
     scenepk = None # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
     _ctxown = None # zmq context owned by this class
+    _isok = False # if False, client is about to be destroyed
     _heartbeatthread = None  # thread for monitoring controller heartbeat
     _isokheartbeat = False  # if False, then stop heartbeat monitor
     _taskstate = None  # latest task status from heartbeat message
@@ -138,6 +139,7 @@ class ControllerClientBase(object):
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param initializezmq: whether to initialize controller zmq server
         """
+        self._isok = True
         self._userinfo = {
             'username': controllerusername,
             'locale': os.environ.get('LANG', ''),
@@ -180,6 +182,7 @@ class ControllerClientBase(object):
         self.Destroy()
 
     def Destroy(self):
+        self._isok = False
         if self._webclient is not None:
             self._webclient.Destroy()
             self._webclient = None
@@ -196,13 +199,18 @@ class ControllerClientBase(object):
                 except:
                     pass
                 self._ctxown = None
+
+    def SetDestroy(self):
+        self._isok = False
+        if self._webclient is not None:
+            self._webclient.SetDestroy()
     
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
         self._webclient.SetLocale(locale)
     
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
-        while self._isokheartbeat:
+        while self._isok and self._isokheartbeat:
             log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket = self._ctx.socket(zmq.SUB)
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))

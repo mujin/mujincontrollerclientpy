@@ -35,6 +35,7 @@ class ControllerWebClient(object):
     _csrftoken = None
     _locale = None
     _language = None
+    _isok = False
 
     def __init__(self, baseurl, username, password, locale=None):
         self._baseurl = baseurl
@@ -45,13 +46,18 @@ class ControllerWebClient(object):
         self._locale = None
         self._language = None
 
+        self._isok = True
         self.SetLocale(locale)
 
     def __del__(self):
         self.Destroy()
 
     def Destroy(self):
+        self._isok = False
         self.Logout()
+
+    def SetDestroy(self):
+        self._isok = False
 
     def SetLocale(self, locale=None):
         self._locale = locale or os.environ.get('LANG', None)
@@ -207,7 +213,7 @@ class ControllerWebClient(object):
         status_text_prev = None
         starttime = time.time()
         try:
-            while True:
+            while self._isok:
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
@@ -238,7 +244,9 @@ class ControllerWebClient(object):
                     log.error(e)
 
                 # tasks can be long, so sleep
-                time.sleep(1)
+                for i in range(10):
+                    if self._isok:
+                        time.sleep(0.1)
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
@@ -292,7 +300,7 @@ class ControllerWebClient(object):
         status_text_prev = None
         starttime = time.time()
         try:
-            while True:
+            while self._isok:
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
@@ -323,7 +331,7 @@ class ControllerWebClient(object):
                     log.error(e)
 
                 # tasks can be long, so sleep
-                time.sleep(.1)
+                time.sleep(0.1)
 
         finally:
             if jobpk is not None:
@@ -362,7 +370,7 @@ class ControllerWebClient(object):
         status_text_prev = None
         starttime = time.time()
         try:
-            while True:
+            while self._isok:
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
@@ -394,7 +402,7 @@ class ControllerWebClient(object):
                     log.error(e)
 
                 # tasks can be long, so sleep
-                time.sleep(.1)
+                time.sleep(0.1)
 
         finally:
             if jobpk is not None:
