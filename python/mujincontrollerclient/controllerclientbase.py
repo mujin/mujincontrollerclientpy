@@ -310,7 +310,10 @@ class ControllerClientBase(object):
             response = self._zmqclient.SendCommand(command, timeout)
             # raise any exceptions if the server side failed
             if 'error' in response:
-                raise ControllerClientError(response['error'])
+                if type(response['error']) == dict:
+                    raise ControllerClientError('%s %s' % (response['error']['errorcode'], response['error']['description']), response['error']['stacktrace'])
+                else:
+                    raise ControllerClientError(response['error'])
             elif 'exception' in response:
                 raise ControllerClientError(response['exception'])
             elif 'status' in response and response['status'] != 'succeeded':
