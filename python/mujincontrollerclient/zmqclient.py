@@ -103,7 +103,10 @@ class ZmqClient(object):
                 # break when successfully sent
                 break
             
-        except zmq.ZMQError, e:
+        except:
+            # close the socket on any exception, since we may have skipped a
+            # receive due to a previous exception causing the socket to get
+            # stuck in a bad state.
             self._CloseSocket()
             raise
         
@@ -127,9 +130,11 @@ class ZmqClient(object):
                 
                 return self._socket.recv_json(zmq.NOBLOCK)
             
-        except zmq.ZMQError, e:
-            self.ConnectToServer()
-            # just raise the error, we cannot recover the original response anyway ...
+        except:
+            # here we will always close the socket when there is an exception,
+            # because a skipped receive will cause the next send to always
+            # fail.
+            self._CloseSocket()
             raise
         
         return None
