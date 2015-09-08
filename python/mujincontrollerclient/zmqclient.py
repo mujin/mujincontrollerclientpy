@@ -16,7 +16,7 @@ class ZmqClient(object):
     port = None
     _url = None
     _socket = None
-    _initialized = False
+    _isok = False
     _ctx = None # the context to use
     _ctxown = None # the context owned exclusively by this streamer client
     
@@ -29,16 +29,14 @@ class ZmqClient(object):
         else:
             self._ctx = ctx
         self._socket = None
-        self._initialized = False
-        self.ConnectToServer(self._url)
+        self._isok = True
         
     def __del__(self):
         self.Destroy()
         
     def Destroy(self):
-        if self._socket is not None:
-            self._socket.close()
-            self._socket = None
+        self.SetDestroy()
+        self._CloseSocket()
         
         if self._ctxown is not None:
             try:
@@ -48,8 +46,16 @@ class ZmqClient(object):
             
             self._ctxown = None
         self._ctx = None
+
+    def SetDestroy(self):
+        self._isok = False
         
-    def ConnectToServer(self, url):
+    def _CloseSocket(self):
+        if self._socket is not None:
+            self._socket.close()
+            self._socket = None
+        
+    def ConnectToServer(self, url=None):
         """connects to the zmq server
         :param url: url of the zmq server, default is self._url
         """
@@ -57,80 +63,79 @@ class ZmqClient(object):
             url = self._url
         else:
             self._url = url
+        
+        self._CloseSocket()
+        
         log.debug(u"Connecting to %s...", url)
         try:
             self._socket = self._ctx.socket(zmq.REQ)
             self._socket.connect(url)
-            self._initialized = True
             log.debug(u"connected to %s...", url)
         except Exception, e:  # TODO better exception handling
             log.error(u'failed to connect to %s: %s', url, GetExceptionStack())
-            self._initialized = False
             raise
         
-    def SendCommand(self, command, timeout=None):
+    def SendCommand(self, command, timeout=10.0, blockwait=True):
         """sends command via established zmq socket
         :param command: command in json format
         :param timeout: if None, block. If >= 0, use as timeout
+        :param blockwait: if True, will block and wait until function is done. Otherwise user will have to call ReceiveCommand on their own
+        
         :return: if zmq is not initialized, returns immediately, else returns the response from the zmq server in json format
         """
-        if not self._initialized:
-            raise ControllerClientError(u'zmq server is not initialized')
-        
         log.verbose(u'Sending command via ZMQ: %s', command)
+        if self._socket is None:
+            self.ConnectToServer()
+        
+        # attempt to send the message twice
         try:
-            self._socket.send_json(command)
-        except zmq.ZMQError, e:
-            log.error(u'Failed to send command %r to controller. zmq error: %s', command, e)
-            # raise e
-            if e.errno == zmq.EAGAIN:
-                raise
-            
-            if e.errno == zmq.EFSM:
-                log.warn(u'Zmq is in bad state')
-            log.warn(u're-creating zmq socket and trying again')
-            self._socket = self._ctx.socket(zmq.REQ)
-            self._socket.connect(self._url)
-            log.warn(u'Try to send again.')
-            self._socket.send_json(command)
-        return self.ReceiveCommand(timeout)
-    
-    def ReceiveCommand(self, timeout=None):
-        if timeout is None:
-            return self._socket.recv_json()
-        else:
             starttime = time.time()
-            result = None
-            triedagain = False
-            while result is None and time.time() - starttime < timeout:
-                try:
-                    result = self._socket.recv_json(zmq.NOBLOCK)
-                except zmq.ZMQError, e:
-                    if e.errno == zmq.EAGAIN:
-                        triedagain = True
-                    else:
-                        if e.errno == zmq.EFSM:
-                            log.warn(u'Zmq is in bad state, re-creating socket...')
-                        self._socket = self._ctx.socket(zmq.REQ)
-                        self._socket.connect(self._url)
-                        # just raise the error, anyone we cannot recover the original response anymore...
-                        raise
-                    
-#                         try:
-#                             triedagain = True
-#                             log.warn(u'Try to receive again.')
-#                             result = self._socket.recv_json(zmq.NOBLOCK)
-#                         except zmq.ZMQError, e:
-#                             if e.errno != zmq.EAGAIN:
-#                                 return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
-#                     else:
-#                         # raise
-#                         return {'status': 'error', 'error': u'Failed to receive command from controller. %d:%s %s' % (e.errno, zmq.strerror(e.errno), e.message)}
-                time.sleep(0.1)
-            if triedagain:
-                if result is not None:
-                    log.verbose(u'retry succeeded, result: %r', result)
-                else:
-                    raise TimeoutError(u'Timed out to get response from %s:%d after %f seconds'%(self.hostname, self.port, timeout))
+            while self._isok:
+                # timeout checking
+                elapsedtime = time.time() - starttime
+                if timeout is not None and elapsedtime > timeout:
+                    raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._url, elapsedtime))
                 
-            return result
+                # poll to see if we can send, if not, loop
+                if self._socket.poll(50, zmq.POLLOUT) == 0:
+                    continue
+
+                self._socket.send_json(command, zmq.NOBLOCK)
+                # break when successfully sent
+                break
+            
+        except:
+            # close the socket on any exception, since we may have skipped a
+            # receive due to a previous exception causing the socket to get
+            # stuck in a bad state.
+            self._CloseSocket()
+            raise
+        
+        if blockwait:
+            return self.ReceiveCommand(timeout=timeout)
+        
+    def ReceiveCommand(self, timeout=10.0):
+        assert(self._socket is not None) # always need a valid socket when receiving
+        
+        try:
+            starttime = time.time()
+            while self._isok:
+                # timeout checking
+                elapsedtime = time.time() - starttime
+                if timeout is not None and elapsedtime > timeout:
+                    raise TimeoutError(u'Timed out to get response from %s after %f seconds' % (self._url, elapsedtime))
+                
+                # poll to see if something has been received, if received nothing, loop
+                if self._socket.poll(50, zmq.POLLIN) == 0:
+                    continue
+                
+                return self._socket.recv_json(zmq.NOBLOCK)
+            
+        except:
+            # here we will always close the socket when there is an exception,
+            # because a skipped receive will cause the next send to always
+            # fail.
+            self._CloseSocket()
+            raise
+        
+        return None
