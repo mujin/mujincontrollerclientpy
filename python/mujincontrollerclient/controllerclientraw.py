@@ -24,6 +24,7 @@ try:
 except ImportError:
     import json
 
+from . import ControllerClientError
 from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError
 from . import ugettext as _
 
@@ -35,6 +36,7 @@ class ControllerWebClient(object):
     _csrftoken = None
     _locale = None
     _language = None
+    _isok = False
 
     def __init__(self, baseurl, username, password, locale=None):
         self._baseurl = baseurl
@@ -45,13 +47,18 @@ class ControllerWebClient(object):
         self._locale = None
         self._language = None
 
+        self._isok = True
         self.SetLocale(locale)
 
     def __del__(self):
         self.Destroy()
 
     def Destroy(self):
+        self.SetDestroy()
         self.Logout()
+
+    def SetDestroy(self):
+        self._isok = False
 
     def SetLocale(self, locale=None):
         self._locale = locale or os.environ.get('LANG', None)
@@ -108,9 +115,9 @@ class ControllerWebClient(object):
     def IsLoggedIn(self):
         return self._session is not None
 
-    def RestartPlanningServer(self):
+    def RestartPlanningServer(self, timeout=1):
         if not self.IsLoggedIn():
-            self.Login()
+            self.Login(timeout=timeout)
 
         headers = {
             'Accept-Language': self._language,
@@ -118,13 +125,13 @@ class ControllerWebClient(object):
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
 
-        self._session.post(self._baseurl + '/restartserver/', headers=headers)
+        self._session.post(self._baseurl + '/restartserver/', headers=headers, timeout=timeout)
         # no reason to check response since it's probably an error (server is restarting after all)
 
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
         if not self.IsLoggedIn():
-            self.Login()
+            self.Login(timeout=timeout)
 
         if not api_url.endswith('/'):
             api_url += '/'
@@ -207,7 +214,7 @@ class ControllerWebClient(object):
         status_text_prev = None
         starttime = time.time()
         try:
-            while True:
+            while self._isok:
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
@@ -238,7 +245,15 @@ class ControllerWebClient(object):
                     log.error(e)
 
                 # tasks can be long, so sleep
-                time.sleep(1)
+                for i in range(10):
+                    if self._isok:
+                        time.sleep(0.1)
+                    else:
+                        break
+                
+            if not self._isok:
+                raise ControllerClientError(_('is ok false'))
+            
         finally:
             if jobpk is not None:
                 log.info('deleting previous job')
@@ -292,7 +307,7 @@ class ControllerWebClient(object):
         status_text_prev = None
         starttime = time.time()
         try:
-            while True:
+            while self._isok:
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
@@ -323,7 +338,7 @@ class ControllerWebClient(object):
                     log.error(e)
 
                 # tasks can be long, so sleep
-                time.sleep(.1)
+                time.sleep(0.1)
 
         finally:
             if jobpk is not None:
@@ -362,7 +377,7 @@ class ControllerWebClient(object):
         status_text_prev = None
         starttime = time.time()
         try:
-            while True:
+            while self._isok:
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
@@ -394,7 +409,7 @@ class ControllerWebClient(object):
                     log.error(e)
 
                 # tasks can be long, so sleep
-                time.sleep(.1)
+                time.sleep(0.1)
 
         finally:
             if jobpk is not None:

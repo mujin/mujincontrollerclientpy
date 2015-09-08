@@ -16,7 +16,13 @@ log = getLogger(__name__)
 
 # system imports
 import time
-import zmq
+
+try:
+    import zmq
+except ImportError:
+    # cannot use zmq
+    pass
+
 from threading import Thread
 import weakref
 
@@ -114,6 +120,8 @@ class ControllerClientBase(object):
     _webclient = None
     scenepk = None # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
+    _ctxown = None # zmq context owned by this class
+    _isok = False # if False, client is about to be destroyed
     _heartbeatthread = None  # thread for monitoring controller heartbeat
     _isokheartbeat = False  # if False, then stop heartbeat monitor
     _taskstate = None  # latest task status from heartbeat message
@@ -133,6 +141,7 @@ class ControllerClientBase(object):
         """
         self._slaverequestid = slaverequestid
         self._sceneparams = {}
+        self._isok = True
         self._userinfo = {
             'username': controllerusername,
             'locale': os.environ.get('LANG', ''),
@@ -155,7 +164,11 @@ class ControllerClientBase(object):
         # connects to task's zmq server
         self._zmqclient = None
         if taskzmqport is not None:
-            self._ctx = ctx
+            if ctx is None:
+                self._ctx = zmq.Context()
+                self._ctxown = self._ctx
+            else:
+                self._ctx = ctx
             self.taskzmqport = taskzmqport
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
@@ -171,6 +184,8 @@ class ControllerClientBase(object):
         self.Destroy()
 
     def Destroy(self):
+        self.SetDestroy()
+
         if self._webclient is not None:
             self._webclient.Destroy()
             self._webclient = None
@@ -181,13 +196,26 @@ class ControllerClientBase(object):
         if self._zmqclient is not None:
             self._zmqclient.Destroy()
             self._zmqclient = None
-
+            if self._ctxown is not None:
+                try:
+                    self._ctxown.destroy()
+                except:
+                    pass
+                self._ctxown = None
+    
+    def SetDestroy(self):
+        self._isok = False
+        if self._webclient is not None:
+            self._webclient.SetDestroy()
+        if self._zmqclient is not None:
+            self._zmqclient.SetDestroy()
+    
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
         self._webclient.SetLocale(locale)
     
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
-        while self._isokheartbeat:
+        while self._isok and self._isokheartbeat:
             log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket = self._ctx.socket(zmq.SUB)
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
@@ -243,6 +271,20 @@ class ControllerClientBase(object):
         """
         status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (self.scenepk, pk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
+
+    def GetObjectViaWebapi(self, objectpk, fields=None, timeout=5):
+        """returns the object given objectpk
+        """
+        status, response = self._webclient.APICall('GET', u'object/%s/' % objectpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def SetObjectViaWebapi(self, objectpk, objectdata, timeout=5):
+        """sets the object values via a WebAPI PUT call
+        :param objectdata: key-value pairs of the data to modify on the object
+        """
+        status, response = self._webclient.APICall('PUT', u'object/%s/' % objectpk, data=objectdata, timeout=timeout)
+        assert(status == 202)
     
     def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
@@ -254,7 +296,7 @@ class ControllerClientBase(object):
     def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry' % objectpk, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:
