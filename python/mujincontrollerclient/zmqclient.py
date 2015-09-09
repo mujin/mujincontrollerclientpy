@@ -74,13 +74,16 @@ class ZmqClient(object):
             log.exception(u'Failed to connect to %s', url)
             raise
         
-    def SendCommand(self, command, timeout=10.0, blockwait=True):
+    def SendCommand(self, command, timeout=10.0, blockwait=True, sendjson=True, recvjson=True):
         """sends command via established zmq socket
+
         :param command: command in json format
         :param timeout: if None, block. If >= 0, use as timeout
-        :param blockwait: if True, will block and wait until function is done. Otherwise user will have to call ReceiveCommand on their own
+        :param blockwait: if True (default), will block and wait until function is done. Otherwise user will have to call ReceiveCommand on their own
+        :param sendjson: if True (default), will send data as json
+        :param recvjson: if True (default), will parse received data as json
         
-        :return: if zmq is not initialized, returns immediately, else returns the response from the zmq server in json format
+        :return: returns the response from the zmq server in json format if blockwait is True
         """
         log.verbose(u'Sending command via ZMQ: %s', command)
         if self._socket is None:
@@ -99,11 +102,14 @@ class ZmqClient(object):
                 if self._socket.poll(50, zmq.POLLOUT) == 0:
                     continue
 
-                self._socket.send_json(command, zmq.NOBLOCK)
+                if sendjson:
+                    self._socket.send_json(command, zmq.NOBLOCK)
+                else:
+                    self._socket.send(command, zmq.NOBLOCK)
                 # break when successfully sent
                 break
             
-        except:
+        except (zmq.ZMQError, TimeoutError):
             # close the socket on any exception, since we may have skipped a
             # receive due to a previous exception causing the socket to get
             # stuck in a bad state.
@@ -111,9 +117,9 @@ class ZmqClient(object):
             raise
         
         if blockwait:
-            return self.ReceiveCommand(timeout=timeout)
+            return self.ReceiveCommand(timeout=timeout, recvjson=recvjson)
         
-    def ReceiveCommand(self, timeout=10.0):
+    def ReceiveCommand(self, timeout=10.0, recvjson=True):
         assert(self._socket is not None) # always need a valid socket when receiving
         
         try:
@@ -128,9 +134,11 @@ class ZmqClient(object):
                 if self._socket.poll(50, zmq.POLLIN) == 0:
                     continue
                 
-                return self._socket.recv_json(zmq.NOBLOCK)
+                if recvjson:
+                    return self._socket.recv_json(zmq.NOBLOCK)
+                return self._socket.recv(zmq.NOBLOCK)
             
-        except:
+        except (zmq.ZMQError, TimeoutError):
             # here we will always close the socket when there is an exception,
             # because a skipped receive will cause the next send to always
             # fail.
