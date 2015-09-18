@@ -297,19 +297,23 @@ class ControllerClientBase(object):
         status, response = self._webclient.APICall('PUT', u'object/%s/' % objectpk, data=objectdata, timeout=timeout)
         assert(status == 202)
 
-    def GetRobotTools(self, objectpk, fields=None, usewebapi=True, timeout=5):
-        """returns tools in the robot
+    def GetSceneRobots(self, scenepk, fields=None, usewebapi=True, timeout=5):
+        """returns robots in the scene
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'robot/%s/tool/' % objectpk, fields=fields, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'robot/', fields=fields, timeout=timeout, url_params={
+            'scenepk__exact': scenepk,
+            'limit': 0,
+        })
         assert(status == 200)
-        return response['tools']
+        return response['objects']
 
-    def SetRobotToolData(self, objectpk, pk, tooldata, usewebapi=True, timeout=5):
-        """sets the tool values via a WebAPI PUT call
+    def SetRobotData(self, robotpk, robotdata, usewebapi=True, timeout=5):
+        """sets the robot data via a WebAPI PUT call
+        :param robotdata: key-value pairs of the data to modify on the robot
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (objectpk, pk), data=tooldata, timeout=timeout)
+        status, response = self._webclient.APICall('PUT', u'robot/%s/' % robotpk, data=robotdata, timeout=timeout)
         assert(status == 202)
     
     def GetAttachedSensors(self, objectpk, usewebapi=True, timeout=5):
