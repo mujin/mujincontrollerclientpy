@@ -148,6 +148,17 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+
+    def StopGripper(self, toolname=None, timeout=10, **kwargs):
+        """goes through the gripper calibration procedure
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'StopGripper',
+                          'toolname': toolname,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
     def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None, timeout=10, **kwargs):
         """unchucks the manipulator and releases the target
