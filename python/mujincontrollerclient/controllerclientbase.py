@@ -243,6 +243,8 @@ class ControllerClientBase(object):
         """ restarts controller
         """
         return self._webclient.RestartPlanningServer()
+
+    RestartControllerViaWebapi = RestartController # deprecated
     
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
@@ -251,49 +253,34 @@ class ControllerClientBase(object):
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
         scenefilename = GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
-
-    def GetScenes(self, fields=None, usewebapi=True, timeout=5):
-        """list all available scene on controller
+    
+    def GetSceneInstanceObjectsViaWebapi(self, scenepk=None, timeout=5):
+        """ returns the instance objects of the scene
         """
-        assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
-        })
-        assert(status == 200)
-        return response['objects']
-
-    def GetSceneInstObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
-        """returns the instance objects of the scene
-        """
-        assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
+        if scenepk is None:
+            scenepk = self.scenepk
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
         return response['instobjects']
 
-    def SetSceneInstObjectData(self, scenepk, pk, instobjectdata, usewebapi=True, timeout=5):
+    def SetInstanceObjectDataViaWebapi(self, pk, instobjectdata, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, pk), data=instobjectdata, timeout=timeout)
+        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (self.scenepk, pk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
 
-    def GetSceneObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
-        """returns objects in the scene
+    def GetObjectViaWebapi(self, objectpk, fields=None, timeout=5):
+        """returns the object given objectpk
         """
-        assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/', fields=fields, timeout=timeout, url_params={
-            'scenepk__exact': scenepk,
-            'limit': 0,
-        })
+        status, response = self._webclient.APICall('GET', u'object/%s/' % objectpk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['objects']
+        return response
 
-    def SetObjectData(self, objectpk, objectdata, usewebapi=True, timeout=5):
+    def SetObjectViaWebapi(self, objectpk, objectdata, timeout=5):
         """sets the object values via a WebAPI PUT call
         :param objectdata: key-value pairs of the data to modify on the object
         """
-        assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'object/%s/' % objectpk, data=objectdata, timeout=timeout)
         assert(status == 202)
 
@@ -316,18 +303,16 @@ class ControllerClientBase(object):
         status, response = self._webclient.APICall('PUT', u'robot/%s/' % robotpk, data=robotdata, timeout=timeout)
         assert(status == 202)
     
-    def GetAttachedSensors(self, objectpk, usewebapi=True, timeout=5):
+    def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
         """ return the attached sensors of given object
         """
-        assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk, timeout=timeout)
         assert(status == 200)
         return response['attachedsensors']
     
-    def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
+    def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
-        assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
@@ -342,7 +327,7 @@ class ControllerClientBase(object):
             geometries.append(geometry)
         return geometries
 
-    def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
+    def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, timeout=timeout)
@@ -359,7 +344,7 @@ class ControllerClientBase(object):
             usewebapi = self._usewebapi
         if usewebapi:
             try:
-                response = self._ExecuteCommandViaWebAPI(taskparameters, timeout)
+                response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
             except APIServerError, e:
                 # have to disguise as ControllerClientError since users only catch ControllerClientError
                 raise ControllerClientError(e.responseerror_message, e.responsetraceback)
@@ -396,3 +381,16 @@ class ControllerClientBase(object):
                 # something happened so raise exception
                 raise ControllerClientError(u'Resulting status is %s' % response['status'])
             return response['output'][0]
+    
+#     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
+#         """starts the zmq server on mujin controller
+#         no need to call this for visionserver initialization, visionserver calls this during initialization
+#         """
+#         taskparameters = {'command': 'InitializeZMQ',
+#                           'port': taskzmqport,
+#                           'heartbeatPort': taskheartbeatport,
+#                           'sceneparams': self.sceneparams,
+#                           'tasktype': self.tasktype,
+#                           }
+#         return self.ExecuteCommand(taskparameters, usewebapi=True)  # for webapi
+#     
