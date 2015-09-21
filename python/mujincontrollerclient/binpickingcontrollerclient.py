@@ -148,6 +148,17 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+
+    def StopGripper(self, toolname=None, timeout=10, **kwargs):
+        """goes through the gripper calibration procedure
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'StopGripper',
+                          'toolname': toolname,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
     def UnchuckGripper(self, toolname=None, targetname=None, robotspeed=None, timeout=10, **kwargs):
         """unchucks the manipulator and releases the target
@@ -777,64 +788,64 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
-    def SetViewerFromParameters(self, viewerparameters, usewebapi=False, timeout=10, **kwargs):
+    def SetViewerFromParameters(self, viewerparameters, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'SetViewerFromParameters',
                           'viewerparameters':viewerparameters
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
         
-    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraZoomOut',
                           'zoomdelta':float(zoomdelta),
                           'zoommult': float(zoommult)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraZoomIn',
                           'zoomdelta':float(zoomdelta),
                           'zoommult':float(zoommult)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraLeft',
                           'pandelta':float(pandelta),
                           'panangle':float(panangle),
                           'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraRight',
                           'pandelta':float(pandelta),
                           'panangle':float(panangle),
                           'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraUp(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraUp(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraUp',
                           'angledelta':float(angledelta),
                           'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraDown(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
+    def MoveCameraDown(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraDown',
                           'angledelta':float(angledelta),
                           'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, **kwargs):
+    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         """sets the camera transform
         :param transform: 4x4 matrix
         """        
@@ -846,7 +857,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if pose is not None:
             taskparameters['pose'] = [float(f) for f in pose]
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def GetCameraTransform(self, usewebapi=False, timeout=10, **kwargs):
         """gets the camera transform, and other
