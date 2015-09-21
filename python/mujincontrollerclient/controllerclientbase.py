@@ -323,7 +323,6 @@ class ControllerClientBase(object):
         :return: return the server response in json format
         """
         log.verbose(u'Executing task with parameters: %r', taskparameters)
-        taskparameters['slaverequestid'] = self._slaverequestid
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
@@ -349,6 +348,7 @@ class ControllerClientBase(object):
                     'taskparameters': taskparameters,
                 },
                 'userinfo': self._userinfo,
+                'slaverequestid': self._slaverequestid
             }
             response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
 
