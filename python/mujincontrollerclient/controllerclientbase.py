@@ -313,7 +313,7 @@ class ControllerClientBase(object):
     def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
-        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, timeout=timeout)
+        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
     
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
@@ -327,7 +327,7 @@ class ControllerClientBase(object):
             usewebapi = self._usewebapi
         if usewebapi:
             try:
-                response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+                response = self.ExecuteCommandViaWebapi(taskparameters, timeout=timeout)
             except APIServerError, e:
                 # have to disguise as ControllerClientError since users only catch ControllerClientError
                 raise ControllerClientError(e.responseerror_message, e.responsetraceback)
@@ -341,7 +341,7 @@ class ControllerClientBase(object):
             return response
         else:
             command = {
-                'fnname': 'RunTask',
+                'fnname': 'RunCommand',
                 'taskparams': {
                     'tasktype': self.tasktype,
                     'sceneparams': self._sceneparams,
@@ -350,6 +350,8 @@ class ControllerClientBase(object):
                 'userinfo': self._userinfo,
                 'slaverequestid': self._slaverequestid
             }
+            if self.tasktype == 'binpicking':
+                command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
             response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
 
             # for fire and forget commands, no response will be available
