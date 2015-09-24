@@ -313,10 +313,11 @@ class ControllerClientBase(object):
         """
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, timeout=timeout)
     
-    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
+        :param fireandforget: whether we should return immediately after sending the command
         :return: return the server response in json format
         """
         log.verbose(u'Executing task with parameters: %r', taskparameters)
@@ -346,7 +347,12 @@ class ControllerClientBase(object):
                 },
                 'userinfo': self._userinfo,
             }
-            response = self._zmqclient.SendCommand(command, timeout)
+            response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+
+            # for fire and forget commands, no response will be available
+            if fireandforget:
+                return None
+
             # raise any exceptions if the server side failed
             if 'error' in response:
                 raise ControllerClientError(response['error'])
