@@ -135,7 +135,18 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-        
+
+
+    def ExecuteProgram(self, itlprogram, programpath, timeout=10, **kwargs):
+        """
+        converts the current program
+        """
+        taskparameters = { 'command' : 'ExecuteProgram',
+                           'program' : itlprogram,
+                           'programpath' : programpath
+                         }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
         
     def GetJointValues(self, timeout=10, **kwargs):
         """gets the current robot joint values

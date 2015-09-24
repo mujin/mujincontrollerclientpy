@@ -351,6 +351,7 @@ class ControllerClientBase(object):
             if 'error' in response:
                 raise ControllerClientError(response['error'])
             elif 'exception' in response:
+                
                 raise ControllerClientError(response['exception'])
             elif 'status' in response and response['status'] != 'succeeded':
                 # something happened so raise exception
