@@ -120,7 +120,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
     
 
 
-    def ConvertCodetoITL(self, timeout=10, **kwargs):
+    def ConvertCodetoITL(self, timeout=None, **kwargs):
         testGCODE = '''
         OTEST-CA_G01_G01-3
         F200
@@ -137,7 +137,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programpath, timeout=10, **kwargs):
+    def ExecuteProgram(self, itlprogram, programpath, timeout=None, **kwargs):
         """
         converts the current program
         """
@@ -147,7 +147,11 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
                          }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-        
+
+
+    def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
+        pass
+    
     def GetJointValues(self, timeout=10, **kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
