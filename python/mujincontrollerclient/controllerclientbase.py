@@ -262,6 +262,34 @@ class ControllerClientBase(object):
         assert(status == 200)
         return response['objects']
 
+    def GetScene(self, pk, fields=None, usewebapi=True, timeout=5):
+        """returns requested scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def GetObject(self, pk, fields=None, usewebapi=True, timeout=5):
+        """returns requested object
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def GetRobot(self, pk, fields=None, usewebapi=True, timeout=5):
+        """returns requested robot
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    #
+    # InstObject related
+    #
+
     def GetSceneInstObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
         """returns the instance objects of the scene
         """
@@ -270,51 +298,86 @@ class ControllerClientBase(object):
         assert(status == 200)
         return response['instobjects']
 
-    def SetSceneInstObjectData(self, scenepk, pk, instobjectdata, usewebapi=True, timeout=5):
+    def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, pk), data=instobjectdata, timeout=timeout)
+        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
 
-    def GetSceneObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
-        """returns objects in the scene
-        """
-        assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/', fields=fields, timeout=timeout, url_params={
-            'scenepk__exact': scenepk,
-            'limit': 0,
-        })
-        assert(status == 200)
-        return response['objects']
+    #
+    # IKParam related
+    #
 
-    def SetObjectData(self, objectpk, objectdata, usewebapi=True, timeout=5):
-        """sets the object values via a WebAPI PUT call
-        :param objectdata: key-value pairs of the data to modify on the object
+    def CreateObjectIKParam(self, objectpk, ikparamdata, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/ikparam/' % objectpk, data=ikparamdata, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectIKParam(self, objectpk, ikparampk, ikparamdata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/' % objectpk, data=objectdata, timeout=timeout)
+        status, response = self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, timeout=timeout)
         assert(status == 202)
 
-    def GetSceneRobots(self, scenepk, fields=None, usewebapi=True, timeout=5):
-        """returns robots in the scene
-        """
+    def DeleteObjectIKParam(self, objectpk, ikparampk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'robot/', fields=fields, timeout=timeout, url_params={
-            'scenepk__exact': scenepk,
-            'limit': 0,
-        })
-        assert(status == 200)
-        return response['objects']
+        status, response = self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
+        assert(status == 204)
 
-    def SetRobotData(self, robotpk, robotdata, usewebapi=True, timeout=5):
-        """sets the robot data via a WebAPI PUT call
-        :param robotdata: key-value pairs of the data to modify on the robot
+    #
+    # GraspSet related
+    #
+
+    def CreateObjectGraspSet(self, objectpk, graspsetdata, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/graspset/' % objectpk, data=graspsetdata, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectGraspSet(self, objectpk, graspsetpk, graspsetdata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'robot/%s/' % robotpk, data=robotdata, timeout=timeout)
+        status, response = self._webclient.APICall('PUT', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, timeout=timeout)
         assert(status == 202)
+
+    def DeleteObjectGraspSet(self, objectpk, graspsetpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Tools related
+    #
+
+    def CreateRobotTool(self, robotpk, tooldata, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetRobotTool(self, robotpk, toolpk, tooldata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteRobotTool(self, robotpk, toolpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
+        assert(status == 204)
+
+    #
+    # AttachedSensors related
+    #
     
     def GetAttachedSensors(self, objectpk, usewebapi=True, timeout=5):
         """ return the attached sensors of given object
