@@ -116,7 +116,7 @@ class ControllerClientBase(object):
     """mujin controller client base
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
-    _sceneparams = {}
+    _sceneparams = None
     _webclient = None
     scenepk = None # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
@@ -127,7 +127,7 @@ class ControllerClientBase(object):
     _taskstate = None  # latest task status from heartbeat message
     _userinfo = None # a dict storing user info, like locale
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, slaverequestid=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -139,6 +139,8 @@ class ControllerClientBase(object):
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param initializezmq: whether to initialize controller zmq server
         """
+        self._slaverequestid = slaverequestid
+        self._sceneparams = {}
         self._isok = True
         self._userinfo = {
             'username': controllerusername,
@@ -311,7 +313,7 @@ class ControllerClientBase(object):
     def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
-        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, timeout=timeout)
+        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
     
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
@@ -325,7 +327,7 @@ class ControllerClientBase(object):
             usewebapi = self._usewebapi
         if usewebapi:
             try:
-                response = self.ExecuteCommandViaWebapi(taskparameters, timeout)
+                response = self.ExecuteCommandViaWebapi(taskparameters, timeout=timeout)
             except APIServerError, e:
                 # have to disguise as ControllerClientError since users only catch ControllerClientError
                 raise ControllerClientError(e.responseerror_message, e.responsetraceback)
@@ -339,14 +341,17 @@ class ControllerClientBase(object):
             return response
         else:
             command = {
-                'fnname': 'RunTask',
+                'fnname': 'RunCommand',
                 'taskparams': {
                     'tasktype': self.tasktype,
                     'sceneparams': self._sceneparams,
                     'taskparameters': taskparameters,
                 },
                 'userinfo': self._userinfo,
+                'slaverequestid': self._slaverequestid
             }
+            if self.tasktype == 'binpicking':
+                command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
             response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
 
             # for fire and forget commands, no response will be available
@@ -355,7 +360,10 @@ class ControllerClientBase(object):
 
             # raise any exceptions if the server side failed
             if 'error' in response:
-                raise ControllerClientError(response['error'])
+                if type(response['error']) == dict:
+                    raise ControllerClientError('%s %s' % (response['error']['errorcode'], response['error']['description']), response['error']['stacktrace'])
+                else:
+                    raise ControllerClientError(response['error'])
             elif 'exception' in response:
                 
                 raise ControllerClientError(response['exception'])
