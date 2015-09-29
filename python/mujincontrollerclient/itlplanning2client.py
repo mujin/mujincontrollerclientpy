@@ -121,15 +121,6 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
 
 
     def ConvertCodetoITL(self, timeout=None, **kwargs):
-        testGCODE = '''
-        OTEST-CA_G01_G01-3
-        F200
-        G01X-717.0Y-507.826Z-177.644C169.848A28.421
-        G08.4P1A3.U105.V105.
-        G09G08.1X-711.917Y-511.079Z-176.461C169.848A28.421W1
-        W0
-        G01X-717.0Y-507.826Z-177.644C169.848A28.421
-        '''
         taskparameters = {'command': 'ConvertCodetoITL',
                           'gcode'  : testGCODE
                           }
