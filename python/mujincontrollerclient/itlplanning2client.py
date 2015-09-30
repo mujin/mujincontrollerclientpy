@@ -128,7 +128,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programpath, timeout=None, **kwargs):
+    def ExecuteProgram(self, itlprogram, programpath, timeout=None, usewebapi=True, **kwargs):
         """
         converts the current program
         """
@@ -137,7 +137,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
                            'programpath' : programpath
                          }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
 
     def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):

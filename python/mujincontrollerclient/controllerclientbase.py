@@ -313,8 +313,11 @@ class ControllerClientBase(object):
     def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
+        if self.tasktype == 'itlplanning2':
+            return self._webclient.ExecuteITLPlanning2TaskAsync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid)
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
     
+
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
