@@ -248,6 +248,20 @@ class ControllerClientBase(object):
 
     RestartControllerViaWebapi = RestartController # deprecated
     
+    def UploadFile(self, f):
+        """uploads a file managed by file handle f 
+        
+        """
+        # note that /fileupload does not have trailing slash for some reason
+        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f})
+        if response.status_code != 200:
+            raise ControllerClientError(response.content)
+        try:
+            content = json.loads(response.content)
+        except ValueError:
+            raise ControllerClientError(response.content)
+        return content['filename']
+    
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
         sceneuri = GetURIFromPrimaryKey(scenepk)
