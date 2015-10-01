@@ -46,7 +46,10 @@ class APIServerError(Exception):
             if self.responseerror_message is not None:
                 self.responseerror_message = self.responseerror_message.encode('utf-8')
         except ValueError:
-            self.responseerror_message = responsecontent.encode('utf-8')
+            if isinstance(responsecontent, unicode):
+                self.responseerror_message = responsecontent.encode('utf-8')
+            else:
+                self.responseerror_message = responsecontent
         
     def __unicode__(self):
         error_base = u'Error with %s to %s\n\nThe API call failed (status: %s)' % (self.request_type, self.url, self.status_code)

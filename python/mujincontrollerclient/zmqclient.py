@@ -233,10 +233,10 @@ class ZmqClient(object):
         self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit)
         self._socket = None
         self._isok = True
-        
+    
     def __del__(self):
         self.Destroy()
-        
+    
     def Destroy(self):
         self.SetDestroy()
 
@@ -279,7 +279,7 @@ class ZmqClient(object):
         if self._socket is not None:
             self._pool.ReleaseSocket(self._socket)
             self._socket = None
-        
+    
     def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True):
         """sends command via established zmq socket
 

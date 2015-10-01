@@ -20,7 +20,7 @@ import socket
 log = logging.getLogger(__name__)
 
 try:
-    import simplejson as json
+    import ujson as json
 except ImportError:
     import json
 
@@ -128,6 +128,21 @@ class ControllerWebClient(object):
         self._session.post(self._baseurl + '/restartserver/', headers=headers, timeout=timeout)
         # no reason to check response since it's probably an error (server is restarting after all)
 
+    def Request(self, method, path, timeout=5, headers=None, **kwargs):
+        if not self.IsLoggedIn():
+            self.Login(timeout=timeout)
+
+        url = self._baseurl + path
+
+        if headers is None:
+            headers = {}
+
+        headers['Accept-Language'] = self._language
+        if self._csrftoken:
+            headers['X-CSRFToken'] = self._csrftoken
+
+        return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+	
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
         if not self.IsLoggedIn():
@@ -182,7 +197,7 @@ class ControllerWebClient(object):
 
         return response.status_code, content
 
-    def GetOrCreateTask(self, scenepk, taskname, tasktype=None, timeout=5):
+    def GetOrCreateTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
         """gets or creates a task, returns its pk
         """
         status, response = self.APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'}, timeout=timeout)
@@ -192,17 +207,17 @@ class ControllerWebClient(object):
                 assert(response['objects'][0]['tasktype'] == tasktype)
             return response['objects'][0]['pk']
         else:
-            status, response = self.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk}, timeout=timeout)
+            status, response = self.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk, 'slaverequestid': slaverequestid}, timeout=timeout)
             assert(status == 201)
             return response['pk']
 
-    def ExecuteFluidTask(self, scenepk, taskparameters, timeout=1000):
+    def ExecuteFluidTask(self, scenepk, taskparameters, slaverequestid='', timeout=1000):
         """
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         """
         taskpk = self.GetOrCreateTask(scenepk, 'test0', 'fluidplanning')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters}, timeout=5)
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'fluidplanning', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         # just in case, delete all previous tasks
         self.APICall('DELETE', 'job', timeout=5)
         # execute the task
@@ -259,14 +274,14 @@ class ControllerWebClient(object):
                 log.info('deleting previous job')
                 self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
 
-    def ExecuteBinPickingTaskSync(self, scenepk, taskparameters, forcecancel=False, timeout=1000):
+    def ExecuteBinPickingTaskSync(self, scenepk, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
         '''
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
         taskpk = self.GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters}, timeout=5)
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         if forcecancel:
             # # just in case, delete all previous tasks
             self.APICall('DELETE', 'job', timeout=5)
@@ -275,7 +290,7 @@ class ControllerWebClient(object):
         assert(status == 200)
         return response
 
-    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, forcecancel=False, timeout=1000):
+    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
         '''executes task with a particular task type without creating a new task
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
@@ -284,17 +299,17 @@ class ControllerWebClient(object):
             # # just in case, delete all previous tasks
             self.APICall('DELETE', 'job', timeout=5)
         # execute task
-        status, response = self.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters}, timeout=timeout)
+        status, response = self.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=timeout)
         assert(status==200)
         return response
 
-    def ExecuteBinPickingTask(self, scenepk, taskparameters, timeout=1000):
+    def ExecuteBinPickingTask(self, scenepk, taskparameters, slaverequestid='', timeout=1000):
         """
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         """
         taskpk = self.GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters}, timeout=5)
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         # just in case, delete all previous tasks
         self.APICall('DELETE', 'job', timeout=5)
         # execute the task
@@ -345,13 +360,13 @@ class ControllerWebClient(object):
                 log.info('deleting previous job')
                 self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
 
-    def ExecuteHandEyeCalibrationTaskSync(self, scenepk, taskparameters):
+    def ExecuteHandEyeCalibrationTaskSync(self, scenepk, taskparameters, slaverequestid=''):
         '''
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         '''
         taskpk = self.GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters}, timeout=5)
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         # # just in case, delete all previous tasks
         self.APICall('DELETE', 'job', timeout=5)
         # execute the task
@@ -359,13 +374,13 @@ class ControllerWebClient(object):
         assert(status == 200)
         return response
 
-    def ExecuteHandEyeCalibrationTaskAsync(self, scenepk, taskparameters, timeout=1000):
+    def ExecuteHandEyeCalibrationTaskAsync(self, scenepk, taskparameters, slaverequestid='', timeout=1000):
         """
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         """
         taskpk = self.GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
         # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters}, timeout=5)
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         # just in case, delete all previous tasks
         self.APICall('DELETE', 'job', timeout=5)
         # execute the task
