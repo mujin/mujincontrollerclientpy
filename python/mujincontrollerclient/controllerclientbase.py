@@ -381,11 +381,17 @@ class ControllerClientBase(object):
         return True
 
     def DeleteTaskViaWebapi(self, taskpk, timeout=5):
-        """ TODO :deletes a task via web api
+        """ deletes a task via web api
+        status:
         """
-        assert(False)
-
-
+        try:
+            status, response = self._webclient.APICall('DELETE', 'task/%s' % taskpk, timeout=timeout)
+            assert(status == 204)
+        except APIServerError, error:
+            pass
+        return ''
+        
+        
     def GetJobStatusViaWebApi(self, jobpk, timeout=5):
         """ get the status of the job, exception is treated as job finished
         """
