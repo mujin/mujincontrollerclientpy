@@ -316,7 +316,49 @@ class ControllerClientBase(object):
         if self.tasktype == 'itlplanning2':
             return self._webclient.ExecuteITLPlanning2TaskAsync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid)
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
-    
+
+
+    def CancelJobViaWebapi(self, jobpk, timeout=5):
+        """ cancels the job with the corresponding jobk
+        """
+        self._webclient.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
+        return True
+
+    def DeleteTaskViaWebapi(self, taskpk, timeout=5):
+        """ TODO :deletes a task via web api
+        """
+        assert(False)
+
+
+    def GetJobStatusViaWebApi(self, jobpk, timeout=5):
+        """ get the status of the job, exception is treated as job finished
+        """
+        
+        try:
+            status, response = self._webclient.APICall('GET', u'job/%s' %jobpk, timeout=timeout)
+        except APIServerError,e:
+            return {} # badquery or job has finished
+
+        return response
+
+    def GetAllTasksViaWebapi(self, fields = ['name', 'datemodified']):
+        """ gets all the task
+        TODO: add taskdatemodified to the fields
+        """
+        queryfield = None # returns everything
+        if fields is not None and len(fields) > 1:
+            queryfield = repr(fields[0])[1:-1]
+            for field in fields[1:]:
+                queryfield += ',' + repr(field)[1:-1]
+                        
+        try:
+            if queryfield is None:
+                status, response = self._webclient.APICall('GET', 'task', url_params={'type__equals':self.tasktype})
+            else:
+                status, response = self._webclient.APICall('GET', 'task', url_params={'type__equals':self.tasktype, 'fields':queryfield})
+        except APIServerError:
+            return []  # bad query or no tasks
+        return response['objects']
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters

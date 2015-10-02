@@ -128,17 +128,26 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programpath, timeout=None, usewebapi=True, **kwargs):
+    def ExecuteProgram(self, itlprogram, programname,  programpath, timeout=None, usewebapi=True, **kwargs):
         """
         converts the current program
         """
         taskparameters = { 'command' : 'ExecuteProgram',
                            'program' : itlprogram,
-                           'programpath' : programpath
+                           'programpath' : programpath,
+                           'programname' : programname
                          }
+        
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
+
+    def ExecuteTrajectory(self, programname, programpath, timeout=None, usewebapi=True, **kwargs):
+        """
+        Checks if the trajectory is present in the db and
+        executes the saved trajectory from the database using robot bridge
+        """
+        pass
 
     def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
         pass

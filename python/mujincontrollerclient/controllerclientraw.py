@@ -288,61 +288,88 @@ class ControllerWebClient(object):
         assert(status==200)
         return response
 
+
+    def CheckITLTrajectoryAvailable(self, resourcepk, programtype='mujinxml', timeout=1000):
+        ''' checks if the resource for trajectory is available for a given
+        resource pk
+        '''
+        try:
+            status, response = self.APICall('GET', u'planningresult/%s/program' % resourcepk, url_params={'type': programtype}, timeout=5)
+            if status == 200:
+                if len(response > 0):
+                    return True # does not guarantee the trajectory duration > 0
+        except APIServerError:
+            return False # does not exist
+
+    
+    def ExecuteTrajectory(self, resourcepk, timeout=1000):
+        """ executes trajectory if the program exists
+        (incomplete function)
+        """
+        try:
+            status, response = self._webclient.APICall('POST', u'planningresult/%s/program' %97, url_params={'type': 'robotbridgeexecution', 'force':1}, timeout=1000)
+        except APIServerError:
+            return False
+
+
     def ExecuteITLPlanning2TaskAsync(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
         '''executes task with a particular task type without creating a new task
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
 
-        taskpk = self.GetOrCreateTask(scenepk, 'laserworker1', 'itlplanning2')
+        taskpk = self.GetOrCreateTask(scenepk, taskparameters['programname'], 'itlplanning2')
         # set the task parameters
         self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         # just in case, delete all previous tasks
-        self.APICall('DELETE', 'job', timeout=5)
+        if forcecancel:
+            self.APICall('DELETE', 'job', timeout=5)
         # execute the task
         status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
         assert(status == 200)
         # the jobpk allows us to track the job
         jobpk = response['jobpk']
-        # query the task results
-        status_text_prev = None
-        starttime = time.time()
-        try:
-            while self._isok:
-                try:
-                    if timeout is not None and time.time() - starttime > timeout:
-                        raise TimeoutError('failed to get result in time, quitting')
-                    try:
-                        status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
-                        if status == 200:
-                            if status_text_prev is not None and status_text_prev != response['status_text']:
-                                log.info(response['status_text'])
-                            status_text_prev = response['status_text']
-
-                        jobstatus = response['status']
-                    except APIServerError, e:
-                        # most likely job finished
-                        log.warn(u'problem with requesting job: %s', e)
-                        jobstatus = '2'
-                    if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
-                        # job finished, so check for results:
-                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
-                        assert(status == 200)
-                        if len(response['objects']) > 0:
-                            # have a response, so return!
-                            jobpk = None
-                            return [True]
-
-                except socket.error, e:
-                    log.error(e)
-
-                # tasks can be long, so sleep
-                time.sleep(0.1)
-
-        finally:
-            if jobpk is not None:
-                log.info('deleting previous job')
-                self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
+        return jobpk # for tracking the job
+#         # query the task results
+#         status_text_prev = None
+#         starttime = time.time()
+#         try:
+#             while self._isok:
+#                 try:
+#                     if timeout is not None and time.time() - starttime > timeout:
+#                         raise TimeoutError('failed to get result in time, quitting')
+#                     try:
+#                         status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
+#                         if status == 200:
+#                             if status_text_prev is not None and status_text_prev != response['status_text']:
+#                                 log.info(response['status_text'])
+#                             status_text_prev = response['status_text']
+# 
+#                         jobstatus = response['status']
+#                     except APIServerError, e:
+#                         # most likely job finished
+#                         log.warn(u'problem with requesting job: %s', e)
+#                         jobstatus = '2'
+#                     if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
+#                         # job finished, so check for results:
+#                         status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
+#                         assert(status == 200)
+#                         if len(response['objects']) > 0:
+#                             # have a response, so return!
+#                             jobpk = None
+#                             returnedobjects = response['objects'][0]
+#                             return returnedobjects['pk']
+# 
+#                 except socket.error, e:
+#                     log.error(e)
+# 
+#                 # tasks can be long, so sleep
+#                 time.sleep(0.1)
+# 
+#         finally:
+#             if jobpk is not None:
+#                 log.info('deleting previous job')
+#                 self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
 
     
 
