@@ -7,7 +7,7 @@ from urlparse import urlparse
 from urllib import quote, unquote
 import os
 import base64
-from numpy import fromstring, uint32
+from numpy import fromstring, uint32, unique
 
 
 # logging
@@ -121,7 +121,7 @@ class ControllerClientBase(object):
     """mujin controller client base
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
-    _sceneparams = {}
+    _sceneparams = None
     _webclient = None
     scenepk = None # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
@@ -132,7 +132,7 @@ class ControllerClientBase(object):
     _taskstate = None  # latest task status from heartbeat message
     _userinfo = None # a dict storing user info, like locale
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, slaverequestid=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -144,6 +144,8 @@ class ControllerClientBase(object):
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param initializezmq: whether to initialize controller zmq server
         """
+        self._slaverequestid = slaverequestid
+        self._sceneparams = {}
         self._isok = True
         self._userinfo = {
             'username': controllerusername,
@@ -261,6 +263,20 @@ class ControllerClientBase(object):
             raise ControllerClientError(response.content)
         return content['filename']
     
+    def UploadFile(self, f):
+        """uploads a file managed by file handle f 
+        
+        """
+        # note that /fileupload does not have trailing slash for some reason
+        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f})
+        if response.status_code != 200:
+            raise ControllerClientError(response.content)
+        try:
+            content = json.loads(response.content)
+        except ValueError:
+            raise ControllerClientError(response.content)
+        return content['filename']
+    
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
         sceneuri = GetURIFromPrimaryKey(scenepk)
@@ -341,6 +357,7 @@ class ControllerClientBase(object):
         status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
 
+<<<<<<< HEAD
     def DeleteSceneInstObject(self, scenepk, instobjectpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
@@ -363,12 +380,54 @@ class ControllerClientBase(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, timeout=timeout)
         assert(status == 202)
-
+        
     def DeleteObjectIKParam(self, objectpk, ikparampk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
         assert(status == 204)
+        
+    def GetSceneSensorMappingViaWebapi(self, scenepk=None, timeout=5):
+        """ return the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
+        """
+        if scenepk is None:
+            scenepk = self.scenepk
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
+        assert(status == 200)
+        instobjects = response['instobjects']
+        sensormapping = {}
+        for instobject in instobjects:
+            if len(instobject['attachedsensors']) > 0:
+                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])
+                assert (status == 200)
+                for attachedsensor in response['attachedsensors']:
+                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
+                    cameraid = attachedsensor['sensordata']['hardware_id']
+                    sensormapping[camerafullname] = cameraid
+        return sensormapping
 
+    def SetSceneSensorMappingViaWebapi(self, sensormapping, scenepk=None, timeout=5):
+        """
+        :param sensormapping: the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
+        """
+        if scenepk is None:
+            scenepk = self.scenepk
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
+        assert(status == 200)
+        instobjects = response['instobjects']
+        cameracontainernames = unique([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
+        for instobject in instobjects:
+            if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
+                cameracontainerpk = instobject['object_pk']
+                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)
+                assert (status == 200)
+                for attachedsensor in response['attachedsensors']:
+                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
+                    cameraid = attachedsensor['sensordata']['hardware_id']
+                    sensorpk = attachedsensor['pk']
+                    if camerafullname in sensormapping.keys():
+                        if cameraid != sensormapping[camerafullname]:
+                            status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
+    
     #
     # GraspSet related
     #
@@ -440,7 +499,7 @@ class ControllerClientBase(object):
     def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
         """executes command via web api
         """
-        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, timeout=timeout)
+        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
     
     def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
@@ -454,7 +513,7 @@ class ControllerClientBase(object):
             usewebapi = self._usewebapi
         if usewebapi:
             try:
-                response = self._ExecuteCommandViaWebAPI(taskparameters, timeout)
+                response = self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
             except APIServerError, e:
                 # have to disguise as ControllerClientError since users only catch ControllerClientError
                 raise ControllerClientError(e.responseerror_message, e.responsetraceback)
@@ -468,14 +527,17 @@ class ControllerClientBase(object):
             return response
         else:
             command = {
-                'fnname': 'RunTask',
+                'fnname': 'RunCommand',
                 'taskparams': {
                     'tasktype': self.tasktype,
                     'sceneparams': self._sceneparams,
                     'taskparameters': taskparameters,
                 },
                 'userinfo': self._userinfo,
+                'slaverequestid': self._slaverequestid
             }
+            if self.tasktype == 'binpicking':
+                command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
             response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
 
             # for fire and forget commands, no response will be available
@@ -484,7 +546,10 @@ class ControllerClientBase(object):
 
             # raise any exceptions if the server side failed
             if 'error' in response:
-                raise ControllerClientError(response['error'])
+                if type(response['error']) == dict:
+                    raise ControllerClientError('%s %s' % (response['error']['errorcode'], response['error']['description']), response['error']['stacktrace'])
+                else:
+                    raise ControllerClientError(response['error'])
             elif 'exception' in response:
                 raise ControllerClientError(response['exception'])
             elif 'status' in response and response['status'] != 'succeeded':
