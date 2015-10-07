@@ -357,12 +357,11 @@ class ControllerClientBase(object):
         status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
 
-<<<<<<< HEAD
     def DeleteSceneInstObject(self, scenepk, instobjectpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
         assert(status == 204)
-
+    
     #
     # IKParam related
     #
@@ -401,8 +400,10 @@ class ControllerClientBase(object):
                 assert (status == 200)
                 for attachedsensor in response['attachedsensors']:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata']['hardware_id']
-                    sensormapping[camerafullname] = cameraid
+                    if 'hardware_id' in attachedsensor['sensordata']:
+                        sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
+                    else:
+                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
         return sensormapping
 
     def SetSceneSensorMappingViaWebapi(self, sensormapping, scenepk=None, timeout=5):
