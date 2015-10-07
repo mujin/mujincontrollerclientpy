@@ -357,7 +357,6 @@ class ControllerClientBase(object):
         status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
 
-<<<<<<< HEAD
     def DeleteSceneInstObject(self, scenepk, instobjectpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
