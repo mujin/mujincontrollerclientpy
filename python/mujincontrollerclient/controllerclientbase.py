@@ -303,6 +303,12 @@ class ControllerClientBase(object):
         assert(status == 200)
         return response
 
+    def GetSceneInstanceObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response['instobjects']
+
     def GetObject(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested object
         """
