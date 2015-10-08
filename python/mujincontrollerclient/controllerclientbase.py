@@ -253,17 +253,6 @@ class ControllerClientBase(object):
         # no reason to check response since it's probably an error (server is restarting after all)
 
     def UploadFile(self, f):
-        # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f})
-        if response.status_code != 200:
-            raise ControllerClientError(response.content)
-        try:
-            content = json.loads(response.content)
-        except ValueError:
-            raise ControllerClientError(response.content)
-        return content['filename']
-    
-    def UploadFile(self, f):
         """uploads a file managed by file handle f 
         
         """
@@ -391,50 +380,6 @@ class ControllerClientBase(object):
         status, response = self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
         assert(status == 204)
         
-    def GetSceneSensorMappingViaWebapi(self, scenepk=None, timeout=5):
-        """ return the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
-        """
-        if scenepk is None:
-            scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
-        assert(status == 200)
-        instobjects = response['instobjects']
-        sensormapping = {}
-        for instobject in instobjects:
-            if len(instobject['attachedsensors']) > 0:
-                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])
-                assert (status == 200)
-                for attachedsensor in response['attachedsensors']:
-                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    if 'hardware_id' in attachedsensor['sensordata']:
-                        sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
-                    else:
-                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
-        return sensormapping
-
-    def SetSceneSensorMappingViaWebapi(self, sensormapping, scenepk=None, timeout=5):
-        """
-        :param sensormapping: the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
-        """
-        if scenepk is None:
-            scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
-        assert(status == 200)
-        instobjects = response['instobjects']
-        cameracontainernames = unique([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
-        for instobject in instobjects:
-            if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
-                cameracontainerpk = instobject['object_pk']
-                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)
-                assert (status == 200)
-                for attachedsensor in response['attachedsensors']:
-                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata']['hardware_id']
-                    sensorpk = attachedsensor['pk']
-                    if camerafullname in sensormapping.keys():
-                        if cameraid != sensormapping[camerafullname]:
-                            status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
-    
     #
     # GraspSet related
     #
@@ -502,6 +447,54 @@ class ControllerClientBase(object):
             geometry['indices'] = indices
             geometries.append(geometry)
         return geometries
+
+    #
+    # Sensor mappings related
+    #
+
+    def GetSceneSensorMappingViaWebapi(self, scenepk=None, timeout=5):
+        """ return the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
+        """
+        if scenepk is None:
+            scenepk = self.scenepk
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
+        assert(status == 200)
+        instobjects = response['instobjects']
+        sensormapping = {}
+        for instobject in instobjects:
+            if len(instobject['attachedsensors']) > 0:
+                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])
+                assert (status == 200)
+                for attachedsensor in response['attachedsensors']:
+                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
+                    if 'hardware_id' in attachedsensor['sensordata']:
+                        sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
+                    else:
+                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
+        return sensormapping
+
+    def SetSceneSensorMappingViaWebapi(self, sensormapping, scenepk=None, timeout=5):
+        """
+        :param sensormapping: the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
+        """
+        if scenepk is None:
+            scenepk = self.scenepk
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
+        assert(status == 200)
+        instobjects = response['instobjects']
+        cameracontainernames = unique([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
+        for instobject in instobjects:
+            if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
+                cameracontainerpk = instobject['object_pk']
+                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)
+                assert (status == 200)
+                for attachedsensor in response['attachedsensors']:
+                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
+                    cameraid = attachedsensor['sensordata']['hardware_id']
+                    sensorpk = attachedsensor['pk']
+                    if camerafullname in sensormapping.keys():
+                        if cameraid != sensormapping[camerafullname]:
+                            status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
 
     def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
         """executes command via web api
