@@ -129,21 +129,6 @@ class ControllerWebClient(object):
             headers['X-CSRFToken'] = self._csrftoken
 
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
-
-    def Request(self, method, path, timeout=5, headers=None, **kwargs):
-        if not self.IsLoggedIn():
-            self.Login(timeout=timeout)
-
-        url = self._baseurl + path
-
-        if headers is None:
-            headers = {}
-
-        headers['Accept-Language'] = self._language
-        if self._csrftoken:
-            headers['X-CSRFToken'] = self._csrftoken
-
-        return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 	
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
