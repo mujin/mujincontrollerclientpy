@@ -265,7 +265,17 @@ class ControllerClientBase(object):
         except ValueError:
             raise ControllerClientError(response.content)
         return content['filename']
-    
+
+    def DownloadFile(self, filename):
+        """downloads a file given filename
+
+        :return: a streaming response
+        """
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content)
+        return response
+
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
         sceneuri = GetURIFromPrimaryKey(scenepk)
