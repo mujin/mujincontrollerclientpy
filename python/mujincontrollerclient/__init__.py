@@ -23,45 +23,10 @@ class MujinLogger(getLoggerClass()):
         super(MujinLogger, self).__init__(name, level)
 
         addLevelName(VERBOSE, "VERBOSE")
-        
+    
     def verbose(self, msg, *args, **kwargs):
         if self.isEnabledFor(VERBOSE):
             self._log(VERBOSE, msg, args, **kwargs)
-
-class APIServerError(Exception):
-    """error from API server
-    """
-    responseerror_message = None # the error
-    responsetraceback = None # the traceback from the error
-    def __init__(self, request_type, url, status_code, responsecontent):
-        self.request_type = request_type
-        self.url = unicode(url)
-        self.status_code = status_code
-        try:
-            content = json.loads(responsecontent)
-            self.responsetraceback = content.get('traceback',None)
-            if self.responsetraceback is not None:
-                self.responsetraceback = self.responsetraceback.encode('utf-8')
-            self.responseerror_message = content.get('error_message', None)
-            if self.responseerror_message is not None:
-                self.responseerror_message = self.responseerror_message.encode('utf-8')
-        except ValueError:
-            if isinstance(responsecontent, unicode):
-                self.responseerror_message = responsecontent.encode('utf-8')
-            else:
-                self.responseerror_message = responsecontent
-        
-    def __unicode__(self):
-        error_base = u'Error with %s to %s\n\nThe API call failed (status: %s)' % (self.request_type, self.url, self.status_code)
-        if self.responsetraceback is not None:
-            error_base += u', here is the stack trace that came back in the request:\n%s' % (self.responsetraceback)
-        return error_base
-    
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-    
-    def __repr__(self):
-        return '<%s(%r, %r, %r, %r)>' % (self.__class__.__name__, self.request_type, self.url, self.status_code, {'traceback':self.responsetraceback, 'error_message':self.responseerror_message})
 
 #     def __eq__(self, r):
 #         return self.msg == r.msg
@@ -69,19 +34,45 @@ class APIServerError(Exception):
 #     def __ne__(self, r):
 #         return self.msg != r.msg
 
-class ControllerClientError(Exception):
+class ClientExceptionBase(Exception):
+    """client base exception
+    """
+    def __init__(self, msg=u''):
+        self.msg = unicode(msg)
+
+    def __unicode__(self):
+        return u'%s: %s' % (self.__class__.__name__, self.msg)
+
+    def __str__(self):
+        return unicode(self).encode('utf-8')
+
+    def __repr__(self):
+        return '<%s(%r)>' % (self.__class__.__name__, self.msg)
+
+    def __eq__(self, r):
+        return self.msg == r.msg
+
+    def __ne__(self, r):
+        return self.msg != r.msg
+
+class APIServerError(Exception):
     responseerror_message = None # the error. should be unicode
-    responsetraceback = None # the traceback from the error. should be unicode
-    def __init__(self, responseerror_message, responsetraceback=None):
+    responseerrorcode = None # the error code coming from the server
+    responsestacktrace = None # the traceback from the error. should be unicode
+    inputcommand = None # the command sent to the server
+    def __init__(self, responseerror_message, responsestacktrace=None, responseerrorcode=None, inputcommand=None):
         if isinstance(responseerror_message, unicode):
             self.responseerror_message = responseerror_message
         elif responseerror_message is not None:
             self.responseerror_message = unicode(responseerror_message, 'utf-8')
-        if isinstance(responsetraceback, unicode):
-            self.responsetraceback = responsetraceback
-        elif responsetraceback is not None:
-            self.responsetraceback = unicode(responsetraceback, 'utf-8')
-    
+        if isinstance(responsestacktrace, unicode):
+            self.responsestacktrace = responsestacktrace
+        elif responsestacktrace is not None:
+            self.responsestacktrace = unicode(responsestacktrace, 'utf-8')
+
+        self.responseerrorcode = responseerrorcode
+        self.inputcommand = inputcommand
+        
     def __unicode__(self):
         if self.responseerror_message is not None:
             return self.responseerror_message
@@ -92,7 +83,47 @@ class ControllerClientError(Exception):
         return unicode(self).encode('utf-8')
     
     def __repr__(self):
-        return '<%s(%r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsetraceback)
+        return '<%s(%r, %r, %r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsestacktrace, self.responseerrorcode, self.inputcommand)
+
+def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
+    inputcommand = {'request_type':request_type, 'url':url, 'status_code':status_code}
+    responseerror_message = _('Unknown error')
+    responseerrorcode = None
+    responsestacktrace = None
+    try:
+        content = json.loads(responsecontent)
+        responsestacktrace = content.get('stacktrace',None)
+        if responsestacktrace is not None:
+            responsestacktrace = responsestacktrace.encode('utf-8')
+        responseerror_message = content.get('error_message', None)
+        if responseerror_message is not None:
+            responseerror_message = responseerror_message.encode('utf-8')
+        responseerrorcode = content.get('error_code',None)
+    except ValueError:
+        if isinstance(responsecontent, unicode):
+            responseerror_message = responsecontent.encode('utf-8')
+        else:
+            responseerror_message = responsecontent
+    return APIServerError(responseerror_message, responsestacktrace, responseerrorcode, inputcommand)
+
+def GetAPIServerErrorFromZMQ(response):
+    """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
+    """
+    if 'error' in response:
+        if isinstance(response['error'], dict):
+            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
+        
+        else:
+            return APIServerError(response['error'])
+    
+    elif 'exception' in response:
+        return APIServerError(response['exception'])
+    
+    elif 'status' in response and response['status'] != 'succeeded':
+        # something happened so raise exception
+        return APIServerError(u'Resulting status is %s' % response['status'])
+    
+    return None
 
 class FluidPlanningError(Exception):
     pass
@@ -103,44 +134,17 @@ class TimeoutError(Exception):
 class AuthenticationError(Exception):
     pass
 
-class BinPickingError(Exception):
-    def __init__(self, msg=u''):
-        self.msg = unicode(msg)
-        
+class ControllerClientError(ClientExceptionBase):
     def __unicode__(self):
-        return u'%s: %s' % (self.__class__.__name__, self.msg)
-    
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-    
-    def __repr__(self):
-        return '<%s(%r)>' % (self.__class__.__name__, self.msg)
-    
-    def __eq__(self, r):
-        return self.msg == r.msg
-    
-    def __ne__(self, r):
-        return self.msg != r.msg
+        return _('Controller Client Error:\n%s')%self.msg
 
-
-class HandEyeCalibrationError(Exception):
-    def __init__(self, msg=u''):
-        self.msg = unicode(msg)
-        
+class BinPickingError(ClientExceptionBase):
     def __unicode__(self):
-        return u'%s: %s' % (self.__class__.__name__, self.msg)
-    
-    def __str__(self):
-        return unicode(self).encode('utf-8')
-    
-    def __repr__(self):
-        return '<%s(%r)>' % (self.__class__.__name__, self.msg)
-    
-    def __eq__(self, r):
-        return self.msg == r.msg
-    
-    def __ne__(self, r):
-        return self.msg != r.msg
+        return _('Bin Picking Client Error:\n%s')%self.msg
+
+class HandEyeCalibrationError(ClientExceptionBase):
+    def __unicode__(self):
+        return _('Hand-eye Calibration Client Error:\n%s')%self.msg
 
 from traceback import format_exc
 

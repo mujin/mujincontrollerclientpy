@@ -32,7 +32,7 @@ from threading import Thread
 import weakref
 
 # mujin imports
-from . import ControllerClientError, APIServerError
+from . import ControllerClientError, GetAPIServerErrorFromZMQ
 from . import controllerclientraw, zmqclient
 from . import ugettext as _
 
@@ -260,10 +260,12 @@ class ControllerClientBase(object):
         response = self._webclient.Request('POST', '/fileupload', files={'files[]': f})
         if response.status_code != 200:
             raise ControllerClientError(response.content)
+        
         try:
             content = json.loads(response.content)
         except ValueError:
             raise ControllerClientError(response.content)
+        
         return content['filename']
 
     def DownloadFile(self, filename):
@@ -274,6 +276,7 @@ class ControllerClientBase(object):
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
         if response.status_code != 200:
             raise ControllerClientError(response.content)
+        
         return response
 
     def SetScenePrimaryKey(self, scenepk):
@@ -526,19 +529,8 @@ class ControllerClientBase(object):
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
-            try:
-                response = self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
-            except APIServerError, e:
-                # have to disguise as ControllerClientError since users only catch ControllerClientError
-                raise ControllerClientError(e.responseerror_message, e.responsetraceback)
-            
-            if 'error' in response:
-                raise ControllerClientError(response['error'])
-            elif 'exception' in response:
-                raise ControllerClientError(response['exception'])
-            #elif 'traceback' in response:
-            
-            return response
+            return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
+        
         else:
             command = {
                 'fnname': 'RunCommand',
@@ -553,20 +545,14 @@ class ControllerClientBase(object):
             if self.tasktype == 'binpicking':
                 command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
             response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
-
-            # for fire and forget commands, no response will be available
+            
             if fireandforget:
+                # for fire and forget commands, no response will be available
                 return None
-
-            # raise any exceptions if the server side failed
-            if 'error' in response:
-                if type(response['error']) == dict:
-                    raise ControllerClientError('%s %s' % (response['error']['errorcode'], response['error']['description']), response['error']['stacktrace'])
-                else:
-                    raise ControllerClientError(response['error'])
-            elif 'exception' in response:
-                raise ControllerClientError(response['exception'])
-            elif 'status' in response and response['status'] != 'succeeded':
-                # something happened so raise exception
-                raise ControllerClientError(u'Resulting status is %s' % response['status'])
+            
+            error = GetAPIServerErrorFromZMQ(response)
+            if error is not None:
+                raise error
+                        
             return response['output'][0]
+        

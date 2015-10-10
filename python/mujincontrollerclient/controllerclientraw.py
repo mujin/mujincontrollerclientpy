@@ -25,7 +25,7 @@ except ImportError:
     import json
 
 from . import ControllerClientError
-from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError
+from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError, GetAPIServerErrorFromWeb
 from . import ugettext as _
 
 class ControllerWebClient(object):
@@ -166,12 +166,12 @@ class ControllerWebClient(object):
             content = json.loads(response.content)
         except ValueError:
             self.Logout() # always logout the session when we hit an error
-            raise APIServerError(request_type, self._baseurl + path, response.status_code, response.content)
-
-        if 'traceback' in content or response.status_code >= 400:
+            raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+        
+        if 'stacktrace' in content or response.status_code >= 400:
             self.Logout() # always logout the session when we hit an error
-            raise APIServerError(request_type, self._baseurl + path, response.status_code, response.content)
-
+            raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+        
         return response.status_code, content
 
     def GetOrCreateTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
@@ -210,6 +210,7 @@ class ControllerWebClient(object):
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
+                    
                     try:
                         status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
                         if status == 200:
