@@ -75,7 +75,7 @@ class ZmqSocketPool(object):
             self._CloseSocket(sockets.pop())
         assert(self._opencount == self._closecount)
 
-        log.debug('sockets: created = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
+        log.debug('sockets: opened = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
         
         if self._ctxown is not None:
             try:

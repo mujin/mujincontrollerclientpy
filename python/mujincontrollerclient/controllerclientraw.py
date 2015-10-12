@@ -25,7 +25,7 @@ except ImportError:
     import json
 
 from . import ControllerClientError
-from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError
+from . import APIServerError, FluidPlanningError, BinPickingError, HandEyeCalibrationError, TimeoutError, AuthenticationError, GetAPIServerErrorFromWeb
 from . import ugettext as _
 
 class ControllerWebClient(object):
@@ -115,19 +115,6 @@ class ControllerWebClient(object):
     def IsLoggedIn(self):
         return self._session is not None
 
-    def RestartPlanningServer(self, timeout=1):
-        if not self.IsLoggedIn():
-            self.Login(timeout=timeout)
-
-        headers = {
-            'Accept-Language': self._language,
-        }
-        if self._csrftoken:
-            headers['X-CSRFToken'] = self._csrftoken
-
-        self._session.post(self._baseurl + '/restartserver/', headers=headers, timeout=timeout)
-        # no reason to check response since it's probably an error (server is restarting after all)
-
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if not self.IsLoggedIn():
             self.Login(timeout=timeout)
@@ -145,16 +132,15 @@ class ControllerWebClient(object):
 	
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
-        if not self.IsLoggedIn():
-            self.Login(timeout=timeout)
 
         if not api_url.endswith('/'):
             api_url += '/'
-
-        url = self._baseurl + '/api/v1/' + api_url + '?format=json'
+        path = '/api/v1/' + api_url
 
         if url_params is None:
             url_params = {}
+
+        url_params['format'] = 'json'
 
         if fields is not None:
             url_params['fields'] = fields
@@ -163,22 +149,13 @@ class ControllerWebClient(object):
         if 'order_by' not in url_params:
             url_params['order_by'] = 'pk'
 
-        for param, value in url_params.iteritems():
-            url += '&' + str(param) + '=' + str(value)
-
         if data is None:
             data = {}
 
-        headers = {
-            'Accept-Language': self._language,
-        }
-        if self._csrftoken:
-            headers['X-CSRFToken'] = self._csrftoken
-
         request_type = request_type.upper()
 
-        log.verbose('%s %s', request_type, url)
-        response = self._session.request(method=request_type, url=url, data=json.dumps(data), timeout=timeout, headers=headers)
+        log.verbose('%s %s', request_type, self._baseurl + path)
+        response = self.Request(request_type, path, params=url_params, data=json.dumps(data), timeout=timeout)
 
         if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
@@ -189,12 +166,12 @@ class ControllerWebClient(object):
             content = json.loads(response.content)
         except ValueError:
             self.Logout() # always logout the session when we hit an error
-            raise APIServerError(request_type, url, response.status_code, response.content)
-
-        if 'traceback' in content or response.status_code >= 400:
+            raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+        
+        if 'stacktrace' in content or response.status_code >= 400:
             self.Logout() # always logout the session when we hit an error
-            raise APIServerError(request_type, url, response.status_code, response.content)
-
+            raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+        
         return response.status_code, content
 
     def GetOrCreateTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
@@ -233,6 +210,7 @@ class ControllerWebClient(object):
                 try:
                     if timeout is not None and time.time() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
+                    
                     try:
                         status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
                         if status == 200:
