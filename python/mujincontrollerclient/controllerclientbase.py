@@ -507,7 +507,7 @@ class ControllerClientBase(object):
                 assert (status == 200)
                 for attachedsensor in response['attachedsensors']:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata']['hardware_id']
+                    cameraid = attachedsensor['sensordata'].get('hardware_id', None)
                     sensorpk = attachedsensor['pk']
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
