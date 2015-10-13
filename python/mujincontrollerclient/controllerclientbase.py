@@ -18,6 +18,11 @@ log = getLogger(__name__)
 import time
 
 try:
+    import ujson as json
+except ImportError:
+    import json
+
+try:
     import zmq
 except ImportError:
     # cannot use zmq
@@ -27,7 +32,7 @@ from threading import Thread
 import weakref
 
 # mujin imports
-from . import ControllerClientError, APIServerError
+from . import ControllerClientError, GetAPIServerErrorFromZMQ
 from . import controllerclientraw, zmqclient
 from . import ugettext as _
 
@@ -244,10 +249,15 @@ class ControllerClientBase(object):
     def RestartController(self):
         """ restarts controller
         """
-        return self._webclient.RestartPlanningServer()
+        self._webclient.Request('POST', '/restartserver/', timeout=1)
+        # no reason to check response since it's probably an error (server is restarting after all)
 
-    RestartControllerViaWebapi = RestartController # deprecated
-    
+    def FileExists(self, filename):
+        """check if a file exists on server
+        """
+        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, filename))
+        return response.status_code == 200
+
     def UploadFile(self, f):
         """uploads a file managed by file handle f 
         
@@ -256,12 +266,25 @@ class ControllerClientBase(object):
         response = self._webclient.Request('POST', '/fileupload', files={'files[]': f})
         if response.status_code != 200:
             raise ControllerClientError(response.content)
+        
         try:
             content = json.loads(response.content)
         except ValueError:
             raise ControllerClientError(response.content)
+        
         return content['filename']
-    
+
+    def DownloadFile(self, filename):
+        """downloads a file given filename
+
+        :return: a streaming response
+        """
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content)
+        
+        return response
+
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
         sceneuri = GetURIFromPrimaryKey(scenepk)
@@ -269,22 +292,188 @@ class ControllerClientBase(object):
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
         scenefilename = GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
-    
-    def GetSceneInstanceObjectsViaWebapi(self, scenepk=None, timeout=5):
-        """ returns the instance objects of the scene
-        """
-        if scenepk is None:
-            scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
-        assert(status == 200)
-        return response['instobjects']
 
-    def SetInstanceObjectDataViaWebapi(self, pk, instobjectdata, timeout=5):
+    def GetScenes(self, fields=None, usewebapi=True, timeout=5):
+        """list all available scene on controller
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params={
+            'limit': 0,
+        })
+        assert(status == 200)
+        return response['objects']
+
+    def GetScene(self, pk, fields=None, usewebapi=True, timeout=5):
+        """returns requested scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def GetObject(self, pk, fields=None, usewebapi=True, timeout=5):
+        """returns requested object
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def GetRobot(self, pk, fields=None, usewebapi=True, timeout=5):
+        """returns requested robot
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    #
+    # Scene related
+    #
+
+    def CreateScene(self, scenedata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'scene/', data=scenedata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetScene(self, scenepk, scenedata, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'scene/%s/' % scenepk, data=scenedata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteScene(self, scenepk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'scene/%s/' % scenepk, timeout=timeout)
+        assert(status == 204)
+
+    #
+    # InstObject related
+    #
+
+    def CreateSceneInstObject(self, scenepk, instobjectdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'scene/%s/instobject/' % scenepk, data=instobjectdata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
-        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (self.scenepk, pk), data=instobjectdata, timeout=timeout)
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, timeout=timeout)
         assert(status == 202)
+
+    def DeleteSceneInstObject(self, scenepk, instobjectpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
+        assert(status == 204)
+    
+    #
+    # IKParam related
+    #
+
+    def CreateObjectIKParam(self, objectpk, ikparamdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/ikparam/' % objectpk, data=ikparamdata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectIKParam(self, objectpk, ikparampk, ikparamdata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, timeout=timeout)
+        assert(status == 202)
+        
+    def DeleteObjectIKParam(self, objectpk, ikparampk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
+        assert(status == 204)
+        
+    #
+    # GraspSet related
+    #
+
+    def CreateObjectGraspSet(self, objectpk, graspsetdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/graspset/' % objectpk, data=graspsetdata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectGraspSet(self, objectpk, graspsetpk, graspsetdata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteObjectGraspSet(self, objectpk, graspsetpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Tools related
+    #
+
+    def CreateRobotTool(self, robotpk, tooldata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetRobotTool(self, robotpk, toolpk, tooldata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteRobotTool(self, robotpk, toolpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Geometry related
+    #
+    
+    def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
+        """ return a list of geometries (a dictionary with key: positions, indices)) of given object
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, timeout=timeout)
+        assert(status == 200)
+        geometries = []
+        for encodedGeometry in response['geometries']:
+            geometry = {}
+            positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
+            positions.resize(len(positions) / 3, 3)
+            geometry['positions'] = positions
+            indices = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=uint32)
+            indices.resize(len(indices) / 3, 3)
+            geometry['indices'] = indices
+            geometries.append(geometry)
+        return geometries
+
+    #
+    # Instobject related
+    #
+
+    def GetSceneInstanceObjectsViaWebapi(self, scenepk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response['instobjects']
+
+    #
+    # Sensor mappings related
+    #
 
     def GetSceneSensorMappingViaWebapi(self, scenepk=None, timeout=5):
         """ return the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
@@ -301,8 +490,11 @@ class ControllerClientBase(object):
                 assert (status == 200)
                 for attachedsensor in response['attachedsensors']:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata']['hardware_id']
-                    sensormapping[camerafullname] = cameraid
+                    if 'hardware_id' in attachedsensor['sensordata']:
+                        sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
+                    else:
+                        sensormapping[camerafullname] = None
+                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
         return sensormapping
 
     def SetSceneSensorMappingViaWebapi(self, sensormapping, scenepk=None, timeout=5):
@@ -322,49 +514,13 @@ class ControllerClientBase(object):
                 assert (status == 200)
                 for attachedsensor in response['attachedsensors']:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata']['hardware_id']
+                    cameraid = attachedsensor['sensordata'].get('hardware_id', None)
                     sensorpk = attachedsensor['pk']
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
                             status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
-        
-    def GetObjectViaWebapi(self, objectpk, fields=None, timeout=5):
-        """returns the object given objectpk
-        """
-        status, response = self._webclient.APICall('GET', u'object/%s/' % objectpk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
 
-    def SetObjectViaWebapi(self, objectpk, objectdata, timeout=5):
-        """sets the object values via a WebAPI PUT call
-        :param objectdata: key-value pairs of the data to modify on the object
-        """
-        status, response = self._webclient.APICall('PUT', u'object/%s/' % objectpk, data=objectdata, timeout=timeout)
-        assert(status == 202)
-    
-    def GetAttachedSensorsViaWebapi(self, objectpk, timeout=5):
-        """ return the attached sensors of given object
-        """
-        status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % objectpk, timeout=timeout)
-        assert(status == 200)
-        return response['attachedsensors']
-    
-    def GetObjectGeometryViaWebapi(self, objectpk, timeout=5):
-        """ return a list of geometries (a dictionary with key: positions, indices)) of given object
-        """
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, timeout=timeout)
-        assert(status == 200)
-        geometries = []
-        for encodedGeometry in response['geometries']:
-            geometry = {}
-            positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-            positions.resize(len(positions) / 3, 3)
-            geometry['positions'] = positions
-            indices = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=uint32)
-            indices.resize(len(indices) / 3, 3)
-            geometry['indices'] = indices
-            geometries.append(geometry)
-        return geometries
+
 
     def ExecuteCommandViaWebapi(self, taskparameters, taskpk=None, timeout=3000):
         """executes command via web api
@@ -442,18 +598,7 @@ class ControllerClientBase(object):
         if usewebapi is None:
             usewebapi = self._usewebapi
         if usewebapi:
-            try:
-                response = self.ExecuteCommandViaWebapi(taskparameters, taskpk=taskpk, timeout=timeout)
-            except APIServerError, e:
-                # have to disguise as ControllerClientError since users only catch ControllerClientError
-                raise ControllerClientError(e.responseerror_message, e.responsetraceback)
-            
-            if 'error' in response:
-                raise ControllerClientError(response['error'])
-            elif 'exception' in response:
-                raise ControllerClientError(response['exception'])
-            #elif 'traceback' in response:
-            return response
+            return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
         else:
             command = {
                 'fnname': 'RunCommand',
@@ -468,39 +613,13 @@ class ControllerClientBase(object):
             if self.tasktype == 'binpicking':
                 command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
             response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
-
-            # for fire and forget commands, no response will be available
+            
             if fireandforget:
+                # for fire and forget commands, no response will be available
                 return None
-
-            # raise any exceptions if the server side failed
-            if 'error' in response:
-                if type(response['error']) == dict:
-                    raise ControllerClientError('%s %s' % (response['error']['errorcode'], response['error']['description']), response['error']['stacktrace'])
-                else:
-                    raise ControllerClientError(response['error'])
-            elif 'exception' in response:
-                
-                raise ControllerClientError(response['exception'])
-            elif 'status' in response and response['status'] != 'succeeded':
-                # something happened so raise exception
-                raise ControllerClientError(u'Resulting status is %s' % response['status'])
+            error = GetAPIServerErrorFromZMQ(response)
+            if error is not None:
+                raise error
             if len(response['output']) > 0:
                 return response['output'][0]
             return {}
-    
-
-        
-    
-#     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
-#         """starts the zmq server on mujin controller
-#         no need to call this for visionserver initialization, visionserver calls this during initialization
-#         """
-#         taskparameters = {'command': 'InitializeZMQ',
-#                           'port': taskzmqport,
-#                           'heartbeatPort': taskheartbeatport,
-#                           'sceneparams': self.sceneparams,
-#                           'tasktype': self.tasktype,
-#                           }
-#         return self.ExecuteCommand(taskparameters, usewebapi=True)  # for webapi
-#     
