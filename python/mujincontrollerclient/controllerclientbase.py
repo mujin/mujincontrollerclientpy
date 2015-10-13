@@ -252,6 +252,12 @@ class ControllerClientBase(object):
         self._webclient.Request('POST', '/restartserver/', timeout=1)
         # no reason to check response since it's probably an error (server is restarting after all)
 
+    def FileExists(self, filename):
+        """check if a file exists on server
+        """
+        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, filename))
+        return response.status_code == 200
+
     def UploadFile(self, f):
         """uploads a file managed by file handle f 
         
