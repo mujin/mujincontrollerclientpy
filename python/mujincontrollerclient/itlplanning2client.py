@@ -108,7 +108,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
     # robot commands
     #########################
 
-    def ExecuteRobotCommand(self, taskparameters, robotspeed=None, usewebapi=None, timeout=10):
+    def ExecuteRobotCommand(self, taskparameters, robotspeed=None, usewebapi=None, taskpk=None, timeout=10):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -127,7 +127,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        return self.ExecuteCommand(taskparameters, usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi, taskpk=taskpk, timeout=timeout)
     
     def ExecuteTrajectory(self, resourcepk, timeout=1000):
         """ executes trajectory if the program exists
@@ -184,7 +184,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True, **kwargs):
+    def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True, taskpk=None, **kwargs):
         """
         converts the current program
         """
@@ -195,7 +195,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
                          }
         
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, taskpk=taskpk)
 
 
 

@@ -318,12 +318,13 @@ class ControllerWebClient(object):
 
     
 
-    def ExecuteITLPlanning2Task(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000, async=True):
+    def ExecuteITLPlanning2Task(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000, async=True, taskpk=None):
         '''executes task with a particular task type without creating a new task
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
-        taskpk = self.GetOrCreateTask(scenepk, taskparameters.get('programname',''), 'itlplanning2')
+        if taskpk is None:
+            taskpk = self.GetOrCreateTask(scenepk, taskparameters.get('programname',''), 'itlplanning2')
         putresponse = self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
         if async:
             # set the task parameters

@@ -366,14 +366,14 @@ class ControllerClientBase(object):
             geometries.append(geometry)
         return geometries
 
-    def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
+    def ExecuteCommandViaWebapi(self, taskparameters, taskpk=None, timeout=3000):
         """executes command via web api
         """
         if self.tasktype == 'itlplanning2' and len(taskparameters.get('programname','')) > 0:
             if taskparameters.get('execute', False):
-                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True)
+                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True, taskpk=taskpk)
             else:
-                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False)
+                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False, taskpk=taskpk)
              
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
 
@@ -407,6 +407,11 @@ class ControllerClientBase(object):
 
         return response
 
+
+    def GetTaskViaWebapi(self, taskpk, timeout=None):
+        status, response = self._webclient.APICall('GET', 'task/%s' %taskpk, timeout=timeout)
+        return response
+        
     def GetAllTasksViaWebapi(self, fields = ['name', 'datemodified']):
         """ gets all the task
         TODO: add taskdatemodified to the fields
@@ -426,7 +431,7 @@ class ControllerClientBase(object):
             return []  # bad query or no tasks
         return response['objects']
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, taskpk= None, timeout=None, fireandforget=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
@@ -438,7 +443,7 @@ class ControllerClientBase(object):
             usewebapi = self._usewebapi
         if usewebapi:
             try:
-                response = self.ExecuteCommandViaWebapi(taskparameters, timeout=timeout)
+                response = self.ExecuteCommandViaWebapi(taskparameters, taskpk=taskpk, timeout=timeout)
             except APIServerError, e:
                 # have to disguise as ControllerClientError since users only catch ControllerClientError
                 raise ControllerClientError(e.responseerror_message, e.responsetraceback)
