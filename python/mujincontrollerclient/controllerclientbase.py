@@ -493,6 +493,7 @@ class ControllerClientBase(object):
                     if 'hardware_id' in attachedsensor['sensordata']:
                         sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
                     else:
+                        sensormapping[camerafullname] = None
                         log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
         return sensormapping
 
@@ -513,7 +514,7 @@ class ControllerClientBase(object):
                 assert (status == 200)
                 for attachedsensor in response['attachedsensors']:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata']['hardware_id']
+                    cameraid = attachedsensor['sensordata'].get('hardware_id', None)
                     sensorpk = attachedsensor['pk']
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
