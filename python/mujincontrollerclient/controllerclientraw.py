@@ -317,34 +317,28 @@ class ControllerWebClient(object):
             return False # does not exist
 
     
-    def ExecuteTrajectory(self, resourcepk, timeout=1000):
-        """ executes trajectory if the program exists
-        (incomplete function)
-        """
-        try:
-            status, response = self._webclient.APICall('POST', u'planningresult/%s/program' %97, url_params={'type': 'robotbridgeexecution', 'force':1}, timeout=1000)
-        except APIServerError:
-            return False
 
-
-    def ExecuteITLPlanning2TaskAsync(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
+    def ExecuteITLPlanning2Task(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000, async=True):
         '''executes task with a particular task type without creating a new task
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
-
-        taskpk = self.GetOrCreateTask(scenepk, taskparameters['programname'], 'itlplanning2')
-        # set the task parameters
-        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
-        # just in case, delete all previous tasks
-        if forcecancel:
-            self.APICall('DELETE', 'job', timeout=5)
-        # execute the task
-        status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
-        assert(status == 200)
-        # the jobpk allows us to track the job
-        jobpk = response['jobpk']
-        return jobpk # for tracking the job
+        taskpk = self.GetOrCreateTask(scenepk, taskparameters.get('programname',''), 'itlplanning2')
+        putresponse = self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+        if async:
+            # set the task parameters
+            # just in case, delete all previous tasks
+            if forcecancel:
+                self.APICall('DELETE', 'job', timeout=5)
+            # execute the task
+            status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
+            assert(status == 200)
+            # the jobpk allows us to track the job
+            jobpk = response['jobpk']
+            return jobpk # for tracking the job
+        else:
+            return putresponse[1]['pk']
+            
 #         # query the task results
 #         status_text_prev = None
 #         starttime = time.time()

@@ -8,7 +8,10 @@ import json
 import logging
 log = logging.getLogger(__name__)
 
+
+
 # mujin imports
+from . import ControllerClientError, APIServerError
 from . import controllerclientbase
 from . import ugettext as _
 
@@ -20,8 +23,9 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
     _robotControllerUri = None  # URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
     _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
     
-
+    #TODO : add robotdeviceIOuri
     def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, itlplanning2zmqport=None, itlplanning2heartbeatport=None, itlplanning2heartbeattimeout=None, usewebapi=False, initializezmq=True, ctx=None):
+        
         """logs into the mujin controller, initializes itlplanning2 task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -46,7 +50,45 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         # bin picking task
         self.robotname = robotname
 
-                
+
+    def SetDOFValues(self, values, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'SetDOFValues',
+                          'robotvalues'  : values
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetToolValuesFromJointValues(self, jointvalues, valuetype='XYZABC', timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'GetToolValuesFromJointValues',
+                          'jointvalues'  : jointvalues,
+                          'valuetype' :  valuetype
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetJointName(self, index, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'GetJointName',
+                          'jointindex'  : index
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetDOF(self, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'GetDOF',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+
+    def GetJointValuesFromToolValues(self, toolvalues, initjointvalues, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'GetJointValuesFromToolValues',
+                          'toolvalues'  : toolvalues,
+                          'initjointvalues': initjointvalues
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+
     def SetRobotControllerUri(self, robotControllerUri):
         self._robotControllerUri = robotControllerUri
         
@@ -85,19 +127,30 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-
         return self.ExecuteCommand(taskparameters, usewebapi, timeout=timeout)
     
-    def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
-        """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
+    def ExecuteTrajectory(self, resourcepk, timeout=1000):
+        """ executes trajectory if the program exists
+        (incomplete function)
         """
-        taskparameters = {'command': 'ExecuteTrajectory',
-                          'trajectory': trajectoryxml,
-                          }
+        try:
+            status, response = self._webclient.APICall('POST', u'planningresult/%s/program' %resourcepk, url_params={'type': 'robotbridgeexecution', 'force':1}, timeout=1000)
+        except APIServerError:
+            return False
+
+
+    def ComputeCommandPosition(self, command, jointvalues = None, usewebapi=False, timeout=5, **kwargs):
+        """
+        computes the position from the command
+        """
+        taskparameters = { 'command':'ComputeCommandPosition',
+                          'content': command,
+                           'jointvalues': jointvalues
+                        }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, timeout=10, **kwargs):
+    def MoveJoints(self, jointvalues, maxJointSpeedRatio, maxJointAccelRatio, jointoffsets, checkcollision, startvalues=None, jointindices=None, execute=1, robotspeed=1, usewebapi=False, timeout=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -110,13 +163,16 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters = {'command': 'MoveJoints',
                           'goaljoints': list(jointvalues),
                           'jointindices': list(jointindices),
-                          'envclearance': self.envclearance,
+                          'maxjointspeedratio':maxJointSpeedRatio,
+                          'maxjointaccelratio':maxJointAccelRatio,
+                          'jointoffsets':jointoffsets,
                           'execute': execute,
+                          'checkcollision':checkcollision
                           }
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, usewebapi=usewebapi, timeout=timeout)
     
 
 
@@ -128,26 +184,20 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programname,  programpath, timeout=None, usewebapi=True, **kwargs):
+    def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True, **kwargs):
         """
         converts the current program
         """
         taskparameters = { 'command' : 'ExecuteProgram',
                            'program' : itlprogram,
-                           'programpath' : programpath,
-                           'programname' : programname
+                           'programname' : programname,
+                           'execute' : execute
                          }
         
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
 
-    def ExecuteTrajectory(self, programname, programpath, timeout=None, usewebapi=True, **kwargs):
-        """
-        Checks if the trajectory is present in the db and
-        executes the saved trajectory from the database using robot bridge
-        """
-        pass
 
     def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
         pass

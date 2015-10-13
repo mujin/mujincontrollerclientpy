@@ -369,8 +369,12 @@ class ControllerClientBase(object):
     def ExecuteCommandViaWebapi(self, taskparameters, timeout=3000):
         """executes command via web api
         """
-        if self.tasktype == 'itlplanning2':
-            return self._webclient.ExecuteITLPlanning2TaskAsync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid)
+        if self.tasktype == 'itlplanning2' and len(taskparameters.get('programname','')) > 0:
+            if taskparameters.get('execute', False):
+                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True)
+            else:
+                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False)
+             
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
 
 
@@ -444,7 +448,6 @@ class ControllerClientBase(object):
             elif 'exception' in response:
                 raise ControllerClientError(response['exception'])
             #elif 'traceback' in response:
-            
             return response
         else:
             command = {
@@ -477,7 +480,12 @@ class ControllerClientBase(object):
             elif 'status' in response and response['status'] != 'succeeded':
                 # something happened so raise exception
                 raise ControllerClientError(u'Resulting status is %s' % response['status'])
-            return response['output'][0]
+            if len(response['output']) > 0:
+                return response['output'][0]
+            return {}
+    
+
+        
     
 #     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
 #         """starts the zmq server on mujin controller
