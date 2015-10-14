@@ -621,7 +621,7 @@ class ControllerClientBase(object):
             error = GetAPIServerErrorFromZMQ(response)
             if error is not None:
                 raise error
-             if len(response['output']) > 0:
+            if len(response['output']) > 0:
                 return response['output'][0]
             return {}    
             
