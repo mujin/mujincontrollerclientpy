@@ -561,5 +561,5 @@ class ControllerClientBase(object):
             if error is not None:
                 raise error
                         
-            return response['output'][0]
+            return response['output']
         

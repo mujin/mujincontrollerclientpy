@@ -117,7 +117,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, timeout=10, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, timeout=10, usewebapi=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -136,9 +136,9 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout, usewebapi=usewebapi)
     
-    def CalibrateGripper(self, toolname=None, timeout=20, **kwargs):
+    def CalibrateGripper(self, toolname=None, timeout=20, usewebapi=None, **kwargs):
         """goes through the gripper calibration procedure
         """
         if toolname is None:
@@ -147,7 +147,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           'toolname': toolname,
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
     def StopGripper(self, toolname=None, timeout=10, **kwargs):
         """goes through the gripper calibration procedure
@@ -279,7 +279,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
-    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, timeout=10, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -336,16 +336,16 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['orderedgoals'] = goals
             taskparameters['goaltype'] = goaltype
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout, usewebapi=usewebapi)
     
-    def StopPickPlaceThread(self, timeout=10, **kwargs):
+    def StopPickPlaceThread(self, timeout=10, usewebapi=None, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         :params resetstate: if True, then reset the order state variables
         """
         taskparameters = {'command': 'StopPickPlaceThread',
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def GetPickPlaceStatus(self, timeout=10, **kwargs):
         """gets the status of the pick and place thread
@@ -639,7 +639,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, timeout=10, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, timeout=10, usewebapi=None, **kwargs):
         """removes objects with prefix
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
@@ -649,7 +649,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['prefix'] = unicode(prefix)
         if prefixes is not None:
             taskparameters['prefixes'] = [unicode(prefix) for prefix in prefixes]
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
@@ -764,23 +764,23 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
-    def GetBinpickingState(self, timeout=10, **kwargs):
+    def GetBinpickingState(self, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {'command': 'GetBinpickingState',
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
         """
         return self._taskstate
     
-    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
+    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {'command': 'SetRobotBridgeIOVariables',
                           'iovalues': list(iovalues)
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         taskparameters = {'command': 'SetStopPickPlaceAfterExecutionCycle',
