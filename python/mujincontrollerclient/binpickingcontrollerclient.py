@@ -550,6 +550,16 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def Release(self, targetname, timeout=10, **kwargs):
+        """releases an object already grabbed
+        :param targetname: name of the object
+        """
+        taskparameters = {'command': 'Release',
+                          'targetname': targetname,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def GetGrabbed(self, timeout=10, **kwargs):
         """gets the names of the grabbed objects
