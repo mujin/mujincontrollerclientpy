@@ -202,7 +202,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
     def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
         pass
     
-    def GetJointValues(self, timeout=10, **kwargs):
+    def GetJointValues(self, timeout=10,  usewebapi=False, **kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
         - currentjointvalues: [0,0,0,0,0,0]
@@ -210,7 +210,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters = {'command': 'GetJointValues',
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
 
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
