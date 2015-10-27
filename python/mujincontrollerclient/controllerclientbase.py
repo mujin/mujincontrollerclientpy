@@ -533,13 +533,13 @@ class ControllerClientBase(object):
         return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
 
 
-    def CancelJobViaWebapi(self, jobpk, timeout=5):
+    def CancelJob(self, jobpk, timeout=5):
         """ cancels the job with the corresponding jobk
         """
         self._webclient.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
         return True
 
-    def DeleteTaskViaWebapi(self, taskpk, timeout=5):
+    def DeleteTask(self, taskpk, timeout=5):
         """ deletes a task via web api
         status:
         """
@@ -551,7 +551,7 @@ class ControllerClientBase(object):
         return ''
         
         
-    def GetJobStatusViaWebApi(self, jobpk, timeout=5):
+    def GetJobStatus(self, jobpk, timeout=5):
         """ get the status of the job, exception is treated as job finished
         """
         
@@ -563,11 +563,11 @@ class ControllerClientBase(object):
         return response
 
 
-    def GetTaskViaWebapi(self, taskpk, timeout=None):
+    def GetTask(self, taskpk, timeout=None):
         status, response = self._webclient.APICall('GET', 'task/%s' %taskpk, timeout=timeout)
         return response
         
-    def GetAllTasksViaWebapi(self, fields = ['name', 'datemodified']):
+    def GetAllTasks(self, fields = ['name', 'datemodified']):
         """ gets all the task
         TODO: add taskdatemodified to the fields
         """
