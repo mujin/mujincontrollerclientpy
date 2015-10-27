@@ -179,13 +179,15 @@ class ZmqSocketPool(object):
 
             # if a socket is available, use it
             if len(self._availablesockets) > 0:
+                socket = self._availablesockets.pop()
                 self._acquirecount += 1
-                return self._availablesockets.pop()
+                return socket
 
             # if we don't have available socket but we have quota to create new socket, create a new one
             if self._limit is None or len(self._availablesockets) + len(self._pollingsockets) < self._limit:
+                socket = self._OpenSocket()
                 self._acquirecount += 1
-                return self._OpenSocket()
+                return socket
 
             # check for timeout
             elapsedtime = time.time() - starttime
