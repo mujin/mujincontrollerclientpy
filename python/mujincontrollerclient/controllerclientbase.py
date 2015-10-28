@@ -16,6 +16,7 @@ log = getLogger(__name__)
 
 # system imports
 import time
+import datetime
 
 try:
     import ujson as json
@@ -252,11 +253,53 @@ class ControllerClientBase(object):
         self._webclient.Request('POST', '/restartserver/', timeout=1)
         # no reason to check response since it's probably an error (server is restarting after all)
 
+    def IsLoggedIn(self):
+        return self._webclient.IsLoggedIn()
+
+    def Login(self, timeout=5):
+        """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
+        """
+        self._webclient.Login(timeout=timeout)
+
     def FileExists(self, filename):
         """check if a file exists on server
         """
         response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, filename))
         return response.status_code == 200
+
+    def ListFiles(self, path=''):
+        path = u'/u/%s/%s' % (self.controllerusername, path)
+        response = self._webclient.Request('PROPFIND', path)
+        if response.status_code != 207:
+            raise ControllerClientError(response.content)
+
+        import xml.etree.cElementTree as xml
+        import email.utils
+
+        tree = xml.fromstring(response.content)
+
+        def prop(e, name, default=None):
+            child = e.find('.//{DAV:}' + name)
+            return default if child is None else child.text
+
+        files = {}
+        for e in tree.findall('{DAV:}response'):
+            name = prop(e, 'href')
+            assert(name.startswith(path))
+            name = name[len(path):].strip('/')
+            size = int(prop(e, 'getcontentlength', 0))
+            isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
+            modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
+            if modified is not None:
+                modified = datetime.datetime(*modified[:6])
+            files[name] = {
+                'name': name,
+                'size': size,
+                'isdir': isdir,
+                'modified': modified,
+            }
+
+        return files
 
     def UploadFile(self, f):
         """uploads a file managed by file handle f 

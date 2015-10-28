@@ -24,7 +24,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
     _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
     
     #TODO : add robotdeviceIOuri
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, itlplanning2zmqport=None, itlplanning2heartbeatport=None, itlplanning2heartbeattimeout=None, usewebapi=False, initializezmq=True, ctx=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, itlplanning2zmqport=None, itlplanning2heartbeatport=None, itlplanning2heartbeattimeout=None, usewebapi=False, initializezmq=True, ctx=None, slaverequestid=None):
         
         """logs into the mujin controller, initializes itlplanning2 task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
@@ -43,7 +43,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         :param usewebapi: whether to use webapi for controller commands
         :param robotaccelmult: optional multiplier for forcing the acceleration
         """
-        super(ITLPlanning2ControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, itlplanning2zmqport, itlplanning2heartbeatport, itlplanning2heartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi, ctx)
+        super(ITLPlanning2ControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, itlplanning2zmqport, itlplanning2heartbeatport, itlplanning2heartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi, ctx, slaverequestid=slaverequestid)
         
         # robot controller
         self._robotControllerUri = robotControllerUri
