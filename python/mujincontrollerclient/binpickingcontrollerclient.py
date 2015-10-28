@@ -365,6 +365,8 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         :param maxdeviationangle: how much the tool tip can rotationally deviate from the linear path
         :param plannername:
         
+        :param workspeed: [anglespeed, transspeed] in deg/s and mm/s
+        :param workaccel: [angleaccel, transaccel] in deg/s^2 and mm/s^2
         :param worksteplength: discretization for planning MoveHandStraight, in seconds.
         :param workminimumcompletetime: set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
         :param workminimumcompleteratio: in case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything
