@@ -12,11 +12,11 @@ log = logging.getLogger(__name__)
 
 # mujin imports
 from . import ControllerClientError, APIServerError
-from . import controllerclientbase
+from . import controllerclientbase, viewermixin
 from . import ugettext as _
 
 
-class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
+class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin):
     """mujin controller client for itlplanning2 task
     """
     tasktype = 'itlplanning2'
@@ -338,82 +338,47 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
-    def SetViewerFromParameters(self, viewerparameters, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'SetViewerFromParameters',
-                          'viewerparameters':viewerparameters
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-        
-    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraZoomOut',
-                          'zoomdelta':float(zoomdelta),
-                          'zoommult': float(zoommult)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraZoomIn',
-                          'zoomdelta':float(zoomdelta),
-                          'zoommult':float(zoommult)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraLeft',
-                          'pandelta':float(pandelta),
-                          'panangle':float(panangle),
-                          'ispan':bool(ispan)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraRight',
-                          'pandelta':float(pandelta),
-                          'panangle':float(panangle),
-                          'ispan':bool(ispan)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def MoveCameraUp(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraUp',
-                          'angledelta':float(angledelta),
-                          'ispan':bool(ispan)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def MoveCameraDown(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = {'command': 'MoveCameraDown',
-                          'angledelta':float(angledelta),
-                          'ispan':bool(ispan)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, **kwargs):
-        """sets the camera transform
-        :param transform: 4x4 matrix
-        """        
-        taskparameters = {'command': 'SetCameraTransform',
-                          'distanceToFocus':float(distanceToFocus),
-                          }
-        if transform is not None:
-            taskparameters['transform'] = [list(row) for row in transform]
-        if pose is not None:
-            taskparameters['pose'] = [float(f) for f in pose]
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def GetCameraTransform(self, usewebapi=False, timeout=10, **kwargs):
-        """gets the camera transform, and other
+    def _ExecuteCommandViaWebAPI(self, taskparameters, taskpk=None, timeout=3000):
+        """executes command via web api
         """
-        taskparameters = {'command': 'GetCameraTransform'
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        assert(self.tasktype == 'itlplanning2')
+        if self.tasktype == 'itlplanning2' and len(taskparameters.get('programname','')) > 0:
+            if taskparameters.get('execute', False):
+                return self._ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True, taskpk=taskpk)
+            else:
+                return self._ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False, taskpk=taskpk)
+        return super(ITLPlanning2ControllerClient, self)._ExecuteCommandViaWebAPI(taskparameters, taskpk=taskpk, timeout=timeout)
 
+    def _ExecuteITLPlanning2Task(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000, async=True, taskpk=None):
+        '''executes task with a particular task type without creating a new task
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        :param forcecancel: if True, then cancel all previously running jobs before running this one
+        '''
+        if taskpk is None:
+            taskpk = self.GetOrCreateSceneTask(scenepk, taskparameters.get('programname',''), 'itlplanning2')
+        putresponse = self._webclient.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+        if async:
+            # set the task parameters
+            # just in case, delete all previous tasks
+            if forcecancel:
+                self._webclient.APICall('DELETE', 'job', timeout=5)
+            # execute the task
+            status, response = self._webclient.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
+            assert(status == 200)
+            # the jobpk allows us to track the job
+            jobpk = response['jobpk']
+            return jobpk # for tracking the job
+        else:
+            return putresponse[1]['pk']
+
+    def CheckITLTrajectoryAvailable(self, resourcepk, programtype='mujinxml', timeout=1000):
+        ''' checks if the resource for trajectory is available for a given
+        resource pk
+        '''
+        try:
+            status, response = self._webclient.APICall('GET', u'planningresult/%s/program' % resourcepk, url_params={'type': programtype}, timeout=5)
+            if status == 200:
+                if len(response > 0):
+                    return True # does not guarantee the trajectory duration > 0
+        except APIServerError:
+            return False # does not exist

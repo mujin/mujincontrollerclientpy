@@ -34,7 +34,7 @@ import weakref
 
 # mujin imports
 from . import ControllerClientError, GetAPIServerErrorFromZMQ
-from . import controllerclientraw, zmqclient
+from . import controllerclientraw, zmqclient, webdavmixin
 from . import ugettext as _
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
@@ -118,7 +118,7 @@ def GetPrimaryKeyFromURI(uri):
     return quote(path.encode('utf-8'), '')
 
 
-class ControllerClientBase(object):
+class ControllerClientBase(object, webdavmixin.WebDAVMixin):
     """mujin controller client base
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
@@ -260,88 +260,6 @@ class ControllerClientBase(object):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
         self._webclient.Login(timeout=timeout)
-
-
-    #
-    # WebDAV related
-    #
-
-    def FileExists(self, path):
-        """check if a file exists on server
-        """
-        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
-        if response.status_code not in [200, 301, 404]:
-            raise ControllerClientError(response.content)
-        return response.status_code != 404
-
-    def DownloadFile(self, filename):
-        """downloads a file given filename
-
-        :return: a streaming response
-        """
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
-        if response.status_code != 200:
-            raise ControllerClientError(response.content)
-        
-        return response
-
-    def UploadFile(self, path, f):
-        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f)
-        if response.status_code not in [201, 201, 204]:
-            raise ControllerClientError(response.content)
-
-    def ListFiles(self, path=''):
-        path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
-        response = self._webclient.Request('PROPFIND', path)
-        if response.status_code not in [207]:
-            raise ControllerClientError(response.content)
-
-        import xml.etree.cElementTree as xml
-        import email.utils
-
-        tree = xml.fromstring(response.content)
-
-        def prop(e, name, default=None):
-            child = e.find('.//{DAV:}' + name)
-            return default if child is None else child.text
-
-        files = {}
-        for e in tree.findall('{DAV:}response'):
-            name = prop(e, 'href')
-            assert(name.startswith(path))
-            name = name[len(path):].strip('/')
-            size = int(prop(e, 'getcontentlength', 0))
-            isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
-            modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
-            if modified is not None:
-                modified = datetime.datetime(*modified[:6])
-            files[name] = {
-                'name': name,
-                'size': size,
-                'isdir': isdir,
-                'modified': modified,
-            }
-
-        return files
-
-    def DeleteFile(self, path):
-        response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
-        if response.status_code not in [204, 404]:
-            raise ControllerClientError(response.content)
-
-    def DeleteDirectory(self, path):
-        self.DeleteFile(path)
-
-    def MakeDirectory(self, path):
-        response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
-        if response.status_code not in [201, 301, 405]:
-            raise ControllerClientError(response.content)
-
-    def MakeDirectories(self, path):
-        parts = []
-        for part in path.strip('/').split('/'):
-            parts.append(part)
-            self.MakeDirectory('/'.join(parts))
 
     #
     # Scene related
@@ -598,25 +516,27 @@ class ControllerClientBase(object):
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
                             status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
- 
-
-    def _ExecuteCommandViaWebAPI(self, taskparameters, taskpk=None, timeout=3000):
-        """executes command via web api
-        """
-        if self.tasktype == 'itlplanning2' and len(taskparameters.get('programname','')) > 0:
-            if taskparameters.get('execute', False):
-                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True, taskpk=taskpk)
-            else:
-                return self._webclient.ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False, taskpk=taskpk)
-             
-        return self._webclient.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
-
 
     def CancelJob(self, jobpk, timeout=5):
         """ cancels the job with the corresponding jobk
         """
         self._webclient.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
         return True
+
+
+    def GetOrCreateSceneTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
+        """gets or creates a task, returns its pk
+        """
+        status, response = self._webclient.APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'}, timeout=timeout)
+        assert(status == 200)
+        if len(response['objects']) > 0:
+            if tasktype is not None:
+                assert(response['objects'][0]['tasktype'] == tasktype)
+            return response['objects'][0]['pk']
+        else:
+            status, response = self._webclient.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk, 'slaverequestid': slaverequestid}, timeout=timeout)
+            assert(status == 201)
+            return response['pk']
 
     def DeleteTask(self, taskpk, timeout=5):
         """ deletes a task via web api
@@ -645,25 +565,39 @@ class ControllerClientBase(object):
     def GetTask(self, taskpk, timeout=None):
         status, response = self._webclient.APICall('GET', 'task/%s' %taskpk, timeout=timeout)
         return response
-        
-    def GetAllTasks(self, fields = ['name', 'datemodified']):
+
+    def GetTasks(self, fields=None):
         """ gets all the task
         TODO: add taskdatemodified to the fields
         """
-        queryfield = None # returns everything
-        if fields is not None and len(fields) > 1:
-            queryfield = repr(fields[0])[1:-1]
-            for field in fields[1:]:
-                queryfield += ',' + repr(field)[1:-1]
-                        
+
+        url_params = {
+            'type__equals': self.tasktype
+        }
+
         try:
-            if queryfield is None:
-                status, response = self._webclient.APICall('GET', 'task', url_params={'type__equals':self.tasktype})
-            else:
-                status, response = self._webclient.APICall('GET', 'task', url_params={'type__equals':self.tasktype, 'fields':queryfield})
+            status, response = self._webclient.APICall('GET', 'task', url_params=url_params, fields=fields)
         except APIServerError:
             return []  # bad query or no tasks
         return response['objects']
+
+    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
+        '''executes task with a particular task type without creating a new task
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        :param forcecancel: if True, then cancel all previously running jobs before running this one
+        '''
+        if forcecancel:
+            # # just in case, delete all previous tasks
+            self._webclient.APICall('DELETE', 'job', timeout=5)
+        # execute task
+        status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=timeout)
+        assert(status==200)
+        return response
+
+    def _ExecuteCommandViaWebAPI(self, taskparameters, taskpk=None, timeout=3000):
+        """executes command via web api
+        """
+        return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, taskpk= None, timeout=None, fireandforget=None):
         """executes command with taskparameters
@@ -701,17 +635,3 @@ class ControllerClientBase(object):
             if error is not None:
                 raise error
             return response['output']
-        
-    
-#     def InitializeControllerZmqServer(self, taskzmqport=7110, taskheartbeatport=7111):
-#         """starts the zmq server on mujin controller
-#         no need to call this for visionserver initialization, visionserver calls this during initialization
-#         """
-#         taskparameters = {'command': 'InitializeZMQ',
-#                           'port': taskzmqport,
-#                           'heartbeatPort': taskheartbeatport,
-#                           'sceneparams': self.sceneparams,
-#                           'tasktype': self.tasktype,
-#                           }
-#         return self.ExecuteCommand(taskparameters, usewebapi=True)  # for webapi
-#     
