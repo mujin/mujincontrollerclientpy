@@ -355,6 +355,34 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+
+    def MoveToolLinear(self, goaltype, goals, toolname=None, timeout=10, **kwargs):
+        """moves the tool linear
+        :param goaltype: type of the goal, e.g. translationdirection5d
+        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+        :param toolname: name of the manipulator, default is self.toolname
+        
+        :param maxdeviationangle: how much the tool tip can rotationally deviate from the linear path
+        :param plannername:
+        
+        :param worksteplength: discretization for planning MoveHandStraight, in seconds.
+        :param workminimumcompletetime: set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
+        :param workminimumcompleteratio: in case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything
+        :param numspeedcandidates: if speed/accel are not specified, the number of candiates to consider
+        :param workignorefirstcollisionee: time, necessary in case initial is in collision, has to be multiples of step length?
+        :param workignorelastcollisionee: time, necessary in case goal is in collision, has to be multiples of step length?
+        :param workignorefirstcollision:
+
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'MoveToolLinear',
+                          'goaltype': goaltype,
+                          'goals': goals,
+                          'toolname': toolname,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
     def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, timeout=10, **kwargs):
         """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
