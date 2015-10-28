@@ -261,16 +261,39 @@ class ControllerClientBase(object):
         """
         self._webclient.Login(timeout=timeout)
 
-    def FileExists(self, filename):
+
+    #
+    # WebDAV related
+    #
+
+    def FileExists(self, path):
         """check if a file exists on server
         """
-        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, filename))
-        return response.status_code == 200
+        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
+        if response.status_code not in [200, 301, 404]:
+            raise ControllerClientError(response.content)
+        return response.status_code != 404
+
+    def DownloadFile(self, filename):
+        """downloads a file given filename
+
+        :return: a streaming response
+        """
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content)
+        
+        return response
+
+    def UploadFile(self, path, f):
+        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f)
+        if response.status_code not in [201, 201, 204]:
+            raise ControllerClientError(response.content)
 
     def ListFiles(self, path=''):
-        path = u'/u/%s/%s' % (self.controllerusername, path)
+        path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
         response = self._webclient.Request('PROPFIND', path)
-        if response.status_code != 207:
+        if response.status_code not in [207]:
             raise ControllerClientError(response.content)
 
         import xml.etree.cElementTree as xml
@@ -301,8 +324,31 @@ class ControllerClientBase(object):
 
         return files
 
-    def UploadFile(self, f):
-        """uploads a file managed by file handle f 
+    def DeleteFile(self, path):
+        response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
+        if response.status_code not in [204, 404]:
+            raise ControllerClientError(response.content)
+
+    def DeleteDirectory(self, path):
+        self.DeleteFile(path)
+
+    def MakeDirectory(self, path):
+        response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
+        if response.status_code not in [201, 301, 405]:
+            raise ControllerClientError(response.content)
+
+    def MakeDirectories(self, path):
+        parts = []
+        for part in path.strip('/').split('/'):
+            parts.append(part)
+            self.MakeDirectory('/'.join(parts))
+
+    #
+    # Scene related
+    #
+
+    def UploadSceneFile(self, f):
+        """uploads a file managed by file handle f
         
         """
         # note that /fileupload does not have trailing slash for some reason
@@ -317,16 +363,6 @@ class ControllerClientBase(object):
         
         return content['filename']
 
-    def DownloadFile(self, filename):
-        """downloads a file given filename
-
-        :return: a streaming response
-        """
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
-        if response.status_code != 200:
-            raise ControllerClientError(response.content)
-        
-        return response
 
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
