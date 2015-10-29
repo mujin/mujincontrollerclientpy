@@ -366,7 +366,7 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
         assert(status == 204)
-    
+
     #
     # IKParam related
     #
@@ -437,6 +437,79 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(status == 204)
 
     #
+    # Task related
+    #
+
+    def GetSceneTasks(self, scenepk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params={
+            'limit': 0,
+        })
+        assert(status == 200)
+        return response['objects']
+
+    def GetTask(self, taskpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'task/%s/' % taskpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def SetTask(self, taskpk, taskdata, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'task/%s/' % taskpk, data=taskdata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteTask(self, taskpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'task/%s/' % taskpk, timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Result related
+    #
+
+    def GetResult(self, resultpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'planningresult/%s/' % resultpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def GetResultProgram(self, resultpk, programtype='mujinjson', usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'planningresult/%s/program/' % resultpk, url_params={'type': programtype}, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def SetResult(self, resultpk, resultdata, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'planningresult/%s/' % resultpk, data=resultdata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteResult(self, resultpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'planningresult/%s/' % resultpk, timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Job related
+    #
+
+    def GetJobs(self, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, url_params={
+            'limit': 0,
+        })
+        assert(status == 200)
+        return response['objects']
+
+    def DeleteJob(self, jobpk, usewebapi=True, timeout=5):
+        """ cancels the job with the corresponding jobk
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'job/%s/' % jobpk, timeout=timeout)
+        assert(status == 204)
+
+    #
     # Geometry related
     #
     
@@ -472,9 +545,10 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
     # Sensor mappings related
     #
 
-    def GetSceneSensorMappingViaWebapi(self, scenepk=None, timeout=5):
+    def GetSceneSensorMapping(self, scenepk=None, usewebapi=True, timeout=5):
         """ return the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
         """
+        assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
@@ -494,10 +568,11 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
                         log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
         return sensormapping
 
-    def SetSceneSensorMappingViaWebapi(self, sensormapping, scenepk=None, timeout=5):
+    def SetSceneSensorMapping(self, sensormapping, scenepk=None, usewebapi=True, timeout=5):
         """
         :param sensormapping: the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
         """
+        assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
@@ -517,12 +592,9 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
                         if cameraid != sensormapping[camerafullname]:
                             status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
 
-    def CancelJob(self, jobpk, timeout=5):
-        """ cancels the job with the corresponding jobk
-        """
-        self._webclient.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
-        return True
-
+    #
+    # Tasks related
+    #
 
     def GetOrCreateSceneTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
         """gets or creates a task, returns its pk
@@ -549,23 +621,6 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
             pass
         return ''
         
-        
-    def GetJobStatus(self, jobpk, timeout=5):
-        """ get the status of the job, exception is treated as job finished
-        """
-        
-        try:
-            status, response = self._webclient.APICall('GET', u'job/%s' %jobpk, timeout=timeout)
-        except APIServerError,e:
-            return {} # badquery or job has finished
-
-        return response
-
-
-    def GetTask(self, taskpk, timeout=None):
-        status, response = self._webclient.APICall('GET', 'task/%s' %taskpk, timeout=timeout)
-        return response
-
     def GetTasks(self, fields=None):
         """ gets all the task
         TODO: add taskdatemodified to the fields
