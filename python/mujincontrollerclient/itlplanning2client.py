@@ -382,3 +382,18 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
                     return True # does not guarantee the trajectory duration > 0
         except APIServerError:
             return False # does not exist
+
+    def PlotGraph(self, programname, updatestamp, ikparams=None, maniptrajectories=None, deltatime=None, usewebapi=False, timeout=10, fireandforget=True):
+        taskparameters = {
+            'command': 'PlotGraph',
+            'programname': programname,
+            'updatestamp': int(updatestamp),
+        }
+        if ikparams is not None:
+            taskparameters['ikparams'] = ikparams
+        if maniptrajectories is not None:
+            taskparameters['maniptrajectories'] = maniptrajectories
+        if deltatime is not None:
+            taskparameters['deltatime'] = float(deltatime)
+
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
