@@ -448,20 +448,20 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(status == 200)
         return response['objects']
 
-    def GetTask(self, taskpk, fields=None, usewebapi=True, timeout=5):
+    def CreateSceneTask(self, scenepk, taskdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'task/%s/' % taskpk, fields=fields, timeout=timeout)
-        assert(status == 200)
+        status, response = self._webclient.APICall('POST', u'scene/%s/task/' % scenepk, data=taskdata, fields=fields, timeout=timeout)
+        assert(status == 201)
         return response
 
-    def SetTask(self, taskpk, taskdata, usewebapi=True, timeout=5):
+    def SetSceneTask(self, scenepk, taskpk, taskdata, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'task/%s/' % taskpk, data=taskdata, timeout=timeout)
+        status, response = self._webclient.APICall('PUT', u'scene/%s/task/%s/' % (scenepk, taskpk), data=taskdata, timeout=timeout)
         assert(status == 202)
 
-    def DeleteTask(self, taskpk, usewebapi=True, timeout=5):
+    def DeleteSceneTask(self, scenepk, taskpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'task/%s/' % taskpk, timeout=timeout)
+        status, response = self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
         assert(status == 204)
 
     #
