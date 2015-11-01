@@ -474,9 +474,9 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(status == 200)
         return response
 
-    def GetResultProgram(self, resultpk, programtype='robotbridgeexecution', usewebapi=True, timeout=5):
+    def GetResultProgram(self, resultpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'planningresult/%s/program/' % resultpk, url_params={'type': programtype}, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'planningresult/%s/program/' % resultpk, timeout=timeout)
         assert(status == 200)
         return response
 
@@ -649,12 +649,36 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(status==200)
         return response
 
-    def _ExecuteCommandViaWebAPI(self, taskparameters, taskpk=None, timeout=3000):
+    def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
         """executes command via web api
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, taskpk= None, timeout=None, fireandforget=None):
+    def _ExecuteCommandViaZMQ(self, taskparameters, timeout=None, fireandforget=None):
+        command = {
+            'fnname': 'RunCommand',
+            'taskparams': {
+                'tasktype': self.tasktype,
+                'sceneparams': self._sceneparams,
+                'taskparameters': taskparameters,
+            },
+            'userinfo': self._userinfo,
+            'slaverequestid': self._slaverequestid
+        }
+        if self.tasktype == 'binpicking':
+            command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
+        response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+        
+        if fireandforget:
+            # for fire and forget commands, no response will be available
+            return None
+        
+        error = GetAPIServerErrorFromZMQ(response)
+        if error is not None:
+            raise error
+        return response['output']
+
+    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
@@ -666,27 +690,5 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
             usewebapi = self._usewebapi
         if usewebapi:
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
-        
         else:
-            command = {
-                'fnname': 'RunCommand',
-                'taskparams': {
-                    'tasktype': self.tasktype,
-                    'sceneparams': self._sceneparams,
-                    'taskparameters': taskparameters,
-                },
-                'userinfo': self._userinfo,
-                'slaverequestid': self._slaverequestid
-            }
-            if self.tasktype == 'binpicking':
-                command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
-            response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
-            
-            if fireandforget:
-                # for fire and forget commands, no response will be available
-                return None
-            
-            error = GetAPIServerErrorFromZMQ(response)
-            if error is not None:
-                raise error
-            return response['output']
+            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, fireandforget=fireandforget)

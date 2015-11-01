@@ -58,11 +58,13 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetToolValuesFromJointValues(self, jointvalues, valuetype='XYZABC', timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'GetToolValuesFromJointValues',
-                          'jointvalues'  : jointvalues,
-                          'valuetype' :  valuetype
-                          }
+    def GetToolValuesFromJointValues(self, jointvalues, valuetype=None, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {
+            'command': 'GetToolValuesFromJointValues',
+            'jointvalues': jointvalues,
+        }
+        if valuetype is not None:
+            taskparameters['valuetype'] = valuetype
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
@@ -80,14 +82,15 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
 
-    def GetJointValuesFromToolValues(self, toolvalues, initjointvalues, timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'GetJointValuesFromToolValues',
-                          'toolvalues'  : toolvalues,
-                          'initjointvalues': initjointvalues
-                          }
+    def GetJointValuesFromToolValues(self, toolvalues, initjointvalues=None, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {
+            'command': 'GetJointValuesFromToolValues',
+            'toolvalues': toolvalues,
+        }
+        if initjointvalues is not None:
+            taskparameters['initjointvalues'] = initjointvalues
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
 
     def SetRobotControllerUri(self, robotControllerUri):
         self._robotControllerUri = robotControllerUri
@@ -108,7 +111,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     # robot commands
     #########################
 
-    def ExecuteRobotCommand(self, taskparameters, robotspeed=None, usewebapi=None, taskpk=None, timeout=10):
+    def ExecuteRobotCommand(self, taskparameters, robotspeed=None, usewebapi=None, timeout=10):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -127,7 +130,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        return self.ExecuteCommand(taskparameters, usewebapi, taskpk=taskpk, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
     def ExecuteTrajectory(self, resourcepk, timeout=1000):
         """ executes trajectory if the program exists
@@ -138,15 +141,16 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         except APIServerError:
             return False
 
-
-    def ComputeCommandPosition(self, command, jointvalues = None, usewebapi=False, timeout=5, **kwargs):
+    def ComputeCommandPosition(self, command, jointvalues=None, usewebapi=False, timeout=5, **kwargs):
         """
         computes the position from the command
         """
-        taskparameters = { 'command':'ComputeCommandPosition',
-                          'content': command,
-                           'jointvalues': jointvalues
-                        }
+        taskparameters = {
+            'command':'ComputeCommandPosition',
+            'movecommand': command,
+        }
+        if jointvalues is not None:
+            taskparameters['jointvalues'] = jointvalues
         taskparameters.update(kwargs)
         return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
@@ -184,7 +188,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True, taskpk=None, **kwargs):
+    def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True,  **kwargs):
         """
         converts the current program
         """
@@ -195,7 +199,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
                          }
         
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, taskpk=taskpk)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
 
 
@@ -268,20 +272,6 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-
-    
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, timeout=10, **kwargs):
-        """removes objects with prefix
-        """
-        taskparameters = {'command': 'RemoveObjectsWithPrefix',
-                          }
-        taskparameters.update(kwargs)
-        if prefix is not None:
-            taskparameters['prefix'] = unicode(prefix)
-        if prefixes is not None:
-            taskparameters['prefixes'] = [unicode(prefix) for prefix in prefixes]
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
@@ -290,35 +280,19 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         :param saveclone: If 1, will save the scenes for all the cloned environments
         :return: the actual filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
         """
-        taskparameters = {'command': 'SaveScene',
-                          }
+        taskparameters = {'command': 'SaveScene'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-
-    def Pause(self, timeout=10, **kwargs):
-        taskparameters = {'command': 'Pause',
-                          }
+    def Pause(self, timeout=10, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'Pause'}
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
-    def Resume(self, timeout=10, **kwargs):
-        taskparameters = {'command': 'Resume',
-                          }
+    def Resume(self, timeout=10, usewebapi=False, **kwargs):
+        taskparameters = {'command': 'Resume'}
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-    
-    def GetRobotBridgeState(self, timeout=10, **kwargs):
-        taskparameters = {'command': 'GetRobotBridgeState',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
-    
-    def GetITLPlanning2State(self, timeout=10, **kwargs):
-        taskparameters = {'command': 'GetITLPlanning2State',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
@@ -333,55 +307,52 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
-        taskparameters = {'command': 'SetStopPickPlaceAfterExecutionCycle',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        assert(False)
 
-    def _ExecuteCommandViaWebAPI(self, taskparameters, taskpk=None, timeout=3000):
-        """executes command via web api
-        """
-        assert(self.tasktype == 'itlplanning2')
-        if self.tasktype == 'itlplanning2' and len(taskparameters.get('programname','')) > 0:
-            if taskparameters.get('execute', False):
-                return self._ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True, taskpk=taskpk)
-            else:
-                return self._ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False, taskpk=taskpk)
-        return super(ITLPlanning2ControllerClient, self)._ExecuteCommandViaWebAPI(taskparameters, taskpk=taskpk, timeout=timeout)
+    # def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
+    #     """executes command via web api
+    #     """
+    #     assert(self.tasktype == 'itlplanning2')
+    #     if self.tasktype == 'itlplanning2' and len(taskparameters.get('programname','')) > 0:
+    #         if taskparameters.get('execute', False):
+    #             return self._ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=True)
+    #         else:
+    #             return self._ExecuteITLPlanning2Task(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, async=False)
+    #     return super(ITLPlanning2ControllerClient, self)._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
 
-    def _ExecuteITLPlanning2Task(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000, async=True, taskpk=None):
-        '''executes task with a particular task type without creating a new task
-        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
-        :param forcecancel: if True, then cancel all previously running jobs before running this one
-        '''
-        if taskpk is None:
-            taskpk = self.GetOrCreateSceneTask(scenepk, taskparameters.get('programname',''), 'itlplanning2')
-        putresponse = self._webclient.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
-        if async:
-            # set the task parameters
-            # just in case, delete all previous tasks
-            if forcecancel:
-                self._webclient.APICall('DELETE', 'job', timeout=5)
-            # execute the task
-            status, response = self._webclient.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
-            assert(status == 200)
-            # the jobpk allows us to track the job
-            jobpk = response['jobpk']
-            return jobpk # for tracking the job
-        else:
-            return putresponse[1]['pk']
+    # def _ExecuteITLPlanning2Task(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000, async=True, taskpk=None):
+    #     '''executes task with a particular task type without creating a new task
+    #     :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+    #     :param forcecancel: if True, then cancel all previously running jobs before running this one
+    #     '''
+    #     if taskpk is None:
+    #         taskpk = self.GetOrCreateSceneTask(scenepk, taskparameters.get('programname',''), 'itlplanning2')
+    #     putresponse = self._webclient.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'itlplanning2', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+    #     if async:
+    #         # set the task parameters
+    #         # just in case, delete all previous tasks
+    #         if forcecancel:
+    #             self._webclient.APICall('DELETE', 'job', timeout=5)
+    #         # execute the task
+    #         status, response = self._webclient.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
+    #         assert(status == 200)
+    #         # the jobpk allows us to track the job
+    #         jobpk = response['jobpk']
+    #         return jobpk # for tracking the job
+    #     else:
+    #         return putresponse[1]['pk']
 
-    def CheckITLTrajectoryAvailable(self, resourcepk, programtype='mujinxml', timeout=1000):
-        ''' checks if the resource for trajectory is available for a given
-        resource pk
-        '''
-        try:
-            status, response = self._webclient.APICall('GET', u'planningresult/%s/program' % resourcepk, url_params={'type': programtype}, timeout=5)
-            if status == 200:
-                if len(response > 0):
-                    return True # does not guarantee the trajectory duration > 0
-        except APIServerError:
-            return False # does not exist
+    # def CheckITLTrajectoryAvailable(self, resourcepk, programtype='mujinxml', timeout=1000):
+    #     ''' checks if the resource for trajectory is available for a given
+    #     resource pk
+    #     '''
+    #     try:
+    #         status, response = self._webclient.APICall('GET', u'planningresult/%s/program' % resourcepk, url_params={'type': programtype}, timeout=5)
+    #         if status == 200:
+    #             if len(response > 0):
+    #                 return True # does not guarantee the trajectory duration > 0
+    #     except APIServerError:
+    #         return False # does not exist
 
     def PlotGraph(self, programname, updatestamp, ikparams=None, maniptrajectories=None, deltatime=None, usewebapi=False, timeout=10, fireandforget=True):
         taskparameters = {
