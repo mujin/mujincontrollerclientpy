@@ -494,9 +494,12 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(status == 200)
         return response
 
-    def GetResultProgram(self, resultpk, usewebapi=True, timeout=5):
+    def GetResultProgram(self, resultpk, programtype=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'planningresult/%s/program/' % resultpk, timeout=timeout)
+        url_params = {}
+        if programtype is not None and len(programtype) > 0:
+            url_params['type'] = programtype
+        status, response = self._webclient.APICall('GET', u'planningresult/%s/program/' % resultpk, url_params=url_params, timeout=timeout)
         assert(status == 200)
         return response
 
