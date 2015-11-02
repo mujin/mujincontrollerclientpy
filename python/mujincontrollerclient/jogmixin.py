@@ -3,7 +3,7 @@ class JogMixin:
 
     def StartJogMode(self, jogtype, robotspeed, robotaccelmult, checkcollision=True, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """
-        :param jogtype: joints, tools
+        :param jogtype: joints, tool
         """
         taskparameters = {
             'command': 'StartJogMode',
