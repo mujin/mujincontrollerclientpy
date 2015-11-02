@@ -20,7 +20,7 @@ class JogMixin:
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetJogDirection(self, dofindex, direction, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
+    def SetJogDirection(self, dofindex, direction, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'SetJogDirection',
             'dofindex': dofindex,
