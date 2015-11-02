@@ -448,6 +448,12 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(status == 200)
         return response['objects']
 
+    def GetSceneTask(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
     def CreateSceneTask(self, scenepk, taskdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('POST', u'scene/%s/task/' % scenepk, data=taskdata, fields=fields, timeout=timeout)
@@ -463,6 +469,20 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
         assert(status == 204)
+
+    def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+        """
+        :return: {'jobpk': 'xxx', 'msg': 'xxx'}
+        """
+        assert(usewebapi)
+        data = {
+            'scenepk': scenepk,
+            'target_pk': taskpk,
+            'resource_type': 'task',
+        }
+        status, response = self._webclient.APICall('POST', u'job/', data=data, timeout=timeout)
+        assert(status == 200)
+        return response
 
     #
     # Result related
@@ -507,6 +527,13 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         """
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'job/%s/' % jobpk, timeout=timeout)
+        assert(status == 204)
+
+    def DeleteJobs(self, usewebapi=True, timeout=5):
+        """ cancels all jobs
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'job/', timeout=timeout)
         assert(status == 204)
 
     #
@@ -596,65 +623,22 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
     # Tasks related
     #
 
-    def GetOrCreateSceneTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
-        """gets or creates a task, returns its pk
-        """
-        status, response = self._webclient.APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'}, timeout=timeout)
-        assert(status == 200)
-        if len(response['objects']) > 0:
-            if tasktype is not None:
-                assert(response['objects'][0]['tasktype'] == tasktype)
-            return response['objects'][0]['pk']
-        else:
-            status, response = self._webclient.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk, 'slaverequestid': slaverequestid}, timeout=timeout)
-            assert(status == 201)
-            return response['pk']
-
-    def DeleteTask(self, taskpk, timeout=5):
-        """ deletes a task via web api
-        status:
-        """
-        try:
-            status, response = self._webclient.APICall('DELETE', 'task/%s' % taskpk, timeout=timeout)
-            assert(status == 204)
-        except APIServerError, error:
-            pass
-        return ''
-        
-    def GetTasks(self, fields=None):
-        """ gets all the task
-        TODO: add taskdatemodified to the fields
-        """
-
-        url_params = {
-            'type__equals': self.tasktype
-        }
-
-        try:
-            status, response = self._webclient.APICall('GET', 'task', url_params=url_params, fields=fields)
-        except APIServerError:
-            return []  # bad query or no tasks
-        return response['objects']
-
-    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
+    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=1000):
         '''executes task with a particular task type without creating a new task
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
-        if forcecancel:
-            # # just in case, delete all previous tasks
-            self._webclient.APICall('DELETE', 'job', timeout=5)
         # execute task
         status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=timeout)
         assert(status==200)
         return response
 
-    def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
+    def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=3000):
         """executes command via web api
         """
-        return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=self._slaverequestid, timeout=timeout)
+        return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, timeout=None, fireandforget=None):
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None):
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -663,7 +647,7 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
                 'taskparameters': taskparameters,
             },
             'userinfo': self._userinfo,
-            'slaverequestid': self._slaverequestid
+            'slaverequestid': slaverequestid,
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
@@ -678,7 +662,7 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
             raise error
         return response['output']
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=None, fireandforget=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
@@ -686,9 +670,13 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         :return: return the server response in json format
         """
         log.verbose(u'Executing task with parameters: %r', taskparameters)
+        if slaverequestid is None:
+            slaverequestid = self._slaverequestid
+
         if usewebapi is None:
             usewebapi = self._usewebapi
+
         if usewebapi:
-            return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout)
+            return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
-            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, fireandforget=fireandforget)
+            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget)

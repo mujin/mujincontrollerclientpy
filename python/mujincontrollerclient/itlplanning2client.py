@@ -131,15 +131,6 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
         return super(ITLPlanning2ControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
-    def ExecuteTrajectory(self, resourcepk, timeout=1000):
-        """ executes trajectory if the program exists
-        (incomplete function)
-        """
-        try:
-            status, response = self._webclient.APICall('POST', u'planningresult/%s/program' %resourcepk, url_params={'type': 'robotbridgeexecution', 'force':1}, timeout=1000)
-        except APIServerError:
-            return False
 
     def ComputeCommandPosition(self, command, jointvalues=None, usewebapi=False, timeout=5, **kwargs):
         """
@@ -367,4 +358,11 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         if deltatime is not None:
             taskparameters['deltatime'] = float(deltatime)
 
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def ExecuteTrajectories(self, trajectories, usewebapi=False, timeout=10, fireandforget=True):
+        taskparameters = {
+            'command': 'ExecuteTrajectory',
+            'trajectories': trajectories,
+        }
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
