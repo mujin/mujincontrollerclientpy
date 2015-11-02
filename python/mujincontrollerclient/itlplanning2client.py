@@ -12,11 +12,11 @@ log = logging.getLogger(__name__)
 
 # mujin imports
 from . import ControllerClientError, APIServerError
-from . import controllerclientbase, viewermixin
+from . import controllerclientbase, viewermixin, jogmixin
 from . import ugettext as _
 
 
-class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin):
+class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin, jogmixin.JogMixin):
     """mujin controller client for itlplanning2 task
     """
     tasktype = 'itlplanning2'
@@ -56,7 +56,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
                           'robotvalues'  : values
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def GetToolValuesFromJointValues(self, jointvalues, valuetype=None, timeout=1, usewebapi=False, **kwargs):
         taskparameters = {
@@ -66,20 +66,20 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         if valuetype is not None:
             taskparameters['valuetype'] = valuetype
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def GetJointName(self, index, timeout=1, usewebapi=False, **kwargs):
         taskparameters = {'command': 'GetJointName',
                           'jointindex'  : index
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def GetDOF(self, timeout=1, usewebapi=False, **kwargs):
         taskparameters = {'command': 'GetDOF',
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
 
     def GetJointValuesFromToolValues(self, toolvalues, initjointvalues=None, timeout=1, usewebapi=False, **kwargs):
@@ -90,7 +90,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         if initjointvalues is not None:
             taskparameters['initjointvalues'] = initjointvalues
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def SetRobotControllerUri(self, robotControllerUri):
         self._robotControllerUri = robotControllerUri
@@ -111,7 +111,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     # robot commands
     #########################
 
-    def ExecuteRobotCommand(self, taskparameters, robotspeed=None, usewebapi=None, timeout=10):
+    def ExecuteCommand(self, taskparameters, robotspeed=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -130,7 +130,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return super(ITLPlanning2ControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def ExecuteTrajectory(self, resourcepk, timeout=1000):
         """ executes trajectory if the program exists
@@ -152,7 +152,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         if jointvalues is not None:
             taskparameters['jointvalues'] = jointvalues
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
     def MoveJoints(self, jointvalues, maxJointSpeedRatio, maxJointAccelRatio, jointoffsets, checkcollision, startvalues=None, jointindices=None, execute=1, robotspeed=1, usewebapi=False, timeout=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
@@ -176,7 +176,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, robotspeed=robotspeed, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, usewebapi=usewebapi, timeout=timeout)
     
 
 
@@ -185,7 +185,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
                           'gcode'  : testGCODE
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
 
     def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True,  **kwargs):
@@ -199,7 +199,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
                          }
         
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
 
 
@@ -214,7 +214,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters = {'command': 'GetJointValues',
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
 
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
@@ -287,12 +287,12 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     def Pause(self, timeout=10, usewebapi=False, **kwargs):
         taskparameters = {'command': 'Pause'}
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def Resume(self, timeout=10, usewebapi=False, **kwargs):
         taskparameters = {'command': 'Resume'}
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
@@ -304,7 +304,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
                           'iovalues': list(iovalues)
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteRobotCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         assert(False)
