@@ -197,6 +197,12 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
         pass
     
+    def GetITLState(self, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {'command': 'GetITLState',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+    
     def GetJointValues(self, timeout=10,  usewebapi=False, **kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
