@@ -144,7 +144,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveJoints(self, jointvalues, maxJointSpeedRatio, maxJointAccelRatio, jointoffsets, checkcollision, startvalues=None, jointindices=None, execute=1, robotspeed=1, usewebapi=False, timeout=None, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -157,18 +157,15 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters = {'command': 'MoveJoints',
                           'goaljoints': list(jointvalues),
                           'jointindices': list(jointindices),
-                          'maxjointspeedratio':maxJointSpeedRatio,
-                          'maxjointaccelratio':maxJointAccelRatio,
-                          'jointoffsets':jointoffsets,
+                          'envclearance': envclearance,
                           'execute': execute,
-                          'checkcollision':checkcollision
                           }
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, usewebapi=usewebapi, timeout=timeout)
-    
-
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
     def ConvertCodetoITL(self, timeout=None, **kwargs):
         taskparameters = {'command': 'ConvertCodetoITL',
