@@ -366,9 +366,11 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
 
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectories(self, trajectories, usewebapi=False, timeout=10, fireandforget=True):
+    def ExecuteTrajectory(self, trajectories, robotspeed, robotaccelmult, usewebapi=False, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
+            'robotspeed': robotspeed,
+            'robotaccelmult': robotaccelmult,
         }
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
