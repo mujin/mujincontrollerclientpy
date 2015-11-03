@@ -22,9 +22,9 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     tasktype = 'itlplanning2'
     _robotControllerUri = None  # URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
     _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
+    _robotname = None # name of the robot
     
-    #TODO : add robotdeviceIOuri
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, itlplanning2zmqport=None, itlplanning2heartbeatport=None, itlplanning2heartbeattimeout=None, usewebapi=False, initializezmq=True, ctx=None, slaverequestid=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, itlplanning2zmqport=None, itlplanning2heartbeatport=None, itlplanning2heartbeattimeout=None, usewebapi=False, initializezmq=True, ctx=None, slaverequestid=None, robotDeviceIOUri=None):
         
         """logs into the mujin controller, initializes itlplanning2 task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
@@ -47,9 +47,8 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         
         # robot controller
         self._robotControllerUri = robotControllerUri
-        # bin picking task
-        self.robotname = robotname
-
+        self._robotDeviceIOUri = robotDeviceIOUri
+        self._robotname = robotname
 
     def SetDOFValues(self, values, timeout=1, usewebapi=False, **kwargs):
         taskparameters = {'command': 'SetDOFValues',
@@ -126,7 +125,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
           - type: error type, string
           - errorcode: error code, string
         """
-        robotname = self.robotname
+        robotname = self._robotname
         taskparameters['robot'] = robotname
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
@@ -224,7 +223,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters = {'command': 'UpdateObjects',
                           'objectname': targetname,
                           'object_uri': u'mujin:/%s.mujin.dae' % (targetname),
-                          'robot': self.robotname,
+                          'robot': self._robotname,
                           'envstate': envstate,
                           'unit': unit,
                           }
