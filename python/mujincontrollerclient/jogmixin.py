@@ -1,30 +1,17 @@
 
 class JogMixin:
 
-    def StartJogMode(self, jogtype, robotspeed, robotaccelmult, checkcollision=True, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
-        """
-        :param jogtype: joints, tool
-        """
+    def SetJogModeVelocities(self, jogtype, movejointsigns, toolname=None, robotspeed=None, robotaccelmult=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         taskparameters = {
-            'command': 'StartJogMode',
+            'command': 'SetJogModeVelocities',
             'jogtype': jogtype,
-            'robotspeed': robotspeed,
-            'robotaccelmult': robotaccelmult,
-            'checkcollision': checkcollision,
+            'movejointsigns': movejointsigns,
         }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def EndJogMode(self, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
-        taskparameters = {'command': 'EndJogMode'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def SetJogDirection(self, dofindex, direction, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
-        taskparameters = {
-            'command': 'SetJogDirection',
-            'dofindex': dofindex,
-            'direction': direction,
-        }
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
