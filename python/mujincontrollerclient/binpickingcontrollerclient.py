@@ -10,11 +10,11 @@ import logging
 log = logging.getLogger(__name__)
 
 # mujin imports
-from . import controllerclientbase, viewermixin
+from . import controllerclientbase, viewermixin, jogmixin
 from . import ugettext as _
 
 
-class BinpickingControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin):
+class BinpickingControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin, jogmixin.JogMixin):
     """mujin controller client for bin picking task
     """
     tasktype = 'binpicking'
