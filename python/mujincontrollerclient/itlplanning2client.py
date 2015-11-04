@@ -50,52 +50,35 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         self._robotDeviceIOUri = robotDeviceIOUri
         self._robotname = robotname
 
-    def SetDOFValues(self, values, timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'SetDOFValues',
-                          'robotvalues'  : values
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    # def SetDOFValues(self, values, timeout=1, usewebapi=False, **kwargs):
+    #     taskparameters = {'command': 'SetDOFValues',
+    #                       'robotvalues'  : values
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetToolValuesFromJointValues(self, jointvalues, valuetype=None, timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {
-            'command': 'GetToolValuesFromJointValues',
-            'jointvalues': jointvalues,
-        }
-        if valuetype is not None:
-            taskparameters['valuetype'] = valuetype
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    # def GetToolValuesFromJointValues(self, jointvalues, valuetype=None, timeout=1, usewebapi=False, **kwargs):
+    #     taskparameters = {
+    #         'command': 'GetToolValuesFromJointValues',
+    #         'jointvalues': jointvalues,
+    #     }
+    #     if valuetype is not None:
+    #         taskparameters['valuetype'] = valuetype
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetJointName(self, index, timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'GetJointName',
-                          'jointindex'  : index
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    # def GetJointName(self, index, timeout=1, usewebapi=False, **kwargs):
+    #     taskparameters = {'command': 'GetJointName',
+    #                       'jointindex'  : index
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetDOF(self, timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'GetDOF',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-
-    def GetJointValuesFromToolValues(self, toolvalues, initjointvalues=None, timeout=1, usewebapi=False, **kwargs):
-        taskparameters = {
-            'command': 'GetJointValuesFromToolValues',
-            'toolvalues': toolvalues,
-        }
-        if initjointvalues is not None:
-            taskparameters['initjointvalues'] = initjointvalues
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def SetRobotControllerUri(self, robotControllerUri):
-        self._robotControllerUri = robotControllerUri
-        
-    def SetRobotDeviceIOUri(self, robotDeviceIOUri):
-        self._robotDeviceIOUri = robotDeviceIOUri
+    # def GetDOF(self, timeout=1, usewebapi=False, **kwargs):
+    #     taskparameters = {'command': 'GetDOF',
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
     def GetRobotControllerUri(self):
         return self._robotControllerUri
@@ -130,6 +113,16 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters['robotControllerUri'] = self._robotControllerUri
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
         return super(ITLPlanning2ControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def GetJointValuesFromToolValues(self, toolvalues, initjointvalues=None, timeout=1, usewebapi=False, **kwargs):
+        taskparameters = {
+            'command': 'GetJointValuesFromToolValues',
+            'toolvalues': toolvalues,
+        }
+        if initjointvalues is not None:
+            taskparameters['initjointvalues'] = initjointvalues
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def ComputeCommandPosition(self, movecommand, jointvalues=None, usewebapi=False, timeout=5, **kwargs):
         """
@@ -195,31 +188,30 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def ConvertCodetoITL(self, timeout=None, **kwargs):
-        taskparameters = {'command': 'ConvertCodetoITL',
-                          'gcode'  : testGCODE
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    # def ConvertCodetoITL(self, timeout=None, **kwargs):
+    #     taskparameters = {'command': 'ConvertCodetoITL',
+    #                       'gcode'  : testGCODE
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout)
 
 
-    def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True,  **kwargs):
-        """
-        converts the current program
-        """
-        taskparameters = { 'command' : 'ExecuteProgram',
-                           'program' : itlprogram,
-                           'programname' : programname,
-                           'execute' : execute
-                         }
+    # def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True,  **kwargs):
+    #     """
+    #     converts the current program
+    #     """
+    #     taskparameters = { 'command' : 'ExecuteProgram',
+    #                        'program' : itlprogram,
+    #                        'programname' : programname,
+    #                        'execute' : execute
+    #                      }
         
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
 
-
-    def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
-        pass
+    # def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
+    #     pass
     
     def GetITLState(self, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {'command': 'GetITLState',
@@ -227,71 +219,70 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
-    def GetJointValues(self, timeout=10,  usewebapi=False, **kwargs):
-        """gets the current robot joint values
-        :return: current joint values in a json dictionary with
-        - currentjointvalues: [0,0,0,0,0,0]
-        """
-        taskparameters = {'command': 'GetJointValues',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    # def GetJointValues(self, timeout=10,  usewebapi=False, **kwargs):
+    #     """gets the current robot joint values
+    #     :return: current joint values in a json dictionary with
+    #     - currentjointvalues: [0,0,0,0,0,0]
+    #     """
+    #     taskparameters = {'command': 'GetJointValues',
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-
-    def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
-        """updates objects in the scene with the envstate
-        :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
-        :param unit: unit of envstate
-        """
-        if targetname is None:
-            targetname = self.targetname
-        taskparameters = {'command': 'UpdateObjects',
-                          'objectname': targetname,
-                          'object_uri': u'mujin:/%s.mujin.dae' % (targetname),
-                          'robot': self._robotname,
-                          'envstate': envstate,
-                          'unit': unit,
-                          }
-        taskparameters.update(kwargs)
-        if state is not None:
-            taskparameters['state'] = json.dumps(state)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    # def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
+    #     """updates objects in the scene with the envstate
+    #     :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
+    #     :param unit: unit of envstate
+    #     """
+    #     if targetname is None:
+    #         targetname = self.targetname
+    #     taskparameters = {'command': 'UpdateObjects',
+    #                       'objectname': targetname,
+    #                       'object_uri': u'mujin:/%s.mujin.dae' % (targetname),
+    #                       'robot': self._robotname,
+    #                       'envstate': envstate,
+    #                       'unit': unit,
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     if state is not None:
+    #         taskparameters['state'] = json.dumps(state)
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetTransform(self, targetname, unit='mm', timeout=10, **kwargs):
-        """gets the transform of an object
-        :param targetname: name of the object
-        :param unit: unit of the result translation
-        :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
-        """
-        taskparameters = {'command': 'GetTransform',
-                          'targetname': targetname,
-                          'unit': unit,
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    # def GetTransform(self, targetname, unit='mm', timeout=10, **kwargs):
+    #     """gets the transform of an object
+    #     :param targetname: name of the object
+    #     :param unit: unit of the result translation
+    #     :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
+    #     """
+    #     taskparameters = {'command': 'GetTransform',
+    #                       'targetname': targetname,
+    #                       'unit': unit,
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
-        """sets the transform of an object
-        :param targetname: name of the object
-        :param translation: list of x,y,z value of the object in milimeter
-        :param unit: unit of translation
-        :param rotationmat: list specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
-        :param quaternion: list specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0]
-        """
-        taskparameters = {'command': 'SetTransform',
-                          'targetname': targetname,
-                          'unit': unit,
-                          'translation': translation,
-                          }
-        taskparameters.update(kwargs)
-        if rotationmat is not None:
-            taskparameters['rotationmat'] = rotationmat
-        if quaternion is not None:
-            taskparameters['quaternion'] = quaternion
-        if rotationmat is None and quaternion is None:
-            taskparameters['quaternion'] = [1, 0, 0, 0]
-            log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    # def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
+    #     """sets the transform of an object
+    #     :param targetname: name of the object
+    #     :param translation: list of x,y,z value of the object in milimeter
+    #     :param unit: unit of translation
+    #     :param rotationmat: list specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
+    #     :param quaternion: list specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0]
+    #     """
+    #     taskparameters = {'command': 'SetTransform',
+    #                       'targetname': targetname,
+    #                       'unit': unit,
+    #                       'translation': translation,
+    #                       }
+    #     taskparameters.update(kwargs)
+    #     if rotationmat is not None:
+    #         taskparameters['rotationmat'] = rotationmat
+    #     if quaternion is not None:
+    #         taskparameters['quaternion'] = quaternion
+    #     if rotationmat is None and quaternion is None:
+    #         taskparameters['quaternion'] = [1, 0, 0, 0]
+    #         log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
@@ -305,27 +296,28 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def Pause(self, timeout=10, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'Pause'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+    # def Pause(self, timeout=10, usewebapi=False, **kwargs):
+    #     taskparameters = {'command': 'Pause'}
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
-    def Resume(self, timeout=10, usewebapi=False, **kwargs):
-        taskparameters = {'command': 'Resume'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+    # def Resume(self, timeout=10, usewebapi=False, **kwargs):
+    #     taskparameters = {'command': 'Resume'}
+    #     taskparameters.update(kwargs)
+    #     return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
         """
         return self._taskstate
     
-    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, **kwargs):
-        taskparameters = {'command': 'SetRobotBridgeIOVariables',
-                          'iovalues': list(iovalues)
-                          }
+    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'SetRobotBridgeIOVariables',
+            'iovalues': list(iovalues)
+        }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         assert(False)
