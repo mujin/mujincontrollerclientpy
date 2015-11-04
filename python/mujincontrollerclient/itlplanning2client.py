@@ -131,20 +131,20 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
         return super(ITLPlanning2ControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ComputeCommandPosition(self, command, jointvalues=None, usewebapi=False, timeout=5, **kwargs):
+    def ComputeCommandPosition(self, movecommand, jointvalues=None, usewebapi=False, timeout=5, **kwargs):
         """
         computes the position from the command
         """
         taskparameters = {
             'command':'ComputeCommandPosition',
-            'movecommand': command,
+            'movecommand': movecommand,
         }
         if jointvalues is not None:
             taskparameters['jointvalues'] = jointvalues
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=None, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -154,16 +154,44 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         if jointindices is None:
             jointindices = range(len(jointvalues))
             log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
-        taskparameters = {'command': 'MoveJoints',
-                          'goaljoints': list(jointvalues),
-                          'jointindices': list(jointindices),
-                          'envclearance': envclearance,
-                          'execute': execute,
-                          }
+        taskparameters = {
+            'command': 'MoveJoints',
+            'goaljoints': list(jointvalues),
+            'jointindices': list(jointindices),
+            'envclearance': envclearance,
+            'execute': execute,
+        }
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+
+    def MoveToSurface(self, distancetosurface, robotspeed=None, robotaccelmult=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'MoveToSurface',
+            'distancetosurface': distancetosurface,
+        }
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+
+    def MoveToCommand(self, movecommand, toinitial=False, robotspeed=None, robotaccelmult=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'MoveToCommand',
+            'movecommand': movecommand,
+            'toinitial': toinitial,
+        }
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
