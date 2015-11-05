@@ -367,7 +367,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     #     except APIServerError:
     #         return False # does not exist
 
-    def PlotGraph(self, programname, updatestamp, ikparams=None, maniptrajectories=None, deltatime=None, usewebapi=False, timeout=10, fireandforget=True):
+    def PlotGraph(self, programname, updatestamp, ikparams=None, highlight=-1, maniptrajectories=None, deltatime=None, usewebapi=False, timeout=10, fireandforget=True):
         taskparameters = {
             'command': 'PlotGraph',
             'programname': programname,
@@ -375,6 +375,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         }
         if ikparams is not None:
             taskparameters['ikparams'] = ikparams
+            taskparameters['highlight'] = highlight
         if maniptrajectories is not None:
             taskparameters['maniptrajectories'] = maniptrajectories
         if deltatime is not None:
@@ -382,11 +383,12 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
 
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, robotspeed, robotaccelmult, usewebapi=False, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, robotspeed, robotaccelmult, toolname, usewebapi=False, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
             'robotspeed': robotspeed,
             'robotaccelmult': robotaccelmult,
+            'toolname': toolname,
         }
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
