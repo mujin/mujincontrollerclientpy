@@ -136,8 +136,20 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             taskparameters['jointvalues'] = jointvalues
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def JogCommandPosition(self, movecommand, translate=None, zyx=None, timeout=5, usewebapi=False, **kwargs):
+        taskparameters = {
+            'command': 'JogCommandPosition',
+            'movecommand': movecommand,
+        }
+        if translate is not None:
+            taskparameters['translate'] = translate
+        if zyx is not None:
+            taskparameters['zyx'] = zyx
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=None, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=None, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -158,12 +170,14 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def MoveToSurface(self, distancetosurface, robotspeed=None, robotaccelmult=None, timeout=10, usewebapi=None, **kwargs):
+    def MoveToSurface(self, distancetosurface, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'MoveToSurface',
             'distancetosurface': distancetosurface,
@@ -172,10 +186,12 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def MoveToCommand(self, movecommand, toinitial=False, robotspeed=None, robotaccelmult=None, timeout=10, usewebapi=None, **kwargs):
+    def MoveToCommand(self, movecommand, toinitial=False, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'MoveToCommand',
             'movecommand': movecommand,
@@ -185,6 +201,8 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
@@ -383,12 +401,15 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
 
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, robotspeed, robotaccelmult, toolname, usewebapi=False, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, robotspeed=None, robotaccelmult=None, toolname=None, usewebapi=False, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
-            'robotspeed': robotspeed,
-            'robotaccelmult': robotaccelmult,
-            'toolname': toolname,
         }
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
