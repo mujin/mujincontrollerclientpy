@@ -137,19 +137,20 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def JogCommandPosition(self, movecommand, translate=None, zyx=None, timeout=5, usewebapi=False, **kwargs):
+    def JogCommandPosition(self, movecommand, direction=None, rotation=None, movealongsurface=True, fireandforget=False, timeout=5, usewebapi=False, **kwargs):
         taskparameters = {
             'command': 'JogCommandPosition',
             'movecommand': movecommand,
+            'movealongsurface': movealongsurface,
         }
-        if translate is not None:
-            taskparameters['translate'] = translate
-        if zyx is not None:
-            taskparameters['zyx'] = zyx
+        if direction is not None:
+            taskparameters['direction'] = direction
+        if rotation is not None:
+            taskparameters['rotation'] = rotation
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, fireandforget=fireandforget, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=None, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=False, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -177,7 +178,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def MoveToSurface(self, distancetosurface, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
+    def MoveToSurface(self, distancetosurface, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=False, **kwargs):
         taskparameters = {
             'command': 'MoveToSurface',
             'distancetosurface': distancetosurface,
@@ -191,7 +192,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def MoveToCommand(self, movecommand, toinitial=False, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
+    def MoveToCommand(self, movecommand, toinitial=False, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=False, **kwargs):
         taskparameters = {
             'command': 'MoveToCommand',
             'movecommand': movecommand,
@@ -231,7 +232,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     # def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
     #     pass
     
-    def GetITLState(self, timeout=10, usewebapi=None, **kwargs):
+    def GetITLState(self, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {'command': 'GetITLState',
                           }
         taskparameters.update(kwargs)
