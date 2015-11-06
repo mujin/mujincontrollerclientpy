@@ -26,7 +26,7 @@ class ViewerMixin:
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraLeft',
                           'pandelta':float(pandelta),
                           'panangle':float(panangle),
@@ -35,7 +35,7 @@ class ViewerMixin:
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraRight',
                           'pandelta':float(pandelta),
                           'panangle':float(panangle),
@@ -44,16 +44,18 @@ class ViewerMixin:
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraUp(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraUp(self, ispan=True, angledelta=3.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraUp',
+                          'pandelta':float(pandelta),
                           'angledelta':float(angledelta),
                           'ispan':bool(ispan)
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraDown(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraDown(self, ispan=True, angledelta=3.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         taskparameters = {'command': 'MoveCameraDown',
+                          'pandelta':float(pandelta),
                           'angledelta':float(angledelta),
                           'ispan':bool(ispan)
         }
