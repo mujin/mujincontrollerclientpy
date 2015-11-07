@@ -207,6 +207,14 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
+    def SetJointValues(self, jointvalues, timeout=10, usewebapi=False, **kwargs):
+        taskparameters = {
+            'command': 'SetJointValues',
+            'jointvalues': jointvalues,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+
     # def ConvertCodetoITL(self, timeout=None, **kwargs):
     #     taskparameters = {'command': 'ConvertCodetoITL',
     #                       'gcode'  : testGCODE
@@ -402,7 +410,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
 
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, robotspeed=None, robotaccelmult=None, toolname=None, usewebapi=False, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, robotspeed=None, robotaccelmult=None, usewebapi=False, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
@@ -411,6 +419,4 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
