@@ -470,15 +470,18 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         status, response = self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
         assert(status == 204)
 
-    def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+    def RunSceneTaskAsync(self, scenepk, taskpk, slaverequestid=None, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
         """
         assert(usewebapi)
+        if slaverequestid is None:
+            slaverequestid =self._slaverequestid
         data = {
             'scenepk': scenepk,
             'target_pk': taskpk,
             'resource_type': 'task',
+            'slaverequestid': slaverequestid,
         }
         status, response = self._webclient.APICall('POST', u'job/', data=data, timeout=timeout)
         assert(status == 200)
