@@ -132,6 +132,8 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
     _isokheartbeat = False  # if False, then stop heartbeat monitor
     _taskstate = None  # latest task status from heartbeat message
     _userinfo = None # a dict storing user info, like locale
+    _commandsocket = None # zmq client to the command port
+    _configsocket = None # zmq client to the config port
 
     def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, slaverequestid=None):
         """logs into the mujin controller and initializes the task's zmq connection
@@ -168,7 +170,8 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         self._webclient = controllerclientraw.ControllerWebClient(controllerurl, controllerusername, controllerpassword)
 
         # connects to task's zmq server
-        self._zmqclient = None
+        self._commandsocket = None
+        self._configsocket = None
         if taskzmqport is not None:
             if ctx is None:
                 self._ctx = zmq.Context()
@@ -176,9 +179,11 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
             else:
                 self._ctx = ctx
             self.taskzmqport = taskzmqport
+            self._commandsocket = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
+            self._configsocket = zmqclient.ZmqClient(self.controllerIp, taskzmqport + 2, ctx)
+
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
-            self._zmqclient = zmqclient.ZmqClient(self.controllerIp, taskzmqport, ctx)
             if self.taskheartbeatport is not None:
                 self._isokheartbeat = True
                 self._heartbeatthread = Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
@@ -199,22 +204,27 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
             self._isokheartbeat = False
             self._heartbeatthread.join()
             self._heartbeatthread = None
-        if self._zmqclient is not None:
-            self._zmqclient.Destroy()
-            self._zmqclient = None
-            if self._ctxown is not None:
-                try:
-                    self._ctxown.destroy()
-                except:
-                    pass
-                self._ctxown = None
+        if self._commandsocket is not None:
+            self._commandsocket.Destroy()
+            self._commandsocket = None
+        if self._configsocket is not None:
+            self._configsocket.Destroy()
+            self._configsocket = None
+        if self._ctxown is not None:
+            try:
+                self._ctxown.destroy()
+            except:
+                pass
+            self._ctxown = None
     
     def SetDestroy(self):
         self._isok = False
         if self._webclient is not None:
             self._webclient.SetDestroy()
-        if self._zmqclient is not None:
-            self._zmqclient.SetDestroy()
+        if self._commandsocket is not None:
+            self._commandsocket.SetDestroy()
+        if self._configsocket is not None:
+            self._configsocket.SetDestroy()
     
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
@@ -657,7 +667,7 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
-        response = self._zmqclient.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+        response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
         
         if fireandforget:
             # for fire and forget commands, no response will be available
@@ -686,3 +696,30 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
             return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget)
+
+    #
+    # Config
+    #
+
+    def Configure(self, configuration, usewebapi=None, timeout=None, fireandforget=None):
+        configuration['command'] = 'configure'
+        return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def SendConfig(self, command, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
+        log.verbose(u'Send config: %r', command)
+        if slaverequestid is None:
+            slaverequestid = self._slaverequestid
+
+        return self._SendConfigViaZMQ(command, slaverequestid=slaverequestid, timeout=timeout, fireandforget=fireandforget)
+
+    def _SendConfigViaZMQ(self, command, slaverequestid='', timeout=None, fireandforget=None):
+        command['slaverequestid'] = slaverequestid
+        response = self._configsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+        if fireandforget:
+            # for fire and forget commands, no response will be available
+            return None
+
+        error = GetAPIServerErrorFromZMQ(response)
+        if error is not None:
+            raise error
+        return response['output']
