@@ -8,31 +8,25 @@ import json
 import logging
 log = logging.getLogger(__name__)
 
-
-
 # mujin imports
 from . import ControllerClientError, APIServerError
-from . import controllerclientbase, viewermixin, jogmixin
+from . import realtimerobotclient
 from . import ugettext as _
 
 
-class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin, jogmixin.JogMixin):
+class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
     """mujin controller client for itlplanning2 task
     """
-    tasktype = 'itlplanning2'
-    _robotControllerUri = None  # URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
-    _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
-    _robotname = None # name of the robot
     
-    def __init__(self, controllerurl, controllerusername, controllerpassword, robotControllerUri, scenepk, robotname, itlplanning2zmqport=None, itlplanning2heartbeatport=None, itlplanning2heartbeattimeout=None, usewebapi=True, initializezmq=True, ctx=None, slaverequestid=None, robotDeviceIOUri=None):
+    def __init__(self, **kwargs):
         
         """logs into the mujin controller, initializes itlplanning2 task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
         :param controllerusername: username of the mujin controller, e.g. testuser
         :param controllerpassword: password of the mujin controller
-        :param itlplanning2zmqport: port of the itlplanning2 task's zmq server, e.g. 7110
-        :param itlplanning2heartbeatport: port of the itlplanning2 task's zmq server's heartbeat publisher, e.g. 7111
-        :param itlplanning2heartbeattimeout: seconds until reinitializing itlplanning2 task's zmq server if no hearbeat is received, e.g. 7
+        :param taskzmqport: port of the itlplanning2 task's zmq server, e.g. 7110
+        :param taskheartbeatport: port of the itlplanning2 task's zmq server's heartbeat publisher, e.g. 7111
+        :param taskheartbeattimeout: seconds until reinitializing itlplanning2 task's zmq server if no hearbeat is received, e.g. 7
         :param scenepk: pk of the bin picking task scene, e.g. komatsu_ntc.mujin.dae
         :param robotname: name of the robot, e.g. VP-5243I
         :param robotspeed: speed of the robot, e.g. 0.4
@@ -43,12 +37,7 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
         :param usewebapi: whether to use webapi for controller commands
         :param robotaccelmult: optional multiplier for forcing the acceleration
         """
-        super(ITLPlanning2ControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, itlplanning2zmqport, itlplanning2heartbeatport, itlplanning2heartbeattimeout, self.tasktype, scenepk, initializezmq, usewebapi, ctx, slaverequestid=slaverequestid)
-        
-        # robot controller
-        self._robotControllerUri = robotControllerUri
-        self._robotDeviceIOUri = robotDeviceIOUri
-        self._robotname = robotname
+        super(ITLPlanning2ControllerClient, self).__init__(tasktype='itlplanning2', **kwargs)
 
     # def SetDOFValues(self, values, timeout=1, usewebapi=False, **kwargs):
     #     taskparameters = {'command': 'SetDOFValues',
@@ -80,39 +69,8 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def GetRobotControllerUri(self):
-        return self._robotControllerUri
-        
-    def GetRobotDeviceIOUri(self):
-        return self._robotDeviceIOUri
-    
     def ReloadModule(self, timeout=10, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule'}, timeout=timeout, **kwargs)
-
-    #########################
-    # robot commands
-    #########################
-
-    def ExecuteCommand(self, taskparameters, robotspeed=None, usewebapi=None, timeout=10, fireandforget=False):
-        """wrapper to ExecuteCommand with robot info set up in taskparameters
-
-        executes a command on the task.
-
-        :return: a dictionary that contains:
-        - robottype: robot type,string
-        - currentjointvalues: current joint values, DOF floats
-        - elapsedtime: elapsed time in seconds, float
-        - numpoints: the number of points, int
-        - error: optional error info, dictionary
-          - desc: error message, string
-          - type: error type, string
-          - errorcode: error code, string
-        """
-        robotname = self._robotname
-        taskparameters['robot'] = robotname
-        taskparameters['robotControllerUri'] = self._robotControllerUri
-        taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
-        return super(ITLPlanning2ControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def GetJointValuesFromToolValues(self, toolvalues, initjointvalues=None, timeout=1, usewebapi=True, **kwargs):
         taskparameters = {
@@ -149,34 +107,6 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
             taskparameters['rotation'] = rotation
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, fireandforget=fireandforget, timeout=timeout, usewebapi=usewebapi)
-    
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
-        """moves the robot to desired joint angles specified in jointvalues
-        :param jointvalues: list of joint values
-        :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
-        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
-        :param envclearance: environment clearance in milimeter
-        """
-        if jointindices is None:
-            jointindices = range(len(jointvalues))
-            log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
-        taskparameters = {
-            'command': 'MoveJoints',
-            'goaljoints': list(jointvalues),
-            'jointindices': list(jointindices),
-            'envclearance': envclearance,
-            'execute': execute,
-        }
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
-        if startvalues is not None:
-            taskparameters['startvalues'] = list(startvalues)
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
     def MoveToSurface(self, distancetosurface, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {
@@ -310,18 +240,6 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     #         log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
     #     return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def SaveScene(self, timeout=10, **kwargs):
-        """saves the current scene to file
-        :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
-        :param preserveexternalrefs: If True, any bodies currently that are being externally referenced from the environment will be saved as external references.
-        :param externalref: If '*', then will save each of the objects as externally referencing their original filename. Otherwise will force saving specific bodies as external references
-        :param saveclone: If 1, will save the scenes for all the cloned environments
-        :return: the actual filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
-        """
-        taskparameters = {'command': 'SaveScene'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
     # def Pause(self, timeout=10, usewebapi=False, **kwargs):
     #     taskparameters = {'command': 'Pause'}
     #     taskparameters.update(kwargs)
@@ -331,22 +249,6 @@ class ITLPlanning2ControllerClient(controllerclientbase.ControllerClientBase, vi
     #     taskparameters = {'command': 'Resume'}
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-    
-    def GetPublishedTaskState(self):
-        """return most recent published state. if publishing is disabled, then will return None
-        """
-        return self._taskstate
-    
-    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, usewebapi=None, **kwargs):
-        taskparameters = {
-            'command': 'SetRobotBridgeIOVariables',
-            'iovalues': list(iovalues)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-    
-    def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
-        assert(False)
 
     # def _ExecuteCommandViaWebAPI(self, taskparameters, timeout=3000):
     #     """executes command via web api

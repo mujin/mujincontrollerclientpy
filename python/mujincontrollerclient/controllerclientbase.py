@@ -135,7 +135,7 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
     _commandsocket = None # zmq client to the command port
     _configsocket = None # zmq client to the config port
 
-    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, initializezmq=False, usewebapi=True, ctx=None, slaverequestid=None):
+    def __init__(self, controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, usewebapi=True, ctx=None, slaverequestid=None):
         """logs into the mujin controller and initializes the task's zmq connection
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -145,7 +145,6 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         :param taskheartbeattimeout: seconds until reinitializing task's zmq server if no hearbeat is received, e.g. 7
         :param tasktype: type of the task
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
-        :param initializezmq: whether to initialize controller zmq server
         """
         self._slaverequestid = slaverequestid
         self._sceneparams = {}
@@ -255,7 +254,11 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
                         log.error(e)
             if self._isokheartbeat:
                 log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
-        
+
+    def GetPublishedTaskState(self):
+        """return most recent published state. if publishing is disabled, then will return None
+        """
+        return self._taskstate
 
     def RestartController(self):
         """ restarts controller
@@ -509,12 +512,13 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
 
     def GetResultProgram(self, resultpk, programtype=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        url_params = {}
+        params = {'format': 'dat'}
         if programtype is not None and len(programtype) > 0:
-            url_params['type'] = programtype
-        status, response = self._webclient.APICall('GET', u'planningresult/%s/program/' % resultpk, url_params=url_params, timeout=timeout)
-        assert(status == 200)
-        return response
+            params['type'] = programtype
+        # custom http call because APICall currently only supports json
+        response = self._webclient.Request('GET', u'/api/v1/planningresult/%s/program/' % resultpk, params=params, timeout=timeout)
+        assert(response.status_code == 200)
+        return response.content
 
     def SetResult(self, resultpk, resultdata, usewebapi=True, timeout=5):
         assert(usewebapi)
