@@ -1,7 +1,7 @@
 
 class JogMixin:
 
-    def SetJogModeVelocities(self, jogtype, movejointsigns, toolname=None, robotspeed=None, robotaccelmult=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+    def SetJogModeVelocities(self, jogtype, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'SetJogModeVelocities',
             'jogtype': jogtype,
@@ -14,4 +14,4 @@ class JogMixin:
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)

@@ -117,10 +117,8 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
     def MoveToCommand(self, movecommand, toinitial=False, robotspeed=None, robotaccelmult=None, toolname=None, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {
@@ -132,10 +130,8 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
     def SetJointValues(self, jointvalues, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {

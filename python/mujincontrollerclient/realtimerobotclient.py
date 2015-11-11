@@ -3,26 +3,30 @@
 
 from . import controllerclientbase, viewermixin, jogmixin
 
+import logging
+log = logging.getLogger(__name__)
+
 class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, viewermixin.ViewerMixin, jogmixin.JogMixin):
 
-    _robotControllerUri = None  # URI of the robot controller, e.g. tcp://192.168.13.201:7000?densowavearmgroup=5
-    _robotDeviceIOUri = None  # the device io uri (usually PLC used in the robot bridge)
-    _robotname = None # name of the robot
+    _robotname = None # name of the robot selected
+    _robots = None # a dict of robot params
 
-    def __init__(self, robotControllerUri, robotDeviceIOUri, robotname, **kwargs):
+    def __init__(self, robotname, robots, **kwargs):
         super(RealtimeRobotControllerClient, self).__init__(**kwargs)
-        # robot controller
-        self._robotControllerUri = robotControllerUri
-        self._robotDeviceIOUri = robotDeviceIOUri
         self._robotname = robotname
+        self._robots = robots
 
-    def GetRobotControllerUri(self):
-        return self._robotControllerUri
-        
-    def GetRobotDeviceIOUri(self):
-        return self._robotDeviceIOUri
+    def GetRobotName(self):
+        return self._robotname
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, timeout=10, fireandforget=False):
+    def GetRobots(self):
+        return self._robots
+
+    def IsRobotControllerConfigured(self):
+        robots = self._robots or {}
+        return bool(robots.get('robotControllerUri', None))
+
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, useallrobots=False, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -37,10 +41,20 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
           - type: error type, string
           - errorcode: error code, string
         """
-        robotname = self._robotname
-        taskparameters['robot'] = robotname
-        taskparameters['robotControllerUri'] = self._robotControllerUri
-        taskparameters['robotDeviceIOUri'] = self._robotDeviceIOUri
+        if robotname is None:
+            robotname = self._robotname
+        robots = {}
+
+        if useallrobots:
+            robots = self._robots
+        else:
+            robots[robotname] = self._robots[robotname]
+            if toolname is not None and len(toolname) > 0:
+                robots[robotname]['toolname'] = toolname
+
+        taskparameters['robots'] = robots
+        taskparameters['robotname'] = robotname
+        log.debug('robotname = %s, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def SaveScene(self, timeout=10, **kwargs):
@@ -55,7 +69,7 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def MoveJoints(self, jointvalues, jointindices=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -65,6 +79,7 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         if jointindices is None:
             jointindices = range(len(jointvalues))
             log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
+
         taskparameters = {
             'command': 'MoveJoints',
             'goaljoints': list(jointvalues),
@@ -72,13 +87,21 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
             'envclearance': envclearance,
             'execute': execute,
         }
+
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
+
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
+
+    def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'SetRobotBridgeIOVariables',
+            'iovalues': list(iovalues)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
