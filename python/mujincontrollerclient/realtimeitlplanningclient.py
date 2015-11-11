@@ -36,20 +36,20 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         """
         super(RealtimeITLPlanningControllerClient, self).__init__(tasktype='realtimeitlplanning', **kwargs)
     
-    def SetJointValues(self, jointvalues, timeout=10, usewebapi=True, **kwargs):
+    def SetJointValues(self, jointvalues, robotname=None, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {
             'command': 'SetJointValues',
             'jointvalues': jointvalues,
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
-    def GetITLState(self, timeout=10, usewebapi=True, **kwargs):
+    def GetITLState(self, robotname=None, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
-    def ExecuteTrajectory(self, trajectories, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, useallrobots=True, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
@@ -58,4 +58,4 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
