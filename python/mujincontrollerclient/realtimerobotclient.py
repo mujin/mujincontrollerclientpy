@@ -57,6 +57,16 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         log.debug('robotname = %s, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
+    def CalibrateGripper(self, useallrobots=True, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'CalibrateGripper'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def StopGripper(self, useallrobots=True, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'StopGripper'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
