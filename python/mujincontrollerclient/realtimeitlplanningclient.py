@@ -44,12 +44,12 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
-    def GetITLState(self, robotname=None, useallrobots=True, timeout=10, usewebapi=True, **kwargs):
+    def GetITLState(self, robotname=None, useallrobots=True, robots=None, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, useallrobots=useallrobots, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, useallrobots=useallrobots, robots=robots, timeout=timeout, usewebapi=usewebapi)
 
-    def MoveToCommand(self, program, commandindex=0, envclearance=15, useallrobots=True, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def MoveToCommand(self, program, commandindex=0, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'MoveToCommand',
             'program': program,
@@ -60,9 +60,9 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, envclearance=15, useallrobots=True, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
@@ -72,4 +72,4 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
