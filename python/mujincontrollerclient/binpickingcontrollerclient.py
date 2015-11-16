@@ -906,4 +906,15 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
+    
+    def PutPartsBack(self, trajectoryxml, toolname=None, usewebapi=False, timeout=80, **kwargs):
+        """runs saved planningresult trajs
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'PutPartsBack',
+                          'trajectory': trajectoryxml,
+                          'toolname': toolname
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)

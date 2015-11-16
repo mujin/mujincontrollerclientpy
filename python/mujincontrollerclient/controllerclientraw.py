@@ -426,3 +426,7 @@ class ControllerWebClient(object):
             objects.append({'pk': values['pk'], 'quaternion': list(values['quaternion']), 'translate': list(values['translate'])})
         status, response = self.APICall('PUT', u'scene/%s/instobject' % (scenepk), data={'objects': objects}, timeout=timeout)
         return response
+    
+    def GetITLPlanningResultTrajectory(self, resultpk, resulttype='mujinxml', timeout=5):
+        status, response = self.APICall('GET', u'planningresult/%s/program/' % str(resultpk), url_params={'type': resulttype}, timeout=timeout)
+        return response
