@@ -26,7 +26,7 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         robots = self._robots or {}
         return bool(robots.get('robotControllerUri', None))
 
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, useallrobots=False, usewebapi=None, timeout=10, fireandforget=False):
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, useallrobots=False, robots=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -43,12 +43,12 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         """
         if robotname is None:
             robotname = self._robotname
+        allrobots = robots or self._robots
         robots = {}
-
         if useallrobots:
-            robots = self._robots
+            robots = allrobots
         else:
-            robots[robotname] = self._robots[robotname]
+            robots[robotname] = allrobots[robotname]
             if toolname is not None and len(toolname) > 0:
                 robots[robotname]['toolname'] = toolname
 
@@ -57,15 +57,15 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         log.debug('robotname = %s, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def CalibrateGripper(self, useallrobots=True, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def CalibrateGripper(self, useallrobots=False, robots=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'CalibrateGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def StopGripper(self, useallrobots=True, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopGripper(self, useallrobots=False, robots=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'StopGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
@@ -79,7 +79,7 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robotspeed=None, robotaccelmult=None, toolname=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -106,7 +106,7 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
             taskparameters['startvalues'] = list(startvalues)
 
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
 
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
