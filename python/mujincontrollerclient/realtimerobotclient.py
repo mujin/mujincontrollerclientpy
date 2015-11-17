@@ -115,3 +115,11 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
+    def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'ComputeIkParamPosition',
+            'name': name,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
