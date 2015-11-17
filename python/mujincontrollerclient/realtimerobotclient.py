@@ -141,3 +141,8 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
+    def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'StartIPython'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
