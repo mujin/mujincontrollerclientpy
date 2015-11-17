@@ -57,15 +57,33 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         log.debug('robotname = %s, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def CalibrateGripper(self, useallrobots=False, robots=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def ChuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {'command': 'ChuckGripper'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
+    def UnchuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {'command': 'UnchuckGripper'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
+    def CalibrateGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'CalibrateGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def StopGripper(self, useallrobots=False, robots=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'StopGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def MoveGripper(self, grippervalues, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'MoveGripper',
+            'grippervalues': grippervalues,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
