@@ -62,7 +62,7 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, statevalues=None, stepping=False, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, statevalues=None, stepping=False, istep=None, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
@@ -70,14 +70,19 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             'stepping': stepping,
             'envclearance': envclearance,
         }
+        if istep is not None:
+            taskparameters['istep'] = istep
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectoryStep(self, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'ExecuteTrajectoryStep'}
+    def ExecuteTrajectoryStep(self, reverse=False, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+        taskparameters = {
+            'command': 'ExecuteTrajectoryStep',
+            'reverse': reverse,
+        }
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
