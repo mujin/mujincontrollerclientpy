@@ -907,7 +907,7 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, usewebapi=False, timeout=80, **kwargs):
+    def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, usewebapi=False, timeout=100, **kwargs):
         """runs saved planningresult trajs
         """
         if toolname is None:
@@ -921,3 +921,13 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['grippervalues'] = grippervalues
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetRobotDOFLimits(self, robotname, usewebapi=False, timeout=10, **kwargs):
+        """gets dof limits of the robot
+        """
+        taskparameters = {'command': 'GetRobotDOFLimits',
+                          'robotname': robotname
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
