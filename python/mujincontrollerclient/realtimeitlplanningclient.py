@@ -62,9 +62,10 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, statevalues=None, stepping=False, istep=None, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, identifier, trajectories, statevalues=None, stepping=False, istep=None, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
+            'identifier': identifier,
             'trajectories': trajectories,
             'statevalues': statevalues,
             'stepping': stepping,
@@ -96,5 +97,3 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-        
