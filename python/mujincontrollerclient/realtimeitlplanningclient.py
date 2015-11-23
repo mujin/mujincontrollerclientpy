@@ -62,7 +62,7 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, useallrobots=useallrobots, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, identifier, trajectories, statevalues=None, stepping=False, istep=None, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def ExecuteTrajectory(self, identifier, trajectories, statevalues=None, stepping=False, istep=None, restorevalues=None, envclearance=15, useallrobots=True, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'identifier': identifier,
@@ -73,6 +73,8 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         }
         if istep is not None:
             taskparameters['istep'] = istep
+        if restorevalues is not None:
+            taskparameters['restorevalues'] = restorevalues
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
