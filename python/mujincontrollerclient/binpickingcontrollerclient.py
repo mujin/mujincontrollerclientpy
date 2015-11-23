@@ -921,13 +921,3 @@ class BinpickingControllerClient(controllerclientbase.ControllerClientBase):
             taskparameters['grippervalues'] = grippervalues
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def GetRobotDOFLimits(self, robotname, usewebapi=False, timeout=10, **kwargs):
-        """gets dof limits of the robot
-        """
-        taskparameters = {'command': 'GetRobotDOFLimits',
-                          'robotname': robotname
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
