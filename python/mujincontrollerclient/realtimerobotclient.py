@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2015 MUJIN Inc
 
+import copy
+
 from . import controllerclientbase, viewermixin, jogmixin
 
 import logging
@@ -22,9 +24,19 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
     def GetRobots(self):
         return self._robots
 
-    def IsRobotControllerConfigured(self):
+    def GetRobotControllerUri(self):
         robots = self._robots or {}
-        return bool(robots.get('robotControllerUri', None))
+        return robots.get(self._robotname, {}).get('robotControllerUri', '')
+
+    def GetRobotDeviceIOUri(self):
+        robots = self._robots or {}
+        return robots.get(self._robotname, {}).get('robotDeviceIOUri', '')
+
+    def IsRobotControllerConfigured(self):
+        return len(self.GetRobotControllerUri()) > 0
+
+    def IsRobotDeviceIOConfigured(self):
+        return len(self.GetRobotDeviceIOUri()) > 0
 
     def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, useallrobots=False, robots=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
@@ -48,7 +60,7 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         if useallrobots:
             robots = allrobots
         else:
-            robots[robotname] = allrobots[robotname]
+            robots[robotname] = copy.copy(allrobots[robotname])
             if toolname is not None and len(toolname) > 0:
                 robots[robotname]['toolname'] = toolname
 
@@ -58,16 +70,25 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def ChuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """chucks the manipulator
+        :param toolname: name of the manipulator, default is taken from self.robots
+        """
         taskparameters = {'command': 'ChuckGripper'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def UnchuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """unchucks the manipulator and releases the target
+        :param toolname: name of the manipulator, default is taken from self.robots
+        :param targetname: name of the target
+        """
         taskparameters = {'command': 'UnchuckGripper'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def CalibrateGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """goes through the gripper calibration procedure
+        """
         taskparameters = {'command': 'CalibrateGripper'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -78,6 +99,9 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def MoveGripper(self, grippervalues, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """chucks the manipulator
+        :param toolname: name of the manipulator, default is taken from self.robots
+        """
         taskparameters = {
             'command': 'MoveGripper',
             'grippervalues': grippervalues,
@@ -146,3 +170,26 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase, v
         taskparameters = {'command': 'StartIPython'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def ReloadModule(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'ReloadModule'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def ShutdownRobotBridge(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'ShutdownRobotBridge'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def GetRobotBridgeState(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'GetRobotBridgeState'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'SetRobotBridgeIOVariables',
+            'iovalues': list(iovalues),
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
