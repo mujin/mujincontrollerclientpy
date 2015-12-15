@@ -173,3 +173,175 @@ class ControllerWebClient(object):
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         
         return response.status_code, content
+
+
+    def GetOrCreateTask(self, scenepk, taskname, tasktype=None, slaverequestid='', timeout=5):
+        """gets or creates a task, returns its pk
+        """
+        status, response = self.APICall(u'GET', u'scene/%s/task' % scenepk, url_params={'limit': 1, 'name': taskname, 'fields': 'pk,tasktype'}, timeout=timeout)
+        assert(status == 200)
+        if len(response['objects']) > 0:
+            if tasktype is not None:
+                assert(response['objects'][0]['tasktype'] == tasktype)
+            return response['objects'][0]['pk']
+        else:
+            status, response = self.APICall(u'POST', u'scene/%s/task' % scenepk, url_params={'fields': 'pk'}, data={"name": taskname, "tasktype": tasktype, "scenepk": scenepk, 'slaverequestid': slaverequestid}, timeout=timeout)
+            assert(status == 201)
+            return response['pk']
+    
+    def ExecuteBinPickingTaskSync(self, scenepk, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
+        '''
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        :param forcecancel: if True, then cancel all previously running jobs before running this one
+        '''
+        taskpk = self.GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
+        # set the task parameters
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+        if forcecancel:
+            # # just in case, delete all previous tasks
+            self.APICall('DELETE', 'job', timeout=5)
+        # execute the task
+        status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk), timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, forcecancel=False, slaverequestid='', timeout=1000):
+        '''executes task with a particular task type without creating a new task
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        :param forcecancel: if True, then cancel all previously running jobs before running this one
+        '''
+        if forcecancel:
+            # # just in case, delete all previous tasks
+            self.APICall('DELETE', 'job', timeout=5)
+        # execute task
+        status, response = self.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=timeout)
+        assert(status==200)
+        return response
+
+    def ExecuteBinPickingTask(self, scenepk, taskparameters, slaverequestid='', timeout=1000):
+        """
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        """
+        taskpk = self.GetOrCreateTask(scenepk, 'binpickingtask1', 'binpicking')
+        # set the task parameters
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'binpicking', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+        # just in case, delete all previous tasks
+        self.APICall('DELETE', 'job', timeout=5)
+        # execute the task
+        #status, response = _APICall('POST', u'scene/%s/task/%s'%(scenepk, taskpk))
+        status, response = self.APICall('POST', u'job', data={'resource_type': 'task', 'target_pk': taskpk}, timeout=timeout)
+        assert(status == 200)
+        # the jobpk allows us to track the job
+        jobpk = response['jobpk']
+        # query the task results
+        status_text_prev = None
+        starttime = time.time()
+        try:
+            while self._isok:
+                try:
+                    if timeout is not None and time.time() - starttime > timeout:
+                        raise TimeoutError('failed to get result in time, quitting')
+                    try:
+                        status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
+                        if status == 200:
+                            if status_text_prev is not None and status_text_prev != response['status_text']:
+                                log.info(response['status_text'])
+                            status_text_prev = response['status_text']
+
+                        jobstatus = response['status']
+                    except APIServerError, e:
+                        # most likely job finished
+                        log.warn(u'problem with requesting job: %s', e)
+                        jobstatus = '2'
+                    if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
+                        # job finished, so check for results:
+                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
+                        assert(status == 200)
+                        if len(response['objects']) > 0:
+                            # have a response, so return!
+                            jobpk = None
+                            result = response['objects'][0]
+                            if 'errormessage' in result and len(result['errormessage']) > 0:
+                                raise BinPickingError(result['errormessage'])
+                            return result['output']
+                except socket.error, e:
+                    log.error(e)
+
+                # tasks can be long, so sleep
+                time.sleep(0.1)
+
+        finally:
+            if jobpk is not None:
+                log.info('deleting previous job')
+                self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
+
+    def ExecuteHandEyeCalibrationTaskSync(self, scenepk, taskparameters, slaverequestid=''):
+        '''
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        '''
+        taskpk = self.GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
+        # set the task parameters
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+        # # just in case, delete all previous tasks
+        self.APICall('DELETE', 'job', timeout=5)
+        # execute the task
+        status, response = self.APICall('POST', u'scene/%s/task/%s/result' % (scenepk, taskpk), timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def ExecuteHandEyeCalibrationTaskAsync(self, scenepk, taskparameters, slaverequestid='', timeout=1000):
+        """
+        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        """
+        taskpk = self.GetOrCreateTask(scenepk, 'handeyecalibrationtask1', 'handeyecalibration')
+        # set the task parameters
+        self.APICall('PUT', u'scene/%s/task/%s' % (scenepk, taskpk), data={'tasktype': 'handeyecalibration', 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=5)
+        # just in case, delete all previous tasks
+        self.APICall('DELETE', 'job', timeout=5)
+        # execute the task
+        status, response = self.APICall('POST', u'scene/%s/task/%s' % (scenepk, taskpk), timeout=timeout)
+        assert(status == 200)
+        # the jobpk allows us to track the job
+        jobpk = response['jobpk']
+        # query the task results
+        status_text_prev = None
+        starttime = time.time()
+        try:
+            while self._isok:
+                try:
+                    if timeout is not None and time.time() - starttime > timeout:
+                        raise TimeoutError('failed to get result in time, quitting')
+                    try:
+                        status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
+                        if status == 200:
+                            if status_text_prev is not None and status_text_prev != response['status_text']:
+                                log.info(response['status_text'])
+                            status_text_prev = response['status_text']
+
+                        jobstatus = response['status']
+                    except APIServerError, e:
+                        # most likely job finished
+                        log.warn(u'problem with requesting job: %s', e)
+                        jobstatus = '2'
+                    if jobstatus == '2' or jobstatus == '3' or jobstatus == '4' or jobstatus == '5' or jobstatus == '8':
+                        # job finished, so check for results:
+                        status, response = self.APICall('GET', u'task/%s/result' % taskpk, url_params={'limit': 1, 'optimization': 'None'}, timeout=5)
+                        assert(status == 200)
+                        if len(response['objects']) > 0:
+                            # have a response, so return!
+                            jobpk = None
+                            result = response['objects'][0]
+                            if 'errormessage' in result and len(result['errormessage']) > 0:
+                                raise HandEyeCalibrationError(result['errormessage'])
+                            return result['output']
+
+                except socket.error, e:
+                    log.error(e)
+
+                # tasks can be long, so sleep
+                time.sleep(0.1)
+
+        finally:
+            if jobpk is not None:
+                log.info('deleting previous job')
+                self.APICall('DELETE', 'job/%s' % jobpk, timeout=timeout)
