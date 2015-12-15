@@ -469,4 +469,3 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['grippervalues'] = grippervalues
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
->>>>>>> b74247e8109cc6cff0a775cf169029386684de5c
