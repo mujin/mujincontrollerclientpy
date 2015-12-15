@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase):
     """mujin controller client for realtimerobot task
     """
-    _robotname = None # name of the robot selected
+    _robotname = None # optional name of the robot selected
     _robots = None # a dict of robot params
 
     def __init__(self, robotname, robots, **kwargs):
@@ -39,11 +39,11 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase):
     def IsRobotDeviceIOConfigured(self):
         return len(self.GetRobotDeviceIOUri()) > 0
     
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, useallrobots=False, robots=None, usewebapi=None, timeout=10, fireandforget=False):
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
-
+        
         executes a command on the task.
-
+        
         :return: a dictionary that contains:
         - robottype: robot type,string
         - currentjointvalues: current joint values, DOF floats
@@ -56,18 +56,9 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase):
         """
         if robotname is None:
             robotname = self._robotname
-        allrobots = robots or self._robots
-        robots = {}
-        if useallrobots:
-            robots = allrobots
-        else:
-            robots[robotname] = copy.copy(allrobots[robotname])
-            if toolname is not None and len(toolname) > 0:
-                robots[robotname]['toolname'] = toolname
-
-        taskparameters['robots'] = robots
+        taskparameters['robots'] = robots if robots is not None else self._robots
         taskparameters['robotname'] = robotname
-        log.debug('robotname = %s, robots = %r', robotname, robots)
+        log.verbose('robotname = %s, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
