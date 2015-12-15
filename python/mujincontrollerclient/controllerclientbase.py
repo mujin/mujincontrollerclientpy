@@ -437,8 +437,8 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
         return response
 
     def SetRobotTool(self, robotpk, toolpk, tooldata, usewebapi=True, timeout=5):
-        """sets the instobject values via a WebAPI PUT call
-        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """sets the tool values via a WebAPI PUT call
+        :param tooldata: key-value pairs of the data to modify on the tool
         """
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, timeout=timeout)
@@ -447,6 +447,29 @@ class ControllerClientBase(object, webdavmixin.WebDAVMixin):
     def DeleteRobotTool(self, robotpk, toolpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Attached sensors related
+    #
+
+    def CreateRobotAttachedSensor(self, robotpk, attachedsensordata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, usewebapi=True, timeout=5):
+        """sets the attachedsensor values via a WebAPI PUT call
+        :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
         assert(status == 204)
 
     #
