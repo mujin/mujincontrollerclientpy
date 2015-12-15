@@ -365,13 +365,108 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def GetBinpickingState(self, timeout=10, usewebapi=None, robots=None, useallrobots=False, **kwargs):
+    def GetBinpickingState(self, timeout=10, usewebapi=None, robots=None, **kwargs):
         taskparameters = {'command': 'GetBinpickingState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robots=robots, useallrobots=useallrobots, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         taskparameters = {'command': 'SetStopPickPlaceAfterExecutionCycle',
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def SetViewerFromParameters(self, viewerparameters, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'SetViewerFromParameters',
+                          'viewerparameters':viewerparameters
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        
+    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'MoveCameraZoomOut',
+                          'zoomdelta':float(zoomdelta),
+                          'zoommult': float(zoommult)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'MoveCameraZoomIn',
+                          'zoomdelta':float(zoomdelta),
+                          'zoommult':float(zoommult)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'MoveCameraLeft',
+                          'pandelta':float(pandelta),
+                          'panangle':float(panangle),
+                          'ispan':bool(ispan)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=40, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'MoveCameraRight',
+                          'pandelta':float(pandelta),
+                          'panangle':float(panangle),
+                          'ispan':bool(ispan)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def MoveCameraUp(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'MoveCameraUp',
+                          'angledelta':float(angledelta),
+                          'ispan':bool(ispan)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def MoveCameraDown(self, ispan=True, angledelta=3.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        taskparameters = {'command': 'MoveCameraDown',
+                          'angledelta':float(angledelta),
+                          'ispan':bool(ispan)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        """sets the camera transform
+        :param transform: 4x4 matrix
+        """        
+        taskparameters = {'command': 'SetCameraTransform',
+                          'distanceToFocus':float(distanceToFocus),
+                          }
+        if transform is not None:
+            taskparameters['transform'] = [list(row) for row in transform]
+        if pose is not None:
+            taskparameters['pose'] = [float(f) for f in pose]
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def GetCameraTransform(self, usewebapi=False, timeout=10, **kwargs):
+        """gets the camera transform, and other
+        """
+        taskparameters = {'command': 'GetCameraTransform'
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, usewebapi=False, timeout=100, **kwargs):
+        """runs saved planningresult trajs
+        """
+        if toolname is None:
+            toolname = self.toolname
+        taskparameters = {'command': 'PutPartsBack',
+                          'trajectory': trajectoryxml,
+                          'numparts': numparts,
+                          'toolname': toolname
+                          }
+        if grippervalues is not None:
+            taskparameters['grippervalues'] = grippervalues
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+>>>>>>> b74247e8109cc6cff0a775cf169029386684de5c
