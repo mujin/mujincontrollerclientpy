@@ -56,8 +56,17 @@ class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase):
         """
         if robotname is None:
             robotname = self._robotname
-        taskparameters['robots'] = robots if robots is not None else self._robots
+        if robots is None:
+            robots = self._robots
+
+        # caller wants to use a different tool
+        if toolname is not None:
+            robots = copy.deepcopy(robots)
+            robots[robotname]['toolname'] = toolname
+
+        taskparameters['robots'] = robots
         taskparameters['robotname'] = robotname
+
         log.verbose('robotname = %s, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
