@@ -138,6 +138,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
 
         :param useworkspaceplanner: If 1 is set, will try the workspace planner for moving the hand straight. If 2 is set, will try the RRT for moving straight. Can set 3 for trying both.
+
+        :param forceStartRobotValues: planning loop should always start from these values rather than reading from robot
+        :param initiallyDisableRobotBridge: if True, stops any communication with the robotbridge until robot bridge is enabled
         """
         if worksteplength is None:
             worksteplength = 0.01
