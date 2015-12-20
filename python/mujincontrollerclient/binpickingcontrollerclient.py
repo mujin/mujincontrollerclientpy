@@ -47,10 +47,11 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         self.envclearance = envclearance
 
     def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
-        if robotspeed is None:
-            robotspeed = self.robotspeed
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
+        if 'robotspeed' not in taskparameters:
+            if robotspeed is None:
+                robotspeed = self.robotspeed
+            if robotspeed is not None:
+                taskparameters['robotspeed'] = robotspeed
         return super(BinpickingControllerClient, self).ExecuteCommand(taskparameters, **kwargs)
 
     #########################
