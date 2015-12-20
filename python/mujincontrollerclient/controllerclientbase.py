@@ -224,6 +224,9 @@ class ControllerClientBase(object):
             self._commandsocket.SetDestroy()
         if self._configsocket is not None:
             self._configsocket.SetDestroy()
+
+    def GetSlaveRequestId(self):
+        return self._slaverequestid
     
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
