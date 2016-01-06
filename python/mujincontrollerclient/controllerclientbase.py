@@ -3,7 +3,7 @@
 """
 Mujin controller client base
 """
-from urlparse import urlparse
+from urlparse import urlparse, urlunparse
 from urllib import quote, unquote
 import os
 import base64
@@ -765,7 +765,20 @@ class ControllerClientBase(object):
         if response.status_code not in [200, 301, 404]:
             raise ControllerClientError(response.content)
         return response.status_code != 404
-    
+
+    def ConstructFileFullURL(self, filename):
+        """construct full url to file including credentials
+        """
+        scheme, netloc, path, params, query, fragment = urlparse(self.controllerurl)
+        return urlunparse((
+            scheme,
+            '%s:%s@%s' % (self.controllerusername, self.controllerpassword, netloc),
+            '/u/%s/%s' % (self.controllerusername, filename),
+            '',
+            '',
+            '',
+        ))
+
     def DownloadFile(self, filename):
         """downloads a file given filename
 
