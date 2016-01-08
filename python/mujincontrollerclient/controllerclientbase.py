@@ -370,6 +370,14 @@ class ControllerClientBase(object):
         assert(status == 201)
         return response
 
+    def GetSceneInstObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response['instobjects']
+
     def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
