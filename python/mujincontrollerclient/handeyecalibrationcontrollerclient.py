@@ -9,15 +9,15 @@ log = logging.getLogger(__name__)
 # system imports
 
 # mujin imports
-from . import controllerclientbase
+from . import planningclient
 from . import ugettext as _
 
-class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBase):
+class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient):
     """mujin controller client for hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
     
-    def __init__(self, scenepk, controllerurl, controllerusername, controllerpassword, robot, taskzmqport=None, taskheartbeatport=None, taskheartbeattimeout=None, usewebapi=True, slaverequestid=None):
+    def __init__(self, robot, **kwargs):
         """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -25,7 +25,7 @@ class HandEyeCalibrationControllerClient(controllerclientbase.ControllerClientBa
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param usewebapi: whether to use webapi for controller commands
         """
-        super(HandEyeCalibrationControllerClient, self).__init__(controllerurl, controllerusername, controllerpassword, taskzmqport, taskheartbeatport, taskheartbeattimeout, self.tasktype, scenepk, usewebapi=usewebapi, slaverequestid=slaverequestid)
+        super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
         
     def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", timeout=3000, **kwargs):
