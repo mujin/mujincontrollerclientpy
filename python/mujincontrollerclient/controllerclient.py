@@ -110,12 +110,12 @@ class ControllerClient(object):
     # Scene related
     #
 
-    def UploadSceneFile(self, f):
+    def UploadSceneFile(self, f, timeout=5):
         """uploads a file managed by file handle f
         
         """
         # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f})
+        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content)
         
@@ -482,10 +482,10 @@ class ControllerClient(object):
     # WebDAV related
     #
     
-    def FileExists(self, path):
+    def FileExists(self, path, timeout=5):
         """check if a file exists on server
         """
-        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
+        response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [200, 301, 404]:
             raise ControllerClientError(response.content)
         return response.status_code != 404
@@ -503,25 +503,25 @@ class ControllerClient(object):
             '',
         ))
 
-    def DownloadFile(self, filename):
+    def DownloadFile(self, filename, timeout=5):
         """downloads a file given filename
 
         :return: a streaming response
         """
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True)
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content)
         
         return response
 
-    def UploadFile(self, path, f):
-        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f)
+    def UploadFile(self, path, f, timeout=5):
+        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f, timeout=timeout)
         if response.status_code not in [201, 201, 204]:
             raise ControllerClientError(response.content)
 
-    def ListFiles(self, path=''):
+    def ListFiles(self, path='', timeout=5):
         path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
-        response = self._webclient.Request('PROPFIND', path)
+        response = self._webclient.Request('PROPFIND', path, timeout=timeout)
         if response.status_code not in [207]:
             raise ControllerClientError(response.content)
 
@@ -553,21 +553,21 @@ class ControllerClient(object):
 
         return files
 
-    def DeleteFile(self, path):
-        response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
+    def DeleteFile(self, path, timeout=5):
+        response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [204, 404]:
             raise ControllerClientError(response.content)
 
-    def DeleteDirectory(self, path):
-        self.DeleteFile(path)
+    def DeleteDirectory(self, path, timeout=5):
+        self.DeleteFile(path, timeout=timeout)
 
-    def MakeDirectory(self, path):
-        response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')))
+    def MakeDirectory(self, path, timeout=5):
+        response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [201, 301, 405]:
             raise ControllerClientError(response.content)
 
-    def MakeDirectories(self, path):
+    def MakeDirectories(self, path, timeout=5):
         parts = []
         for part in path.strip('/').split('/'):
             parts.append(part)
-            self.MakeDirectory('/'.join(parts))
+            self.MakeDirectory('/'.join(parts), timeout=timeout)
