@@ -3,12 +3,12 @@
 
 import copy
 
-from . import controllerclientbase
+from . import planningclient
 
 import logging
 log = logging.getLogger(__name__)
 
-class RealtimeRobotControllerClient(controllerclientbase.ControllerClientBase):
+class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     """mujin controller client for realtimerobot task
     """
     _robotname = None # optional name of the robot selected
