@@ -131,11 +131,10 @@ class ControllerWebClient(object):
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 	
     # python port of the javascript API Call function
-    def APICall(self, request_type, api_url, url_params=None, fields=None, data=None, timeout=5):
-
-        if not api_url.endswith('/'):
-            api_url += '/'
-        path = '/api/v1/' + api_url
+    def APICall(self, request_type, api_url='', url_params=None, fields=None, data=None, timeout=5):
+        path = '/api/v1/' + api_url.lstrip('/')
+        if not path.endswith('/'):
+            path += '/'
 
         if url_params is None:
             url_params = {}
@@ -157,6 +156,10 @@ class ControllerWebClient(object):
         log.verbose('%s %s', request_type, self._baseurl + path)
         response = self.Request(request_type, path, params=url_params, data=json.dumps(data), timeout=timeout)
 
+        if request_type == 'HEAD' and response.status_code == 200:
+            # just return without doing anything for head
+            return response.status_code, response.content
+
         if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
             return response.status_code, response.content
@@ -165,6 +168,7 @@ class ControllerWebClient(object):
         try:
             content = json.loads(response.content)
         except ValueError:
+            log.exception('caught exception during json decode')
             self.Logout() # always logout the session when we hit an error
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         

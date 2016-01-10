@@ -106,6 +106,13 @@ class ControllerClient(object):
         """
         self._webclient.Login(timeout=timeout)
 
+    def Ping(self, usewebapi=True, timeout=5):
+        """Sends a dummy HEAD request to api endpoint
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('HEAD', '', timeout=timeout)
+        assert(status == 200)
+
     #
     # Scene related
     #
