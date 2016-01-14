@@ -12,7 +12,7 @@ import weakref
 from urlparse import urlparse, urlunparse
 import os
 import base64
-from numpy import fromstring, uint32, unique
+from numpy import fromstring, uint32
 
 try:
     import ujson as json
@@ -471,7 +471,7 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
         instobjects = response['instobjects']
-        cameracontainernames = unique([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
+        cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
                 cameracontainerpk = instobject['object_pk']
