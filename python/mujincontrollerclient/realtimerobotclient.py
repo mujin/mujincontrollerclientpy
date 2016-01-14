@@ -64,7 +64,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             robots = copy.deepcopy(robots)
             robots[robotname]['toolname'] = toolname
 
-        taskparameters['robots'] = robots
+        if robots is not None:
+            taskparameters['robots'] = robots
         taskparameters['robotname'] = robotname
 
         log.verbose('robotname = %s, robots = %r', robotname, robots)
