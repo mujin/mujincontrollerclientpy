@@ -395,7 +395,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def ReplaceBodies(self, bodieslist, **kwargs):
+    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
         """replaces bodies
         """
         taskparameters = {'command': 'ReplaceBodies',
