@@ -20,7 +20,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     """
     tasktype = 'binpicking'
     
-    def __init__(self, robotspeed, regionname, targetname, envclearance, **kwargs):
+    def __init__(self, robotspeed, regionname, envclearance, **kwargs):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -32,7 +32,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param robotname: name of the robot, e.g. VP-5243I
         :param robotspeed: speed of the robot, e.g. 0.4
         :param regionname: name of the bin, e.g. container1
-        :param targetname: name of the target, e.g. plasticnut-center
         :param toolname: name of the manipulator, e.g. 2BaseZ
         :param envclearance: environment clearance in milimeter, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
@@ -43,7 +42,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         # bin picking task
         self.robotspeed = robotspeed
         self.regionname = regionname
-        self.targetname = targetname
         self.envclearance = envclearance
 
     def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
@@ -64,7 +62,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param desttargetname: The destination target name where the destination goal ikparams come from
         :param destikparamnames: A list of lists of ikparam names for the destinations of the target. Only destikparamnames[0] is looked at and tells the system to place the part in any of the ikparams in destikparamnames[0]
 
-        :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
+        :param targetnamepattern: regular expression describing the name of the object, no default will be provided, caller must set this. See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
         :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
@@ -89,8 +87,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """
         if worksteplength is None:
             worksteplength = 0.01
-        if targetnamepattern is None:
-            targetnamepattern = '%s_\d+' % (self.targetname)
+        assert(targetnamepattern is not None)
         if regionname is None:
             regionname = self.regionname
         taskparameters = {'command': 'PickAndPlace',
@@ -118,7 +115,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param destikparamnames: A list of lists of ikparam names for the ordered destinations of the target. destikparamnames[0] is where the first picked up part goes, desttargetname[1] is where the second picked up target goes.
         :param cycledests: When finished cycling through all destikparamnames, will delete all the targets and start from the first index again doing this for cycledests times. By default it is 1.
 
-        :param targetnamepattern: regular expression describing the name of the object, default is '%s_\d+'%(self.targetname). See https://docs.python.org/2/library/re.html
+        :param targetnamepattern: regular expression describing the name of the object, no default will be provided, caller must set this. See https://docs.python.org/2/library/re.html
         :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
         :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
@@ -145,8 +142,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """
         if worksteplength is None:
             worksteplength = 0.01
-        if targetnamepattern is None:
-            targetnamepattern = '%s_\d+' % (self.targetname)
+        assert(targetnamepattern is not None)
         if regionname is None:
             regionname = self.regionname
         taskparameters = {'command': 'StartPickAndPlaceThread',
