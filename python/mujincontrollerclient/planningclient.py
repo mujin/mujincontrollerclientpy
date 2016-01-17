@@ -26,7 +26,7 @@ import weakref
 
 # mujin imports
 from . import ControllerClientError, GetAPIServerErrorFromZMQ
-from . import controllerclient, zmqclient
+from . import controllerclientbase, zmqclient
 from . import ugettext as _
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
@@ -110,7 +110,7 @@ def GetPrimaryKeyFromURI(uri):
     return quote(path.encode('utf-8'), '')
 
 
-class PlanningControllerClient(controllerclient.ControllerClient):
+class PlanningControllerClient(controllerclientbase.ControllerClient):
     """mujin controller client for planning tasks
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
