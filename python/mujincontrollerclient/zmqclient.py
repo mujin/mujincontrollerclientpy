@@ -369,10 +369,15 @@ class ZmqClient(object):
                 # timeout checking
                 elapsedtime = time.time() - starttime
                 if timeout is not None and elapsedtime > timeout:
-                    raise TimeoutError(u'Timed out to get response from %s after %f seconds' % (self._url, elapsedtime))
+                    raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
                 
                 # poll to see if something has been received, if received nothing, loop
-                if self._socket.poll(50, zmq.POLLIN) == 0:
+                startpolltime = time.time()
+                waitingevents = self._socket.poll(50, zmq.POLLIN)
+                endpolltime = time.time()
+                if endpolltime - startpolltime > 0.1:
+                    log.critical('polling time took %fs!', endpolltime-startpolltime)
+                if waitingevents == 0:
                     continue
                 
                 if recvjson:
