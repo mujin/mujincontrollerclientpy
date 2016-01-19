@@ -29,86 +29,6 @@ from . import ControllerClientError, GetAPIServerErrorFromZMQ
 from . import controllerclientbase, zmqclient
 from . import ugettext as _
 
-# the outside world uses this specifier to signify a '#' specifier. This is needed
-# because '#' in URL parsing is a special role
-id_separator = u'@'
-
-
-def GetFilenameFromURI(uri, mujinpath):
-    """returns the filesystem path that the URI points to.
-    :param uri: points to mujin:/ resource
-
-    example:
-
-      GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
-      returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
-    """
-    index = uri.find(id_separator)
-    if index >= 0:
-        res = urlparse(uri[:index])
-    else:
-        res = urlparse(uri)
-    if res.scheme != 'mujin':
-        raise ControllerClientError(_('Only mujin: sceheme supported of %s') % uri)
-    if len(res.path) == 0 or res.path[0] != '/':
-        raise ControllerClientError(_('path is not absolute on URI %s') % uri)
-    if os.path.exists(res.path):
-        # it's already an absolute path, so return as is. making sure user can read from this path is up to the filesystem permissions
-        return res, res.path
-    else:
-        return res, os.path.join(mujinpath, res.path[1:])
-
-
-def GetURIFromPrimaryKey(pk):
-    """Given the encoded primary key (has to be str object), returns the unicode URL.
-    If pk is a unicode object, will use inside url as is, otherwise will decode
-
-    example:
-
-      GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
-      returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
-    """
-    pkunicode = GetUnicodeFromPrimaryKey(pk)
-    # check if separator is present
-    index = pkunicode.find(id_separator)
-    if index >= 0:
-        basefilename = pkunicode[0:index]
-        if len(os.path.splitext(basefilename)[1]) == 0:
-            # no extension present in basefilename, so default to mujin.dae
-            basefilename += u'.mujin.dae'
-        return u'mujin:/' + basefilename + pkunicode[index:]
-    if len(os.path.splitext(pkunicode)[1]) == 0:
-        # no extension present in basefilename, so default to mujin.dae
-        pkunicode += u'.mujin.dae'
-    return u'mujin:/' + pkunicode
-
-
-def GetUnicodeFromPrimaryKey(pk):
-    """Given the encoded primary key (has to be str object), returns the unicode string.
-    If pk is a unicode object, will return the string as is.
-
-    example:
-
-      GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
-      returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
-    """
-    if not isinstance(pk, unicode):
-        return unicode(unquote(str(pk)), 'utf-8')
-    else:
-        return pk
-
-
-def GetPrimaryKeyFromURI(uri):
-    """
-    example:
-
-      GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
-      returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
-    """
-    res = urlparse(unicode(uri))
-    path = res.path[1:]
-    return quote(path.encode('utf-8'), '')
-
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
     """mujin controller client for planning tasks
@@ -234,10 +154,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
-        sceneuri = GetURIFromPrimaryKey(scenepk)
+        sceneuri = controllerclientbase.GetURIFromPrimaryKey(scenepk)
         # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
-        scenefilename = GetFilenameFromURI(sceneuri, mujinpath)[1]
+        scenefilename = controllerclientbase.GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
 
     #
