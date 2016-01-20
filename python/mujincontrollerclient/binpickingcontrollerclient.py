@@ -20,7 +20,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     """
     tasktype = 'binpicking'
     
-    def __init__(self, robotspeed, regionname, envclearance, **kwargs):
+    def __init__(self, robotspeed=None, regionname=None, envclearance=10.0, **kwargs):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -43,7 +43,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         self.robotspeed = robotspeed
         self.regionname = regionname
         self.envclearance = envclearance
-
+        
     def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
         if 'robotspeed' not in taskparameters:
             if robotspeed is None:
@@ -51,12 +51,12 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             if robotspeed is not None:
                 taskparameters['robotspeed'] = robotspeed
         return super(BinpickingControllerClient, self).ExecuteCommand(taskparameters, **kwargs)
-
+    
     #########################
     # robot commands
     #########################
     
-    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=0.5, timeout=1000, **kwargs):
+    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=None, timeout=1000, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -101,10 +101,11 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           'freeinc': freeinc,
                           'worksteplength': worksteplength,
                           'targetnamepattern': targetnamepattern,
-                          'containername': regionname,
                           'deletetarget': deletetarget,
                           'debuglevel': debuglevel,
                           }
+        if regionname is not None:
+            taskparameters['containername'] = regionname
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
     

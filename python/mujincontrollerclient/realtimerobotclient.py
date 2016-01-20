@@ -61,9 +61,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         # caller wants to use a different tool
         if toolname is not None:
-            robots = copy.deepcopy(robots)
-            robots[robotname]['toolname'] = toolname
-
+            if robots is not None:
+                robots = copy.deepcopy(robots)
+                robots[robotname]['toolname'] = toolname
+            else:
+                # set at the first level
+                taskparameters['toolname'] = toolname
+        
         if robots is not None:
             taskparameters['robots'] = robots
         taskparameters['robotname'] = robotname
