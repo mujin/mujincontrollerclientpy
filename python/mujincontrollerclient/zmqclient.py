@@ -375,7 +375,7 @@ class ZmqClient(object):
                 startpolltime = time.time()
                 waitingevents = self._socket.poll(50, zmq.POLLIN)
                 endpolltime = time.time()
-                if endpolltime - startpolltime > 0.1:
+                if endpolltime - startpolltime > 0.2: # due to python delays sometimes this can be 0.11s
                     log.critical('polling time took %fs!', endpolltime-startpolltime)
                 if waitingevents == 0:
                     continue
