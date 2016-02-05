@@ -28,13 +28,14 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
         
-    def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", timeout=3000, **kwargs):
+    def ComputeCalibrationPoses(self, cameraname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", patternlinkname="", timeout=3000, **kwargs):
         if samplingmethod == "":
             samplingmethod = "boardexposure"  # "boardexposure"
         taskparameters = {'command': 'ComputeCalibrationPoses',
                           'cameraname': cameraname,
                           'halconpatternparameters': halconpatternparameters,
                           'patternvisibility': calibboardvisibility,
+                          'patternlinkname': patternlinkname,
                           'numsamples': numsamples,
                           'toolname': toolname,
                           'targetarea': targetarea,
@@ -47,13 +48,14 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
     
-    def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", timeout=3000, **kwargs):
+    def ComputeStereoCalibrationPoses(self, cameranames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", patternlinkname="", timeout=3000, **kwargs):
         if samplingmethod == "":
             samplingmethod = "boardexposure"  # "boardexposure"
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
                           'cameranames': cameranames,
                           'halconpatternparameters': halconpatternparameters,
                           'patternvisibility': calibboardvisibility,
+                          'patternlinkname': patternlinkname,
                           'numsamples': numsamples,
                           'toolname': toolname,
                           'targetarea': targetarea,
