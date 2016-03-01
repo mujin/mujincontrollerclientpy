@@ -480,10 +480,12 @@ class ControllerClient(object):
     def DeleteJobs(self, usewebapi=True, timeout=5):
         """ cancels all jobs
         """
-        assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'job/', timeout=timeout)
-        assert(status == 204)
-
+        # cancel on the zmq configure socket first
+        
+        if usewebapi:
+            status, response = self._webclient.APICall('DELETE', u'job/', timeout=timeout)
+            assert(status == 204)
+        
     #
     # Geometry related
     #
