@@ -72,9 +72,6 @@ class ControllerWebClient(object):
             self._language = self._locale.split('.', 1)[0].replace('_', '-').lower()
 
     def Login(self, timeout=5):
-        if self._session is not None:
-            return
-
         session = requests.Session()
         session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
@@ -113,7 +110,22 @@ class ControllerWebClient(object):
             self._session = None
 
     def IsLoggedIn(self):
-        return self._session is not None
+        if self._session is None:
+            return False
+        sessionidexpires = 0
+        csrftokenexpires = 0
+        for cookie in self._session.cookies:
+            if cookie.name == 'sessionid':
+                sessionidexpires = cookie.expires
+            elif cookie.name == 'csrftoken':
+                csrftokenexpires = cookie.expires
+        if sessionidexpires < int(time.time()) + 60:
+            log.warn('sessionid cookie has expired or will expire in less than a minute.')
+            return False
+        if csrftokenexpires < int(time.time()) + 60:
+            log.warn('csrftoken cookie has expired or will expire in less than a minute.')
+            return False
+        return True
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if not self.IsLoggedIn():
