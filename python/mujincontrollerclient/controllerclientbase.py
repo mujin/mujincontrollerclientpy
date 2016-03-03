@@ -347,6 +347,52 @@ class ControllerClient(object):
         assert(status == 204)
 
     #
+    # Link related
+    #
+
+    def CreateObjectLink(self, objectpk, linkdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/link/' % objectpk, data=linkdata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectLink(self, objectpk, linkpk, linkdata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteObjectLink(self, objectpk, linkpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
+        assert(status == 204)
+
+    #
+    # Geometry related
+    #
+
+    def CreateObjectGeometry(self, objectpk, geometrydata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/geometry/' % objectpk, data=geometrydata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectGeometry(self, objectpk, geometrypk, geometrydata, usewebapi=True, timeout=5):
+        """sets the instobject values via a WebAPI PUT call
+        :param instobjectdata: key-value pairs of the data to modify on the instobject
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteObjectGeometry(self, objectpk, geometrypk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
+        assert(status == 204)
+
+    #
     # Tools related
     #
 
