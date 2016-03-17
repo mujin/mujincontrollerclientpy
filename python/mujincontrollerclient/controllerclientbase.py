@@ -392,6 +392,15 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
         assert(status == 204)
 
+    def GetObjectGeometries(self, objectpk, mesh=False, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        url_params = {}
+        if mesh:
+            url_params['mesh'] = '1'
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, url_params=url_params, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response['geometries']
+
     #
     # Tools related
     #
