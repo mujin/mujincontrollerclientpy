@@ -540,7 +540,7 @@ class ControllerClient(object):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:
