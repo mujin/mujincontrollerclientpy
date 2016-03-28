@@ -380,8 +380,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, usewebapi=False, timeout=100, **kwargs):
         """runs saved planningresult trajs
         """
-        if toolname is None:
-            toolname = self.toolname
         taskparameters = {'command': 'PutPartsBack',
                           'trajectory': trajectoryxml,
                           'numparts': numparts,
@@ -396,7 +394,18 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """replaces bodies
         """
         taskparameters = {'command': 'ReplaceBodies',
-                          'bodieslist' : bodieslist
+                          'bodieslist': bodieslist
                           }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def TestGrasp(self, targetname, graspsetname, graspindex, forcegeneration, toolname, timeout=10, **kwargs):
+        taskparameters = {'command': 'TestGrasp',
+                          'toolname': toolname,
+                          'targetname': targetname,
+                          'graspsetname': graspsetname,
+                          'graspindex': graspindex,
+                          'forcegeneration': forcegeneration
+        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
