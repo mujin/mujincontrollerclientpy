@@ -399,14 +399,16 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def VisualizeGrasp(self, targetname, graspsetname, graspindex, forcegeneration=True, toolname=None, timeout=10, **kwargs):
-        taskparameters = {'command': 'VisualizeGrasp',
+    def ComputeGraspPositionInRobotFrame(self, targetname, graspname, toolname=None, unit='mm', timeout=10, **kwargs):
+        '''returns robot transform and names of manip links
+        '''
+        taskparameters = {'command': 'ComputeGraspPositionInRobotFrame',
                           'targetname': targetname,
-                          'graspsetname': graspsetname,
-                          'graspindex': graspindex,
-                          'forcegeneration': forcegeneration
+                          'graspname': graspname
         }
-        if 'toolname' is not None:
+        if toolname is not None:
             taskparameters['toolname'] = toolname
+        if unit is not None:
+            taskparameters['unit'] = unit
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
