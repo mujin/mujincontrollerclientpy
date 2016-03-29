@@ -400,7 +400,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def ComputeGraspPositionInRobotFrame(self, targetname, graspname, toolname=None, unit='mm', timeout=10, **kwargs):
-        '''returns robot transform and names of manip links
+        '''returns robot name, transform, names of manip links, and graspdata
         '''
         taskparameters = {'command': 'ComputeGraspPositionInRobotFrame',
                           'targetname': targetname,
