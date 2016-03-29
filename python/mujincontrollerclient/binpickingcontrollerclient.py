@@ -406,9 +406,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           'targetname': targetname,
                           'graspname': graspname
         }
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
         if unit is not None:
             taskparameters['unit'] = unit
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
