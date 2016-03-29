@@ -406,8 +406,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           'targetname': targetname,
                           'graspname': graspname
         }
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
         if unit is not None:
             taskparameters['unit'] = unit
         if approachoffset is not None:
@@ -415,4 +413,4 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         if departoffsetdir is not None and len(departoffsetdir) == 3:
             taskparameters['departoffsetdir'] = departoffsetdir
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
