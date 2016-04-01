@@ -199,12 +199,16 @@ class ControllerClient(object):
     # Scene related
     #
 
-    def UploadSceneFile(self, f, timeout=5):
+    def UploadSceneFile(self, f, temporary=False, timeout=5):
         """uploads a file managed by file handle f
         
+        :param temporary: true if we want to upload to temporary folder on server instead of the user's root
         """
+        params = {}
+        if temporary:
+            params['temporary'] = '1'
         # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', params=params, files={'files[]': f}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content)
         
