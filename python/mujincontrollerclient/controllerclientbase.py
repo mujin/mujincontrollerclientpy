@@ -199,16 +199,12 @@ class ControllerClient(object):
     # Scene related
     #
 
-    def UploadSceneFile(self, f, temporary=False, timeout=5):
+    def UploadSceneFile(self, f, timeout=5):
         """uploads a file managed by file handle f
         
-        :param temporary: true if we want to upload to temporary folder on server instead of the user's root
         """
-        params = {}
-        if temporary:
-            params['temporary'] = '1'
         # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', params=params, files={'files[]': f}, timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content)
         
@@ -389,6 +385,17 @@ class ControllerClient(object):
         """
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, timeout=timeout)
+        assert(status == 202)
+
+    def SetObjectGeometryMesh(self, objectpk, geometrypk, data, formathint='stl', unit='mm', usewebapi=True, timeout=5):
+        """upload binary file content of a cad file to be set as the mesh for the geometry
+        """
+        assert(usewebapi)
+        assert(formathint == 'stl') # for now, only support stl
+
+        headers = {'Content-Type': 'application/sla'}
+        url_params = {'unit': unit}
+        status, response = self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), url_params=url_params, data=data, headers=headers, timeout=timeout)
         assert(status == 202)
 
     def DeleteObjectGeometry(self, objectpk, geometrypk, usewebapi=True, timeout=5):

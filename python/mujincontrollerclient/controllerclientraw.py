@@ -143,7 +143,7 @@ class ControllerWebClient(object):
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 	
     # python port of the javascript API Call function
-    def APICall(self, request_type, api_url='', url_params=None, fields=None, data=None, timeout=5):
+    def APICall(self, request_type, api_url='', url_params=None, fields=None, data=None, headers=None, timeout=5):
         path = '/api/v1/' + api_url.lstrip('/')
         if not path.endswith('/'):
             path += '/'
@@ -163,10 +163,18 @@ class ControllerWebClient(object):
         if data is None:
             data = {}
 
+        if headers is None:
+            headers = {}
+
+        # default to json content type
+        if 'Content-Type' not in headers:
+            headers['Content-Type'] = 'application/json'
+            data = json.dumps(data)
+
         request_type = request_type.upper()
 
         log.verbose('%s %s', request_type, self._baseurl + path)
-        response = self.Request(request_type, path, params=url_params, data=json.dumps(data), timeout=timeout)
+        response = self.Request(request_type, path, params=url_params, data=data, headers=headers, timeout=timeout)
 
         if request_type == 'HEAD' and response.status_code == 200:
             # just return without doing anything for head
