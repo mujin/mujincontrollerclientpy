@@ -399,7 +399,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def ComputeGraspPositionInRobotFrame(self, targetname, graspname, toolname=None, unit='mm', approachoffset=None, departoffsetdir=None, timeout=10, **kwargs):
+    def ComputeGraspPositionInRobotFrame(self, targetname, graspname, toolname=None, unit='mm', approachoffset=None, departoffsetdir=None, usewebapi=False, timeout=10, **kwargs):
         '''returns robot name, transform, names of manip links, and graspdata
         '''
         taskparameters = {'command': 'ComputeGraspPositionInRobotFrame',
@@ -413,9 +413,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         if departoffsetdir is not None and len(departoffsetdir) == 3:
             taskparameters['departoffsetdir'] = departoffsetdir
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
 
-    def ComputeRobotPosesForGraspVisualization(self, targetname, graspname, toolname=None, unit='mm', timeout=10, **kwargs):
+    def ComputeRobotPosesForGraspVisualization(self, targetname, graspname, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
         '''returns robot poses for grasp visualization
         '''
         taskparameters = {'command': 'ComputeRobotPosesForGraspVisualization',
@@ -425,4 +425,4 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         if unit is not None:
             taskparameters['unit'] = unit
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
