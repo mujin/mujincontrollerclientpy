@@ -414,3 +414,15 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['departoffsetdir'] = departoffsetdir
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
+
+    def ComputeRobotPosesForGraspVisualization(self, targetname, graspname, toolname=None, unit='mm', timeout=10, **kwargs):
+        '''returns robot poses for grasp visualization
+        '''
+        taskparameters = {'command': 'ComputeRobotPosesForGraspVisualization',
+                          'targetname': targetname,
+                          'graspname': graspname
+        }
+        if unit is not None:
+            taskparameters['unit'] = unit
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
