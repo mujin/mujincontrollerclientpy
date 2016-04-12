@@ -63,6 +63,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         if toolname is not None:
             if robots is not None:
                 robots = copy.deepcopy(robots)
+                if robotname not in robots:
+                    robots[robotname] = {}
                 robots[robotname]['toolname'] = toolname
             else:
                 # set at the first level

@@ -399,7 +399,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
+    def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, robotname=None, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
         '''returns robot configs for grasp visualization
         '''
         taskparameters = {'command': 'ComputeRobotConfigsForGraspVisualization',
@@ -409,4 +409,4 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         if unit is not None:
             taskparameters['unit'] = unit
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
