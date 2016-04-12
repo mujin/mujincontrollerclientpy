@@ -452,3 +452,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
+
+    def GetDynamicObjects(self, usewebapi=False, timeout=1, **kwargs):
+        """Get a list of dynamically added objects in the scene, from vision detection and physics simulation.
+        """
+        taskparameters = {
+            'command': 'GetDynamicObjects',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
