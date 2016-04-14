@@ -102,7 +102,7 @@ class ZmqSocketPool(object):
         self._sockets[socket] = True
         self._opencount += 1
 
-        log.debug('opened a socket, url = %s opened = %d, closed = %d', self._url, self._opencount, self._closecount)
+        log.verbose('opened a socket, url = %s opened = %d, closed = %d', self._url, self._opencount, self._closecount)
         return socket
 
     def _CloseSocket(self, socket):
