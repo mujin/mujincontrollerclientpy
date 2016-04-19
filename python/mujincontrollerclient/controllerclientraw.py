@@ -187,8 +187,8 @@ class ControllerWebClient(object):
         # try to convert everything else
         try:
             content = json.loads(response.content)
-        except ValueError:
-            log.exception('caught exception during json decode')
+        except ValueError, e:
+            log.warn(u'caught exception during json decode for content (%r): %s', response.content, e)
             self.Logout() # always logout the session when we hit an error
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         

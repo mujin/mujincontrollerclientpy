@@ -109,6 +109,9 @@ def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
 def GetAPIServerErrorFromZMQ(response):
     """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
     """
+    if response is None:
+        return None
+    
     if 'error' in response:
         if isinstance(response['error'], dict):
             return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
