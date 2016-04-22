@@ -28,9 +28,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
         
-    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", patternlinkname="", timeout=3000, **kwargs):
-        if samplingmethod == "":
-            samplingmethod = "boardexposure"  # "boardexposure"
+    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeCalibrationPoses',
                           'camerafullname': camerafullname,
                           'halconpatternparameters': halconpatternparameters,
@@ -39,18 +37,17 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'numsamples': numsamples,
                           'toolname': toolname,
                           'targetarea': targetarea,
-                          'samplingmethod': samplingmethod,
                           'debuglevel': 4
                           }
+        if samplingmethod is not None:
+            taskparameters['samplingmethod'] = samplingmethod
         taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters["robot"] = self.robot
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
     
-    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod="", patternlinkname="", timeout=3000, **kwargs):
-        if samplingmethod == "":
-            samplingmethod = "boardexposure"  # "boardexposure"
+    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
                           'camerafullnames': camerafullnames,
                           'halconpatternparameters': halconpatternparameters,
@@ -59,8 +56,9 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'numsamples': numsamples,
                           'toolname': toolname,
                           'targetarea': targetarea,
-                          'samplingmethod': samplingmethod,
                           }
+        if samplingmethod is not None:
+            taskparameters['samplingmethod'] = samplingmethod
         taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters["robot"] = self.robot
