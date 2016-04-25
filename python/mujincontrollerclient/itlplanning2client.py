@@ -307,7 +307,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
 
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ExecuteTrajectory(self, trajectories, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, cycles=1, fireandforget=False):
+    def ExecuteTrajectory(self, trajectories, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, cycles=1, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'trajectories': trajectories,
@@ -317,4 +317,5 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
+        taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
