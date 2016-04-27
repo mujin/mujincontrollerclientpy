@@ -28,7 +28,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
         
-    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
+    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", targetregionname=None, samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeCalibrationPoses',
                           'camerafullname': camerafullname,
                           'halconpatternparameters': halconpatternparameters,
@@ -39,6 +39,8 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'targetarea': targetarea,
                           'debuglevel': 4
                           }
+        if targetregionname is not None:
+            taskparameters['targetregionname'] = targetregionname
         if samplingmethod is not None:
             taskparameters['samplingmethod'] = samplingmethod
         taskparameters.update(kwargs)
@@ -47,7 +49,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
     
-    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
+    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", targetregionname=None, samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
                           'camerafullnames': camerafullnames,
                           'halconpatternparameters': halconpatternparameters,
@@ -57,6 +59,8 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'toolname': toolname,
                           'targetarea': targetarea,
                           }
+        if targetregionname is not None:
+            taskparameters['targetregionname'] = targetregionname
         if samplingmethod is not None:
             taskparameters['samplingmethod'] = samplingmethod
         taskparameters.update(kwargs)
