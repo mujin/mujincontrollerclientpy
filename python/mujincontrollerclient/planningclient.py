@@ -192,17 +192,22 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         assert(status == 200)
         return response
 
-    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=1000):
+    def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=None):
         '''executes task with a particular task type without creating a new task
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
         # execute task
-        status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={'tasktype': tasktype, 'taskparameters': taskparameters, 'slaverequestid': slaverequestid}, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
+            'tasktype': tasktype,
+            'taskparameters': taskparameters,
+            'slaverequestid': slaverequestid,
+            'timeout': timeout,
+        }, timeout=timeout)
         assert(status==200)
         return response
 
-    def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=3000):
+    def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
         """executes command via web api
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
