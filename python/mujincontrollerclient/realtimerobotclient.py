@@ -462,3 +462,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, robotname=None, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
+        '''returns robot configs for grasp visualization
+        '''
+        taskparameters = {
+            'command': 'ComputeRobotConfigsForGraspVisualization',
+            'targetname': targetname,
+            'graspname': graspname
+        }
+        if unit is not None:
+            taskparameters['unit'] = unit
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
