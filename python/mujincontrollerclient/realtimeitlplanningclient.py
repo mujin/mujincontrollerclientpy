@@ -44,10 +44,10 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
-    def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, **kwargs):
+    def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def MoveToCommand(self, program, commandindex=0, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
