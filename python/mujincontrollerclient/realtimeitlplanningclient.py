@@ -119,11 +119,9 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def PlotProgramWaypoints(self, programname, updatestamp, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
+    def PlotProgramWaypoints(self, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
         taskparameters = {
             'command': 'PlotProgramWaypoints',
-            'programname': programname,
-            'updatestamp': updatestamp,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
