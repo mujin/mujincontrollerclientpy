@@ -122,7 +122,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
-
+    
     def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, timeout=10, **kwargs):
         """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
         :param goaltype: type of the goal, e.g. translationdirection5d
@@ -141,20 +141,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
-
-    def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
+    
+    def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
-        :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
+        :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0], 'object_uri':'mujin:/asdfas.mujin.dae'}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
         :param unit: unit of envstate
         """
-        if targetname is None:
-            targetname = self.targetname
         taskparameters = {'command': 'UpdateObjects',
-                          'objectname': targetname,
-                          'object_uri': u'mujin:/%s.mujin.dae' % (targetname),
                           'envstate': envstate,
                           'unit': unit,
                           }
+        if targetname is not None:
+            taskparameters['objectname'] = targetname
+            taskparameters['object_uri'] = u'mujin:/%s.mujin.dae' % (targetname)
         taskparameters.update(kwargs)
         if state is not None:
             taskparameters['state'] = json.dumps(state)
@@ -170,7 +169,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
-
+    
     def Release(self, targetname, timeout=10, **kwargs):
         """releases an object already grabbed
         :param targetname: name of the object
