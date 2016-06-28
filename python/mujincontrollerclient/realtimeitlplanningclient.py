@@ -44,10 +44,10 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
-    def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, **kwargs):
+    def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def MoveToCommand(self, program, commandindex=0, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
@@ -100,3 +100,28 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def ComputeRobotConfigsForCommandVisualization(self, program, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'ComputeRobotConfigsForCommandVisualization',
+            'program': program,
+            'commandindex': commandindex,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def ComputeRobotJointValuesForCommandVisualization(self, program, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'ComputeRobotJointValuesForCommandVisualization',
+            'program': program,
+            'commandindex': commandindex,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def PlotProgramWaypoints(self, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
+        taskparameters = {
+            'command': 'PlotProgramWaypoints',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
