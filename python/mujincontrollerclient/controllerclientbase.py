@@ -370,6 +370,26 @@ class ControllerClient(object):
         assert(status == 204)
 
     #
+    # Attachment related
+    #
+
+    def CreateObjectAttachment(self, objectpk, attachmentdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'object/%s/attachment/' % objectpk, data=attachmentdata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+
+    def SetObjectAttachment(self, objectpk, attachmentpk, attachmentdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), data=attachmentdata, fields=fields, timeout=timeout)
+        assert(status == 202)
+
+    def DeleteObjectAttachment(self, objectpk, attachmentpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), timeout=timeout)
+        assert(status == 204)
+
+    #
     # Geometry related
     #
 
