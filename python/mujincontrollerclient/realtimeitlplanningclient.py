@@ -101,6 +101,22 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
+    def SetPauseExecuteTrajectory(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+        taskparameters = {'command': 'SetPauseExecuteTrajectory'}
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
+        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def ResumeExecuteTrajectory(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+        taskparameters = {'command': 'ResumeExecuteTrajectory'}
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
+        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
     def ComputeRobotConfigsForCommandVisualization(self, program, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'ComputeRobotConfigsForCommandVisualization',
