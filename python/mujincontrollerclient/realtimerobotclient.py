@@ -337,7 +337,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'StopGripper'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+    
     def MoveGripper(self, grippervalues, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """chucks the manipulator
         :param toolname: name of the manipulator, default is taken from self.robots
@@ -348,7 +348,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+    
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
@@ -360,7 +360,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'SaveScene'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
+    def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
+        """resets the robot bridge states
+        """
+        taskparameters = {
+            'command': 'ResetRobotBridges'
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi)
+    
     def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
