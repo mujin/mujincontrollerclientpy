@@ -696,9 +696,16 @@ class ControllerClient(object):
         if response.status_code not in [201, 201, 204]:
             raise ControllerClientError(response.content)
 
-    def ListFiles(self, path='', timeout=5):
+    def ListFiles(self, path='', depth=None, timeout=5):
+        """
+        List files and their properties using webdav
+        :param path: root path, result will include this path and its children (if depth is set to 1 or infinity)
+        :param depth: 0, 1, or None (infinity)
+        """
         path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
-        response = self._webclient.Request('PROPFIND', path, timeout=timeout)
+        if depth is None:
+            depth = 'infinity'
+        response = self._webclient.Request('PROPFIND', path, headers={'Depth': str(depth)}, timeout=timeout)
         if response.status_code not in [207]:
             raise ControllerClientError(response.content)
 
