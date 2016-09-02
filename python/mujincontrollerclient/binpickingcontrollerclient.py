@@ -398,3 +398,26 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=False,
+                                       timeout=10, **kwargs):
+        """
+
+        :param graspsetname: str. Name of graspset like 'all5d'
+        :param targeturi: str. uri of target scene like '4902201402644.mujin.dae'
+        :param toolname: str. Name of manipulator of the robot like 'suction0'
+        :param robotname:
+        :param usewebapi:
+        :param timeout:
+        :return:
+        """
+
+        taskparameters = {
+            'command': 'GenerateGraspModelFromIkParams',
+            'graspsetname': graspsetname,
+            'targeturi': targeturi,
+            'toolname': toolname
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
+                                   timeout=timeout)
