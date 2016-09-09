@@ -425,6 +425,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
+    def ResetRobotBridges(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'ResetRobotBridges'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
     def ShutdownRobotBridge(self, timeout=10, **kwargs):
         taskparameters = {'command': 'ShutdownRobotBridge'}
         taskparameters.update(kwargs)
