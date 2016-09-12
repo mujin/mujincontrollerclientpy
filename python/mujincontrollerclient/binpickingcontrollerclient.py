@@ -399,7 +399,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def StartComputeIkThread(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=False,
+    def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=False,
                                        timeout=10, **kwargs):
         """
 
@@ -413,7 +413,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """
 
         taskparameters = {
-            'command': 'StartComputeIkThread',
+            'command': 'GenerateGraspModelFromIkParams',
             'graspsetname': graspsetname,
             'targeturi': targeturi,
             'toolname': toolname
@@ -421,12 +421,3 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
                                    timeout=timeout)
-
-
-    def StopComputeIkThread(self, timeout=10, **kwargs):
-        """stops the computing IK solution started with StartComputeIkThread
-        """
-        taskparameters = {'command': 'StopComputeIkThread',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
