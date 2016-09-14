@@ -290,7 +290,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         viewerparameters.update(kwargs)
         return self.Configure({'viewerparameters': viewerparameters}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraZoomOut(self, ispan=True, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, ispan=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraZoomOut',
             'zoomdelta': float(zoomdelta),
@@ -300,7 +300,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def MoveCameraZoomIn(self, ispan=True, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, ispan=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraZoomIn',
             'zoomdelta': float(zoomdelta),
