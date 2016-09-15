@@ -402,7 +402,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=True,
                                        timeout=10, **kwargs):
         """
-
+        Generate grasp model ik for given setup
         :param graspsetname: str. Name of graspset like 'all5d'
         :param targeturi: str. uri of target scene like '4902201402644.mujin.dae'
         :param toolname: str. Name of manipulator of the robot like 'suction0'
