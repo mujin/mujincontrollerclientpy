@@ -366,8 +366,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def ResetStateSlaveTrigger(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        taskparameters = {'command': 'ResetStateSlaveTrigger',
+    def SetStateSlaveTrigger(self, trigger, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'SetStateSlaveTrigger',
+                          'trigger': bool(trigger)
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
