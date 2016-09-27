@@ -451,10 +451,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robotaccelmult'] = robotaccelmult
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
-    def SetServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
+
+    def SetRobotBridgeServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
         taskparameters = {
-            'command': 'SetServoOn',
+            'command': 'SetRobotBridgeServoOn',
             'isservoon': servoon
         }
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
