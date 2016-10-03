@@ -241,6 +241,13 @@ class ControllerClient(object):
         assert(status == 200)
         return response
 
+    def SetObject(self, pk, objectdata, fields=None, usewebapi=True, timeout=5):
+        """do partial update on object resource
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'object/%s/' % pk, data=objectdata, fields=fields, timeout=timeout)
+        assert(status == 202)
+
     def GetRobot(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested robot
         """
@@ -248,6 +255,13 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
         assert(status == 200)
         return response
+
+    def SetRobot(self, pk, robotdata, fields=None, usewebapi=True, timeout=5):
+        """do partial update on robot resource
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'robot/%s/' % pk, data=robotdata, fields=fields, timeout=timeout)
+        assert(status == 202)
 
     #
     # Scene related
