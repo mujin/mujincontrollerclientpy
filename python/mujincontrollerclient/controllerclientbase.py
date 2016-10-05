@@ -524,6 +524,12 @@ class ControllerClient(object):
         assert(status == 200)
         return response
 
+    def GetBinpickingResult(self, resultpk, fields=None, usewebapi=True, timeout=5):
+        assert(UserWarning)
+        status, response = self._webclient.APICall('GET', u'binpickingresult/%s' % resultpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
     def GetResultProgram(self, resultpk, programtype=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         params = {'format': 'dat'}
