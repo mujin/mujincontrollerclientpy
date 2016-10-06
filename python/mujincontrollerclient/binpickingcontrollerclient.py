@@ -43,7 +43,10 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         self.robotspeed = robotspeed
         self.regionname = regionname
         self.envclearance = envclearance
-        
+
+    def SetRobotSpeed(self, robotspeed):
+        self.robotspeed = robotspeed
+    
     def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
         if 'robotspeed' not in taskparameters:
             if robotspeed is None:
