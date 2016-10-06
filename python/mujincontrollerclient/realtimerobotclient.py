@@ -21,6 +21,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         
     def GetRobotName(self):
         return self._robotname
+
+    def SetRobotName(self, robotname):
+        self._robotname = robotname
     
     def GetRobots(self):
         return self._robots
