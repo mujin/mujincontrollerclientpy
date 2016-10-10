@@ -408,4 +408,31 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
+    def SetCurrentLayoutDataFromPLC(self, containername, containerLayoutSize, locationId, destObstacleName, ioVariableName, timeout=10, usewebapi=True, **kwargs):
+        """
+        sets current layout from plc 
+        """
+        taskparameters = {'command':'SetCurrentLayoutDataFromPLC',
+                          'containername': containername,
+                          'containerLayoutSize': containerLayoutSize,
+                          'locationId': locationId,
+                          'ioVariableName': ioVariableName,
+                          'destObstacleName': destObstacleName
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
+
+    def SendCurrentLayoutData(self, containername, containerLayoutSize, locationId, bIncludeTargetLog, timeout=10, usewebapi=True, **kwargs):
+        '''
+        requests for sending layoutdata to plc
+        '''
+        taskparameters = {'command':'SendCurrentLayoutData',
+                          'containername': containername,
+                          'containerLayoutSize': containerLayoutSize,
+                          'locationId': locationId,
+                          'bIncludeTargetLog': bIncludeTargetLog
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
+        
