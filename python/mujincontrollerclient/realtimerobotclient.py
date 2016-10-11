@@ -476,6 +476,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
 
+    def SetRobotBridgeControlMode(self, controlMode, timeout=3, fireandforget=False):
+        taskparameters = {
+            'command': 'SetRobotBridgeControlMode',
+            'controlMode': controlMode
+        }
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
+    
     def GetDynamicObjects(self, usewebapi=False, timeout=1, **kwargs):
         """Get a list of dynamically added objects in the scene, from vision detection and physics simulation.
         """
