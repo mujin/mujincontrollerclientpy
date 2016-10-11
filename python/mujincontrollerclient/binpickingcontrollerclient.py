@@ -409,14 +409,13 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SetCurrentLayoutDataFromPLC(self, containername, containerLayoutSize, locationId, destObstacleName, ioVariableName, timeout=10, usewebapi=True, **kwargs):
+    def SetCurrentLayoutDataFromPLC(self, containername, containerLayoutSize, destObstacleName, ioVariableName, timeout=10, usewebapi=True, **kwargs):
         """
         sets current layout from plc 
         """
         taskparameters = {'command':'SetCurrentLayoutDataFromPLC',
                           'containername': containername,
                           'containerLayoutSize': containerLayoutSize,
-                          'locationId': locationId,
                           'ioVariableName': ioVariableName,
                           'destObstacleName': destObstacleName
                           }
