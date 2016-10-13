@@ -21,6 +21,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         
     def GetRobotName(self):
         return self._robotname
+
+    def SetRobotName(self, robotname):
+        self._robotname = robotname
     
     def GetRobots(self):
         return self._robots
@@ -465,8 +468,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robotaccelmult'] = robotaccelmult
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
 
+    def SetRobotBridgeServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
+        taskparameters = {
+            'command': 'SetRobotBridgeServoOn',
+            'isservoon': servoon
+        }
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
+
+    def SetRobotBridgeControlMode(self, controlMode, timeout=3, fireandforget=False):
+        taskparameters = {
+            'command': 'SetRobotBridgeControlMode',
+            'controlMode': controlMode
+        }
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
+    
     def GetDynamicObjects(self, usewebapi=False, timeout=1, **kwargs):
         """Get a list of dynamically added objects in the scene, from vision detection and physics simulation.
         """
