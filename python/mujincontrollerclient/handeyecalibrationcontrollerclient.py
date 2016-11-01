@@ -49,7 +49,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
     
-    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", targetregionname=None, samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
+    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", verification=False, targetregionname=None, samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
                           'camerafullnames': camerafullnames,
                           'halconpatternparameters': halconpatternparameters,
@@ -58,6 +58,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'numsamples': numsamples,
                           'toolname': toolname,
                           'targetarea': targetarea,
+                          'verification': verification
                           }
         if targetregionname is not None:
             taskparameters['targetregionname'] = targetregionname
