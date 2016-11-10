@@ -43,7 +43,10 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         self.robotspeed = robotspeed
         self.regionname = regionname
         self.envclearance = envclearance
-        
+
+    def SetRobotSpeed(self, robotspeed):
+        self.robotspeed = robotspeed
+    
     def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
         if 'robotspeed' not in taskparameters:
             if robotspeed is None:
@@ -405,4 +408,70 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
+    def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=True,
+                                       timeout=10, **kwargs):
+        """
+        Generate grasp model ik for given setup
+        :param graspsetname: str. Name of graspset like 'all5d'
+        :param targeturi: str. uri of target scene like '4902201402644.mujin.dae'
+        :param toolname: str. Name of manipulator of the robot like 'suction0'
+        :param robotname:
+        :param usewebapi:
+        :param timeout:
+        :return:
+        """
+
+        taskparameters = {
+            'command': 'GenerateGraspModelFromIkParams',
+            'graspsetname': graspsetname,
+            'targeturi': targeturi,
+            'toolname': toolname
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
+                                   timeout=timeout)
+
+    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, usewebapi=True, timeout=10, **kwargs):
+        """
+        Check if grasp model is generated for given setup
+        :param graspsetname: str. Name of graspset like 'all5d'
+        :param targeturi: str. uri of target scene like 'mujin:4902201402644.mujin.dae'
+        :param toolname: str. Name of manipulator of the robot like 'suction0'
+        :param usewebapi:
+        :return:
+        """
+        taskparameters = {
+            'command': 'CheckGraspModelIk',
+            'graspsetname': graspsetname,
+            'targeturi': targeturi,
+            'toolname': toolname
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def SetCurrentLayoutDataFromPLC(self, containername, containerLayoutSize, destObstacleName, ioVariableName, timeout=10, usewebapi=True, **kwargs):
+        """
+        sets current layout from plc 
+        """
+        taskparameters = {'command':'SetCurrentLayoutDataFromPLC',
+                          'containername': containername,
+                          'containerLayoutSize': containerLayoutSize,
+                          'ioVariableName': ioVariableName,
+                          'destObstacleName': destObstacleName
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
+
+    def SendCurrentLayoutData(self, containername, containerLayoutSize, ioVariableName, includeTargetsWithPrefix, timeout=10, usewebapi=True, **kwargs):
+        '''
+        requests for sending layoutdata to plc
+        '''
+        taskparameters = {'command':'SendCurrentLayoutData',
+                          'containername': containername,
+                          'containerLayoutSize': containerLayoutSize,
+                          'ioVariableName': ioVariableName,
+                          'includeTargetsWithPrefix': includeTargetsWithPrefix
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
