@@ -28,13 +28,13 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
         
-    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", targetregionname=None, samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
+    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, calibboardlinkname, targetarea="", targetregionname=None, samplingmethod=None, timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeCalibrationPoses',
                           'camerafullname': camerafullname,
                           'halconpatternparameters': halconpatternparameters,
                           'patternvisibility': calibboardvisibility,
+                          'calibboardlinkname': calibboardlinkname,
                           'numsamples': numsamples,
-                          'toolname': toolname,
                           'targetarea': targetarea,
                           'debuglevel': 4
                           }
@@ -48,15 +48,15 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
     
-    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, toolname, targetarea="", verification=False, targetregionname=None, samplingmethod=None, patternlinkname="", timeout=3000, **kwargs):
+    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, calibboardlinkname, targetarea="", targetregionname=None, samplingmethod=None, timeout=3000, **kwargs):
         taskparameters = {'command': 'ComputeStereoCalibrationPoses',
                           'camerafullnames': camerafullnames,
                           'halconpatternparameters': halconpatternparameters,
                           'patternvisibility': calibboardvisibility,
+                          'calibboardlinkname': calibboardlinkname,
                           'numsamples': numsamples,
-                          'toolname': toolname,
                           'targetarea': targetarea,
-                          'verification': verification
+                          'debuglevel': 4
                           }
         if targetregionname is not None:
             taskparameters['targetregionname'] = targetregionname
