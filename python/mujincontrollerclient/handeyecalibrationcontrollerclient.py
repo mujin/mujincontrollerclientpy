@@ -35,8 +35,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'patternvisibility': calibboardvisibility,
                           'calibboardlinkname': calibboardlinkname,
                           'numsamples': numsamples,
-                          'targetarea': targetarea,
-                          'debuglevel': 4
+                          'targetarea': targetarea
                           }
         if targetregionname is not None:
             taskparameters['targetregionname'] = targetregionname
@@ -55,8 +54,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'patternvisibility': calibboardvisibility,
                           'calibboardlinkname': calibboardlinkname,
                           'numsamples': numsamples,
-                          'targetarea': targetarea,
-                          'debuglevel': 4
+                          'targetarea': targetarea
                           }
         if targetregionname is not None:
             taskparameters['targetregionname'] = targetregionname
