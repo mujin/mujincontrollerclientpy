@@ -742,7 +742,7 @@ class ControllerClient(object):
         for e in tree.findall('{DAV:}response'):
             name = prop(e, 'href')
             assert(name.startswith(path))
-            name = name[len(path):].strip('/')
+            name = unquote(name[len(path):].strip('/')).decode('utf-8')
             size = int(prop(e, 'getcontentlength', 0))
             isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
             modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
