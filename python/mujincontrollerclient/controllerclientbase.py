@@ -229,7 +229,10 @@ class ControllerClient(object):
         """returns requested scene
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
+        url_params = {
+            'unit': 'mm'
+        }
+        status, response = self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout, url_params=url_params)
         assert(status == 200)
         return response
 
@@ -237,7 +240,10 @@ class ControllerClient(object):
         """returns requested object
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
+        url_params = {
+            'unit': 'mm'
+        }
+        status, response = self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout, url_params=url_params)
         assert(status == 200)
         return response
 
@@ -439,7 +445,9 @@ class ControllerClient(object):
 
     def GetObjectGeometries(self, objectpk, mesh=False, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        url_params = {}
+        url_params = {
+            'unit': 'mm'
+        }
         if mesh:
             url_params['mesh'] = '1'
         status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, url_params=url_params, fields=fields, timeout=timeout)
