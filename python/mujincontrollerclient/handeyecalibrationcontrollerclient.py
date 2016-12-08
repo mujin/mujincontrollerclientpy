@@ -65,6 +65,14 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
             taskparameters["robot"] = self.robot
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
-    
+   
+    def GetPatternToLinkTransform(self, patternLinkName, patternGeomName, timeout=3000, **kwargs):
+        taskparameters = {'command': 'GetPatternToLinkTransform',
+                          'patternLinkName': patternLinkName,
+                          'patternGeomName': patternGeomName
+                          }
+        result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
+        return result
+
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self.sceneparams, 'tasktype': self.tasktype}, **kwargs)
