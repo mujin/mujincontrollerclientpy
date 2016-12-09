@@ -76,6 +76,9 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
                           'patternLinkName': patternLinkName,
                           'patternGeomName': patternGeomName
                           }
+        taskparameters.update(kwargs)
+        if self.robot is not None:
+            taskparameters["robot"] = self.robot
         result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
         return result
 
