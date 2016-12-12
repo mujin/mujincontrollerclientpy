@@ -608,7 +608,7 @@ class ControllerClient(object):
             positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
             positions.resize(len(positions) / 3, 3)
             geometry['positions'] = positions
-            indices = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=uint32)
+            indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
             indices.resize(len(indices) / 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
