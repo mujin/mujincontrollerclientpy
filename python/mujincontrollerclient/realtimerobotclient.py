@@ -506,3 +506,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['unit'] = unit
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
+    
+    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
+        """resets any cached templates
+        """
+        taskparameters = {
+            'command': 'ResetCacheTemplates',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
