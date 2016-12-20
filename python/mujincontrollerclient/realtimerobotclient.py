@@ -515,4 +515,23 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
+        """resets any cached templates
+        """
+        taskparameters = {
+            'command': 'ResetCacheTemplates',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
+    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=1, **kwargs):
+        """enables publishing collision data to the robotbridge
+        """
+        taskparameters = {
+            'command': 'SetRobotBridgeExternalIOPublishing',
+            'enable': bool(enable)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
