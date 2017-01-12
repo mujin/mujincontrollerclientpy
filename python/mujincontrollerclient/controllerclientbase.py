@@ -608,18 +608,22 @@ class ControllerClient(object):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
+        # status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
+        
+        status, response = self._webclient.APICall("GET", u'object/%s/' % objectpk, url_params={'mesh':1}, timeout=timeout)
         assert(status == 200)
-        geometries = []
-        for encodedGeometry in response['geometries']:
-            geometry = {}
-            positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-            positions.resize(len(positions) / 3, 3)
-            geometry['positions'] = positions
-            indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
-            indices.resize(len(indices) / 3, 3)
-            geometry['indices'] = indices
-            geometries.append(geometry)
+        geometries = response['geometries']['mesh']
+        geometries['positions'] = geometries.pop('vertices', [])
+        # geometries = []
+        # for encodedGeometry in response['geometries']:
+        #     geometry = {}
+        #     positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
+        #     positions.resize(len(positions) / 3, 3)
+        #     geometry['positions'] = positions
+        #     indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
+        #     indices.resize(len(indices) / 3, 3)
+        #     geometry['indices'] = indices
+        #     geometries.append(geometry)
         return geometries
 
     #
