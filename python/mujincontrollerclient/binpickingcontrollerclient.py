@@ -439,7 +439,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
                                    timeout=timeout)
 
-    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, usewebapi=True, timeout=10, **kwargs):
+    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, ikparamnames=None, usewebapi=True, timeout=10, **kwargs):
         """
         Check if grasp model is generated for given setup
         :param graspsetname: str. Name of graspset like 'all5d'
@@ -452,7 +452,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'CheckGraspModelIk',
             'graspsetname': graspsetname,
             'targeturi': targeturi,
-            'toolname': toolname
+            'toolname': toolname,
+            'ikparamnames': ikparamnames,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
