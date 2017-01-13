@@ -492,3 +492,10 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def GetPlanStatistics(self, timeout=1, usewebapi=True, fireandforget=False, **kwargs):
+        """
+        get plan and execute statistics of the last pick and place
+        """
+        taskparameters = {'command': 'GetPlanStatistics'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
