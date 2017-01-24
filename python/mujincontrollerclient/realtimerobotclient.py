@@ -456,7 +456,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # jogging related
     #
-    def SetJogModeVelocities(self, jogtype, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+    def SetJogModeVelocities(self, jogtype, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+        """
+        :param jogtype: One of 'joints', 'world', 'robot', 'tool'
+        :param canJogInCheckMode: if true, then allow jogging even if in check mode. By default it is false.
+        """
         taskparameters = {
             'command': 'SetJogModeVelocities',
             'jogtype': jogtype,
@@ -468,9 +472,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
+        if canJogInCheckMode is not None:
+            taskparameters['canJogInCheckMode'] = canJogInCheckMode
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
+    
     def SetRobotBridgeServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
         taskparameters = {
             'command': 'SetRobotBridgeServoOn',
