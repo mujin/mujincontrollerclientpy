@@ -172,7 +172,10 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param resetExecutionState: if True, then reset the order state variables. By default True
         :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
         """
-        taskparameters = {'command': 'StopPickPlaceThread'}
+        taskparameters = {'command': 'StopPickPlaceThread',
+                          'resetExecutionState': resetExecutionState,
+                          'resetStatusPickPlace':resetStatusPickPlace,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
