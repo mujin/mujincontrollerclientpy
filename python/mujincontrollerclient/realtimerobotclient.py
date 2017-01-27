@@ -75,10 +75,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         
         if robots is not None:
             taskparameters['robots'] = robots
-        if robotname in robots:
-            taskparameters['robotname'] = robotname
+        taskparameters['robotname'] = robotname
 
-        log.verbose('robotname = %s, robots = %r', robotname, robots)
+        log.verbose('robotname = %r, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
