@@ -75,7 +75,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         
         if robots is not None:
             taskparameters['robots'] = robots
-        taskparameters['robotname'] = robotname
+        if robots is None or robotname in robots:
+            taskparameters['robotname'] = robotname
 
         log.verbose('robotname = %r, robots = %r', robotname, robots)
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
