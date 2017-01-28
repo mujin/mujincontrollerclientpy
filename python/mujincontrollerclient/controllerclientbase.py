@@ -604,27 +604,23 @@ class ControllerClient(object):
     # Geometry related
     #
     
-    def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
-        """ return a list of geometries (a dictionary with key: positions, indices)) of given object
-        """
-        assert(usewebapi)
-        # status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
-        
-        status, response = self._webclient.APICall("GET", u'object/%s/' % objectpk, url_params={'mesh':1}, timeout=timeout)
-        assert(status == 200)
-        geometries = response['geometries']['mesh']
-        geometries['positions'] = geometries.pop('vertices', [])
-        # geometries = []
-        # for encodedGeometry in response['geometries']:
-        #     geometry = {}
-        #     positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
-        #     positions.resize(len(positions) / 3, 3)
-        #     geometry['positions'] = positions
-        #     indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
-        #     indices.resize(len(indices) / 3, 3)
-        #     geometry['indices'] = indices
-        #     geometries.append(geometry)
-        return geometries
+    # def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
+    #     """ return a list of geometries (a dictionary with key: positions, indices)) of given object
+    #     """
+    #     assert(usewebapi)
+    #     status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
+    #     assert(status == 200)
+    #     geometries = []
+    #     for encodedGeometry in response['geometries']:
+    #         geometry = {}
+    #         positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
+    #         positions.resize(len(positions) / 3, 3)
+    #         geometry['positions'] = positions
+    #         indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
+    #         indices.resize(len(indices) / 3, 3)
+    #         geometry['indices'] = indices
+    #         geometries.append(geometry)
+    #     return geometries
 
     #
     # Instobject related
@@ -727,6 +723,12 @@ class ControllerClient(object):
         response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f, timeout=timeout)
         if response.status_code not in [201, 201, 204]:
             raise ControllerClientError(response.content)
+
+    def UploadFile2(self, filename, f, timeout=5):
+        """filename is basefilename, not absolute filename
+        f is a tuple (filename, filehandler)
+        """
+        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, filename), data=f.read(), timeout=timeout)
 
     def ListFiles(self, path='', depth=None, timeout=5):
         """
