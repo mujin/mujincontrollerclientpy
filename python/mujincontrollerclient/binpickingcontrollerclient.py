@@ -167,11 +167,15 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
     
-    def StopPickPlaceThread(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
-        :params resetstate: if True, then reset the order state variables
+        :param resetExecutionState: if True, then reset the order state variables. By default True
+        :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
         """
-        taskparameters = {'command': 'StopPickPlaceThread'}
+        taskparameters = {'command': 'StopPickPlaceThread',
+                          'resetExecutionState': resetExecutionState,
+                          'resetStatusPickPlace':resetStatusPickPlace,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
@@ -439,7 +443,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
                                    timeout=timeout)
 
-    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, usewebapi=True, timeout=10, **kwargs):
+    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, ikparamnames=None, usewebapi=True, timeout=10, **kwargs):
         """
         Check if grasp model is generated for given setup
         :param graspsetname: str. Name of graspset like 'all5d'
@@ -452,7 +456,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'CheckGraspModelIk',
             'graspsetname': graspsetname,
             'targeturi': targeturi,
-            'toolname': toolname
+            'toolname': toolname,
+            'ikparamnames': ikparamnames,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
@@ -491,3 +496,10 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def GetPlanStatistics(self, timeout=1, usewebapi=True, fireandforget=False, **kwargs):
+        """
+        get plan and execute statistics of the last pick and place
+        """
+        taskparameters = {'command': 'GetPlanStatistics'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
