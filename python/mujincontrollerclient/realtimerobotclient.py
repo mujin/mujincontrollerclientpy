@@ -368,6 +368,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
     def SaveGripper(self, timeout=10, **kwargs):
         """
+        Separate gripper from a robot in a scene and save it.
         :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
         :param robotname: str. Name of robot waiting for extracting hand from.
         :param manipname: str. Name of manipulator.
