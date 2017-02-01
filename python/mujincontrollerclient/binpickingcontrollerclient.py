@@ -504,12 +504,11 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def SetIgnoreCurrentLayoutDataMask(self, mask=0, timeout=1, usewebapi=True, fireandforget=False, **kwargs):
+    def ResetCurrentLayoutData(self, usewebapi=False, fireandforget=True, **kwargs):
         """
-        set ignore current layoutdata mask to ignore layoutData updates from another slave
+        resets current layout data
         """
-        taskparameters = {'command': 'SetIgnoreCurrentLayoutDataMask',
-                          'mask': mask,
-                          }
+        taskparameters = {'command': 'ResetCurrentLayoutData'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
+        
