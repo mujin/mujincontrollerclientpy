@@ -503,3 +503,27 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'GetPlanStatistics'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def ResetCurrentLayoutData(self, usewebapi=False, fireandforget=True, **kwargs):
+        """
+        resets current layout data
+        """
+        taskparameters = {'command': 'ResetCurrentLayoutData'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
+        
+    def SetCurrentLayoutDataSendOnObjectUpdateData(self, doUpdate, containername=None, containerLayoutSize=None, ioVariableName=None, usewebapi=False, fireandforget=True, **kwargs):
+        """
+        Sets currentLayoutDataSendOnObjectUpdateData structure
+        :param doUpdate: if True then currentLayoutData will be send on every ObjectUpdate, else currentLayoutDataSendOnObjectUpdate structure is reset
+        """
+        taskparameters = {'command': 'SetCurrentLayoutDataSendOnObjectUpdateData',
+                          'doUpdate': doUpdate}
+        if containername is not None:
+            taskparameters['containername'] = containername
+        if containerLayoutSize is not None:
+            taskparameters['containerLayoutSize'] = containerLayoutSize
+        if ioVariableName is not None:
+            taskparameters['ioVariableName'] = ioVariableName
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
