@@ -544,9 +544,9 @@ class ControllerClient(object):
         assert(status == 200)
         return response
 
-    def GetResultProgram(self, resultpk, programtype=None, usewebapi=True, timeout=5):
+    def GetResultProgram(self, resultpk, programtype=None, format='dat', usewebapi=True, timeout=5):
         assert(usewebapi)
-        params = {'format': 'dat'}
+        params = {'format': format}
         if programtype is not None and len(programtype) > 0:
             params['type'] = programtype
         # custom http call because APICall currently only supports json
