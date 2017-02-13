@@ -14,9 +14,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     _robotname = None # optional name of the robot selected
     _robots = None # a dict of robot params
     _robotspeed = None # speed of the robot, e.g. 0.4
+    _robotaccelmult = None # current robot accel mult
     _envclearance = None # environment clearance in milimeter, e.g. 20
 
-    def __init__(self, robotname, robots, robotspeed=None, envclearance=10.0, **kwargs):
+    def __init__(self, robotname, robots, robotspeed=None, robotaccelmult=None, envclearance=10.0, **kwargs):
         """
         :param robotspeed: speed of the robot, e.g. 0.4
         :param envclearance: environment clearance in milimeter, e.g. 20
@@ -25,6 +26,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         self._robotname = robotname
         self._robots = robots
         self._robotspeed = robotspeed
+        self._robotaccelmult = robotaccelmult
         self._envclearance = envclearance
         
     def GetRobotName(self):
@@ -52,8 +54,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def SetRobotSpeed(self, robotspeed):
         self._robotspeed = robotspeed
+
+    def SetRobotAccelMult(self, robotaccelmult):
+        self._robotaccelmult = robotaccelmult
     
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -96,6 +101,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                 robotspeed = self._robotspeed
             if robotspeed is not None:
                 taskparameters['robotspeed'] = robotspeed
+
+        if 'robotaccelmult' not in taskparameters:
+            if robotaccelmult is None:
+                robotaccelmult = self._robotaccelmult
+            if robotaccelmult is not None:
+                taskparameters['robotaccelmult'] = robotaccelmult
 
         if 'envclearance' not in taskparameters:
             if envclearance is None:
@@ -429,15 +440,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'execute': execute,
         }
 
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
 
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
 
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
@@ -501,16 +508,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'jogtype': jogtype,
             'movejointsigns': movejointsigns,
         }
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
         if canJogInCheckMode is not None:
             taskparameters['canJogInCheckMode'] = canJogInCheckMode
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def SetRobotBridgeServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
         taskparameters = {
