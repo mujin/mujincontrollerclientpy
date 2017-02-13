@@ -20,7 +20,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     """
     tasktype = 'binpicking'
     
-    def __init__(self, robotspeed=None, regionname=None, envclearance=10.0, **kwargs):
+    def __init__(self, regionname=None, **kwargs):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -30,7 +30,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no hearbeat is received, e.g. 7
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param robotname: name of the robot, e.g. VP-5243I
-        :param robotspeed: speed of the robot, e.g. 0.4
         :param regionname: name of the bin, e.g. container1
         :param toolname: name of the manipulator, e.g. 2BaseZ
         :param envclearance: environment clearance in milimeter, e.g. 20
@@ -40,20 +39,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         super(BinpickingControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         
         # bin picking task
-        self.robotspeed = robotspeed
         self.regionname = regionname
-        self.envclearance = envclearance
-
-    def SetRobotSpeed(self, robotspeed):
-        self.robotspeed = robotspeed
-    
-    def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
-        if 'robotspeed' not in taskparameters:
-            if robotspeed is None:
-                robotspeed = self.robotspeed
-            if robotspeed is not None:
-                taskparameters['robotspeed'] = robotspeed
-        return super(BinpickingControllerClient, self).ExecuteCommand(taskparameters, **kwargs)
+        
     
     #########################
     # robot commands
@@ -206,8 +193,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'ComputeIK',
                           }
         taskparameters.update(kwargs)
-        if 'envclearance' not in taskparameters:
-            taskparameters['envclearance'] = self.envclearance
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
     
     def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
@@ -225,8 +210,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'ComputeIKFromParameters',
                           }
         taskparameters.update(kwargs)
-        if 'envclearance' not in taskparameters:
-            taskparameters['envclearance'] = self.envclearance
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
     
     def InitializePartsWithPhysics(self, timeout=10, **kwargs):
