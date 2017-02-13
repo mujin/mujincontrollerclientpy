@@ -13,11 +13,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     """
     _robotname = None # optional name of the robot selected
     _robots = None # a dict of robot params
+    _robotspeed = None # speed of the robot, e.g. 0.4
+    _envclearance = None # environment clearance in milimeter, e.g. 20
 
-    def __init__(self, robotname, robots, **kwargs):
+    def __init__(self, robotname, robots, robotspeed=None, envclearance=10.0, **kwargs):
+        """
+        :param robotspeed: speed of the robot, e.g. 0.4
+        :param envclearance: environment clearance in milimeter, e.g. 20
+        """
         super(RealtimeRobotControllerClient, self).__init__(**kwargs)
         self._robotname = robotname
         self._robots = robots
+        self._robotspeed = robotspeed
+        self._envclearance = envclearance
         
     def GetRobotName(self):
         return self._robotname
@@ -42,7 +50,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def IsRobotDeviceIOConfigured(self):
         return len(self.GetRobotDeviceIOUri()) > 0
     
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, usewebapi=None, timeout=10, fireandforget=False):
+    def SetRobotSpeed(self, robotspeed):
+        self._robotspeed = robotspeed
+    
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -79,6 +90,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robotname'] = robotname
 
         log.verbose('robotname = %r, robots = %r', robotname, robots)
+
+        if 'robotspeed' not in taskparameters:
+            if robotspeed is None:
+                robotspeed = self._robotspeed
+            if robotspeed is not None:
+                taskparameters['robotspeed'] = robotspeed
+
+        if 'envclearance' not in taskparameters:
+            if envclearance is None:
+                envclearance = self._envclearance
+            if envclearance is not None:
+                taskparameters['envclearance'] = envclearance
+
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
@@ -134,16 +158,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param envclearance: clearance in milimeter, default is self.envclearance
         :param closegripper: whether to close gripper once the goal is reached, default is 0
         """
-        if envclearance is None:
-            envclearance = self.envclearance
         taskparameters = {'command': 'MoveToHandPosition',
                           'goaltype': goaltype,
                           'goals': goals,
-                          'envclearance': envclearance,
                           'closegripper': closegripper,
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, envclearance=envclearance, toolname=toolname, timeout=timeout)
     
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
