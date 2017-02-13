@@ -386,7 +386,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'SaveScene'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
+    def SaveGripper(self, timeout=10, **kwargs):
+        """
+        Separate gripper from a robot in a scene and save it.
+        :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
+        :param robotname: str. Name of robot waiting for extracting hand from.
+        :param manipname: str. Name of manipulator.
+        :param timeout:
+        :return:
+        """
+
+        taskparameters = {'command': 'SaveGripper'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
     def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
         """resets the robot bridge states
         """
@@ -562,12 +576,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
         
-    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefix, usewebapi=False, timeout=1, **kwargs):
+    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, **kwargs):
         """enables publishing collision data to the robotbridge
         """
         taskparameters = {
             'command': 'SetIgnoreObjectsFromUpdateWithPrefix',
-            'prefix': prefix
+            'prefixes': prefixes
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
