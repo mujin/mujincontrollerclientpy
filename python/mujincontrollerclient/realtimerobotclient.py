@@ -495,9 +495,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
-    def ClearError(self, timeout=10, usewebapi=None, **kwargs):
+    def ClearRobotBridgesError(self, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
-            'command': 'ClearError',
+            'command': 'ClearRobotBridgesError',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
