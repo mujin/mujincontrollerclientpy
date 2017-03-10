@@ -601,3 +601,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
+
+    def RunMotorGainTuningFrequencyTest(self, jointindex, timeout=10, usewebapi=False, **kwargs):
+        """runs frequency test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorGainTuningFrequencyTest',
+            'jointindex': jointindex
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorGainTuningStepTest(self, jointindex, timeout=10, usewebapi=False, **kwargs):
+        """runs step response test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorGainTuningFrequencyTest',
+            'jointindex': jointindex
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
