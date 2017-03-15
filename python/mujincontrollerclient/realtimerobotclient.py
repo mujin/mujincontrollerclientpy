@@ -116,6 +116,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
+    def UpdateDynamicEnvironmentState(self, timeout=1, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'UpdateDynamicEnvironmentState'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
         """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
         """
