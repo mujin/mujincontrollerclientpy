@@ -116,8 +116,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def UpdateDynamicEnvironmentState(self, timeout=1, usewebapi=None, fireandforget=False, **kwargs):
-        taskparameters = {'command': 'UpdateDynamicEnvironmentState'}
+    def SetDynamicEnvironmentState(self, timeout=1, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'SetDynamicEnvironmentState'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
