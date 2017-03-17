@@ -622,3 +622,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
+        
+    def GetMotorGainParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets motor control parameter schema
+        """
+        taskparameters = {
+            'command': 'GetMotorGainParameterSchema',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetMotorGainParameter(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets motor control parameters as name-value dict
+        """
+        taskparameters = {
+            'command': 'GetMotorGainParameter',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
