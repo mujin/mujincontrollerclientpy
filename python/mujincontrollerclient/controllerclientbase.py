@@ -591,7 +591,30 @@ class ControllerClient(object):
         if usewebapi:
             status, response = self._webclient.APICall('DELETE', u'job/', timeout=timeout)
             assert(status == 204)
-        
+
+    #
+    # Config related
+    #
+
+    def GetConfigs(self, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'config/', fields=fields, timeout=timeout, url_params={
+            'limit': 0,
+        })
+        assert(status == 200)
+        return response['objects']
+
+    def GetConfig(self, configpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'config/%s/' % configpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def SetConfig(self, configpk, configdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'config/%s/' % configpk, data=configdata, fields=fields, timeout=timeout)
+        assert(status == 202)
+
     #
     # Geometry related
     #
