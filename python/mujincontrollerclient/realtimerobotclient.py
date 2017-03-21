@@ -602,26 +602,38 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
 
-    def RunMotorGainTuningFrequencyTest(self, jointindex, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorGainTuningFrequencyTest(self, jointIndex, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
         """runs frequency test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorGainTuningFrequencyTest',
-            'jointindex': jointindex
+            'jointIndex': jointIndex,
+            'freqMin': freqMin,
+            'freqMax': freqMax
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorGainTuningStepTest(self, jointindex, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorGainTuningStepTest(self, jointIndex, timeout=10, usewebapi=False, **kwargs):
         """runs step response test on specified joint and returns result
         """
         taskparameters = {
-            'command': 'RunMotorGainTuningFrequencyTest',
-            'jointindex': jointindex
+            'command': 'RunMotorGainTuningStepTest',
+            'jointIndex': jointIndex
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
+    def RunMotorGainTuningMaximulLengthSequence(self, jointIndex, amplitude, timeout=10, usewebapi=False, **kwargs):
+        """runs maximum length sequence test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorGainTuningMaximulLengthSequence',
+            'jointIndex': jointIndex,
+            'amplitude': amplitude
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
         
     def GetMotorGainParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
