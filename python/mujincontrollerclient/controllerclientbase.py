@@ -783,17 +783,19 @@ class ControllerClient(object):
             'command': 'RunMotorGainTuningFrequencyTest',
             'jointName': jointName,
             'freqMin': freqMin,
-            'freqMax': freqMax
-        }
+            'freqMax': freqMax,
+            'amplitude': amplitude
+I         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorGainTuningStepTest(self, jointName, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorGainTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs step response test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorGainTuningStepTest',
-            'jointName': jointName
+            'jointName': jointName,
+            'amplitude': amplitude
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
