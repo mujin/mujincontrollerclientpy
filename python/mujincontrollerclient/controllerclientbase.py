@@ -785,7 +785,7 @@ class ControllerClient(object):
             'freqMin': freqMin,
             'freqMax': freqMax,
             'amplitude': amplitude
-I         }
+         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
