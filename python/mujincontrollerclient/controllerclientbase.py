@@ -776,7 +776,7 @@ class ControllerClient(object):
             parts.append(part)
             self.MakeDirectory('/'.join(parts), timeout=timeout)
 
-    def RunMotorGainTuningFrequencyTest(self, jointName, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorGainTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
         """runs frequency test on specified joint and returns result
         """
         taskparameters = {
@@ -798,6 +798,7 @@ class ControllerClient(object):
             'amplitude': amplitude
         }
         taskparameters.update(kwargs)
+        log.warn('sending taskparameters=%r', taskparameters)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
     def RunMotorGainTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
@@ -820,11 +821,22 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def GetMotorGainParameter(self, usewebapi=False, timeout=10, **kwargs):
+    def GetMotorGainParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameters as name-value dict
         """
         taskparameters = {
             'command': 'GetMotorGainParameter',
+            'jointName' : jointName,
+            'parameterName' : parameterName
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetCachedEthercatSDOAll(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets cached motor control parameters as name-value dict
+        """
+        taskparameters = {
+            'command': 'GetCachedEthercatSDOAll'
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
