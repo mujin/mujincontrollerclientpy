@@ -596,24 +596,19 @@ class ControllerClient(object):
     # Config related
     #
 
-    def GetConfigs(self, fields=None, usewebapi=True, timeout=5):
+    def GetConfig(self, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'config/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
-        })
-        assert(status == 200)
-        return response['objects']
+        response = self._webclient.Request('GET', u'/config/', timeout=timeout)
+        if response.status_code not in [200]:
+            raise ControllerClientError(response.content)
+        return json.loads(response.content)
 
-    def GetConfig(self, configpk, fields=None, usewebapi=True, timeout=5):
+    def SetConfig(self, config, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'config/%s/' % configpk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
-
-    def SetConfig(self, configpk, configdata, fields=None, usewebapi=True, timeout=5):
-        assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'config/%s/' % configpk, data=configdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        response = self._webclient.Request('PUT', u'/config/', data=json.dumps(config), timeout=timeout)
+        if response.status_code not in [202]:
+            raise ControllerClientError(response.content)
+        return json.loads(response.content)
 
     #
     # Geometry related
