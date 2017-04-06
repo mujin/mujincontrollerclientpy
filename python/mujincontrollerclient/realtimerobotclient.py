@@ -37,7 +37,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def GetRobots(self):
         return self._robots
-
+    
+    def SetRobots(self, robots):
+        self._robots = robots
+    
     def GetRobotControllerUri(self):
         robots = self._robots or {}
         return robots.get(self._robotname, {}).get('robotControllerUri', '')
