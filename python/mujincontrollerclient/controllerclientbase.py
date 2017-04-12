@@ -776,11 +776,11 @@ class ControllerClient(object):
             parts.append(part)
             self.MakeDirectory('/'.join(parts), timeout=timeout)
 
-    def RunMotorGainTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
         """runs frequency test on specified joint and returns result
         """
         taskparameters = {
-            'command': 'RunMotorGainTuningFrequencyTest',
+            'command': 'RunMotorControlTuningFrequencyTest',
             'jointName': jointName,
             'freqMin': freqMin,
             'freqMax': freqMax,
@@ -789,11 +789,11 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorGainTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs step response test on specified joint and returns result
         """
         taskparameters = {
-            'command': 'RunMotorGainTuningStepTest',
+            'command': 'RunMotorControlTuningStepTest',
             'jointName': jointName,
             'amplitude': amplitude
         }
@@ -801,51 +801,51 @@ class ControllerClient(object):
         log.warn('sending taskparameters=%r', taskparameters)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def RunMotorGainTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
+    def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs maximum length sequence test on specified joint and returns result
         """
         taskparameters = {
-            'command': 'RunMotorGainTuningMaximulLengthSequence',
+            'command': 'RunMotorControlTuningMaximulLengthSequence',
             'jointName': jointName,
             'amplitude': amplitude
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
         
-    def GetMotorGainParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
+    def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
         """
         taskparameters = {
-            'command': 'GetMotorGainParameterSchema',
+            'command': 'GetMotorControlParameterSchema',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def GetMotorGainParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
+    def GetMotorControlParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameters as name-value dict
         """
         taskparameters = {
-            'command': 'GetMotorGainParameter',
+            'command': 'GetMotorControlParameter',
             'jointName' : jointName,
             'parameterName' : parameterName
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetCachedEthercatSDOAll(self, usewebapi=False, timeout=10, **kwargs):
+    def GetMotorControlParameters(self, usewebapi=False, timeout=10, **kwargs):
         """Gets cached motor control parameters as name-value dict
         """
         taskparameters = {
-            'command': 'GetCachedEthercatSDOAll'
+            'command': 'GetMotorControlParameters'
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def SetMotorGainParameter(self, jointName, parameterName, parameterValue, timeout=10, usewebapi=False, **kwargs):
+    def SetMotorControlParameter(self, jointName, parameterName, parameterValue, timeout=10, usewebapi=False, **kwargs):
         """Sets motor control parameter
         """
         taskparameters = {
-            'command': 'SetMotorGainParameter',
+            'command': 'SetMotorControlParameter',
             'jointName': jointName,
             'parameterName': parameterName,
             'parameterValue': parameterValue
