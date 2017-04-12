@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import argparse
+import urlparse
 
 from mujincontrollerclient import controllerclientbase
 
@@ -17,6 +18,7 @@ if __name__ == "__main__":
     MUJIN_BINPICKINGUI_CONFIG = os.environ.get('MUJIN_BINPICKINGUI_CONFIG', '') or os.path.join(MUJIN_CONFIG_DIR, 'binpickingsystem.conf')
     parser = argparse.ArgumentParser(description='Registers a scene given the filename and the system conf file from MUJIN_BINPICKINGUI_CONFIG and MUJIN_CONFIG_DIR env variables.')
     parser.add_argument('--config', action='store', type=str, dest='config', default=MUJIN_BINPICKINGUI_CONFIG, help="path to binpicking config file")
+    parser.add_argument('--url', action='store', type=str, dest='url', default=None, help="URL to the controller to override the conf file and communicate with another controller. Format is: http://testuser:pass@controller100")
     parser.add_argument('--newname', action='store', type=str, dest='newname', default=None, help="New name to give to the scene filename and to rename the scene")
     parser.add_argument('--overwritename', action='store_true', dest='overwritename', default=False, help="If true, then will use the base name of the filename to overwrite the new name of the scene.")
     (options, args) = parser.parse_known_args()
@@ -27,18 +29,29 @@ if __name__ == "__main__":
     
     scenefilename = args[0]
     
-    assert(os.path.exists(scenefilename))
+    if not os.path.exists(scenefilename):
+        raise ValueError(u'could not find scene %s'%scenefilename)
     
-    conffile = options.config
-    if not os.path.exists(conffile):
-        conffile = os.path.join(os.environ['MUJIN_CONFIG_DIR'], 'controllersystem.conf')
+    if options.url is not None:
+        urlobj = urlparse.urlparse(options.url)
+        username = 'testuser'
+        password = 'pass'
+        if urlobj.username is not None:
+            username = urlobj.username
+        if urlobj.password is not None:
+            password = uurlobj.password
+        self = controllerclientbase.ControllerClient(options.url, username, password)
+    else:
+        conffile = options.config
         if not os.path.exists(conffile):
-            log.warn(u'could not find conf file at %s', os.environ['MUJIN_CONFIG_DIR'])
-            sys.exit(2)
-    
-    userconf = json.load(open(conffile,'r'))
-    
-    self = controllerclientbase.ControllerClient(userconf['controllerurl'], userconf['controllerusername'], userconf['controllerpassword'])
+            conffile = os.path.join(os.environ['MUJIN_CONFIG_DIR'], 'controllersystem.conf')
+            if not os.path.exists(conffile):
+                log.warn(u'could not find conf file at %s', os.environ['MUJIN_CONFIG_DIR'])
+                sys.exit(2)
+        
+        userconf = json.load(open(conffile,'r'))
+        
+        self = controllerclientbase.ControllerClient(userconf['controllerurl'], userconf['controllerusername'], userconf['controllerpassword'])
     
     scenebasename = os.path.split(scenefilename)[1]
     if self.FileExists(scenebasename):
