@@ -194,23 +194,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
-    
-    def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
-        """
-        :param toolname: tool name, string
-        :param limit: number of solutions to return, int
-        :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
-        :param targetname: the target object name that the ikparamnames belong to
-        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
-        :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
 
-        :return: A dictionary of:
-        - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
-        """
-        taskparameters = {'command': 'ComputeIKFromParameters',
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
     
     def InitializePartsWithPhysics(self, timeout=10, **kwargs):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.

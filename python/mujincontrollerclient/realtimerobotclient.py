@@ -465,6 +465,23 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
+    def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
+        """
+        :param toolname: tool name, string
+        :param limit: number of solutions to return, int
+        :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
+        :param targetname: the target object name that the ikparamnames belong to
+        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
+        :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
+
+        :return: A dictionary of:
+        - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
+        """
+        taskparameters = {'command': 'ComputeIKFromParameters',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
+
     def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
         taskparameters = {'command': 'StartIPython'}
         taskparameters.update(kwargs)
