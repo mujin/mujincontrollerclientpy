@@ -230,9 +230,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if fireandforget:
             # for fire and forget commands, no response will be available
             return None
-        
+
         error = GetAPIServerErrorFromZMQ(response)
         if error is not None:
+            log.warn('GetAPIServerErrorFromZMQ returned error for %r', response)
             raise error
         return response['output']
 
