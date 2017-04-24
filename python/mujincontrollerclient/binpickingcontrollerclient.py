@@ -204,6 +204,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param duration: the duration in seconds to continue the physics until it is stopped.
         :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
         :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
+        :param forcegravity: if not None, the gravity with which the objects should fall with. If None, then uses the scene's gravity
         """
         taskparameters = {'command': 'InitializePartsWithPhysics',
                           }
