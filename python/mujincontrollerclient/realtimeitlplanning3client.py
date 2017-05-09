@@ -157,7 +157,20 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
     def StopITLProgram(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the itl program
         """
-        taskparameters = {'command': 'StopITLProgram',
-                          }
+        taskparameters = {
+            'command': 'StopITLProgram',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def GenerateExecutionGraph(self, program, commandTimeout=0.2, totalTimeout=1.0, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """generate list of commands for the itl program
+        """
+        taskparameters = {
+            'command': 'GenerateExecutionGraph',
+            'program': program,
+            'commandTimeout': commandTimeout,
+            'totalTimeout': totalTimeout,
+        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
