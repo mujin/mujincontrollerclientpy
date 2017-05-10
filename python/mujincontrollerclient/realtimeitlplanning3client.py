@@ -117,10 +117,10 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ComputeRobotConfigsForCommandVisualization(self, program, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
+    def ComputeRobotConfigsForCommandVisualization(self, executiongraph, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'ComputeRobotConfigsForCommandVisualization',
-            'program': program,
+            'executiongraph': executiongraph,
             'commandindex': commandindex,
         }
         taskparameters.update(kwargs)
