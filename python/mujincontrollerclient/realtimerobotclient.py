@@ -482,11 +482,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
-        taskparameters = {'command': 'StartIPython'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
     def ReloadModule(self, timeout=10, **kwargs):
         taskparameters = {'command': 'ReloadModule'}
         taskparameters.update(kwargs)

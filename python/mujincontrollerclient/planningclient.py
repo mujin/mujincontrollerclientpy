@@ -367,3 +367,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             viewercommand['pose'] = [float(f) for f in pose]
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
+        configuration = {'startipython': True}
+        configuration.update(kwargs)
+        return self.Configure(configuration, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
