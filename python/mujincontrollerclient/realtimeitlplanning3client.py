@@ -35,32 +35,11 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         :param robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(RealtimeITLPlanning3ControllerClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
-        
-    def SetJointValues(self, jointvalues, robotname=None, timeout=10, usewebapi=True, **kwargs):
-        taskparameters = {
-            'command': 'SetJointValues',
-            'jointvalues': jointvalues,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
+
     def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
-    def MoveToCommand(self, program, commandindex=0, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {
-            'command': 'MoveToCommand',
-            'program': program,
-            'commandindex': commandindex,
-            'envclearance': envclearance,
-        }
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def ExecuteTrajectory(self, identifier, trajectories, statevalues=None, stepping=False, istep=None, cycles=1, restorevalues=None, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
@@ -87,30 +66,6 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
             'command': 'ExecuteTrajectoryStep',
             'reverse': reverse,
         }
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def CancelExecuteTrajectoryStep(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'CancelExecuteTrajectoryStep'}
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def SetPauseExecuteTrajectory(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'SetPauseExecuteTrajectory'}
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def ResumeExecuteTrajectory(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'ResumeExecuteTrajectory'}
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
