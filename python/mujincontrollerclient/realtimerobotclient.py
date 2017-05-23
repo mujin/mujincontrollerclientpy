@@ -615,3 +615,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RestoreSceneInitialState(self, usewebapi=None, timeout=1, **kwargs):
+        """restore scene to the state on filesystem
+        """
+        taskparameters = {
+            'command': 'RestoreSceneInitialState',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
