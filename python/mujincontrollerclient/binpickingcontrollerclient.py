@@ -46,7 +46,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     # robot commands
     #########################
     
-    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=None, timeout=1000, **kwargs):
+    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=None, toolname=None, robotspeed=None, timeout=1000, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -99,7 +99,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
     
-    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=None, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -204,6 +204,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param duration: the duration in seconds to continue the physics until it is stopped.
         :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
         :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
+        :param forcegravity: if not None, the gravity with which the objects should fall with. If None, then uses the scene's gravity
         """
         taskparameters = {'command': 'InitializePartsWithPhysics',
                           }
