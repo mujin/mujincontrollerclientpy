@@ -102,7 +102,7 @@ def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
         if responseerror_message is not None:
             responseerror_message = responseerror_message.encode('utf-8')
         responseerrorcode = content.get('error_code',None)
-        detailerrorcode = content.get('detail_error_code', None)
+        detailerrorcode = content.get('detailerrorcode', None)
     except ValueError:
         raise
         if isinstance(responsecontent, unicode):
