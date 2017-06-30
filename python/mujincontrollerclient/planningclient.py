@@ -212,7 +212,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None):
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', allowrespawn=False, timeout=None, fireandforget=None):
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -225,6 +225,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
+        if allowrespawn:
+            command['allowrespawn'] = True
         response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
         
         if fireandforget:
@@ -237,10 +239,11 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             raise error
         return response['output']
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, allowrespawn=False, timeout=None, fireandforget=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
+        :param allowrespawn: allow the slave to be restarted before processing this command
         :param fireandforget: whether we should return immediately after sending the command
         :return: return the server response in json format
         """
@@ -256,7 +259,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if usewebapi:
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
-            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget)
+            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, allowrespawn=allowrespawn, fireandforget=fireandforget)
 
     #
     # Config
