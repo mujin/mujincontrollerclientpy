@@ -812,6 +812,27 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
         
+    def RunDynamicsIdentificationFrictionTest(self, jointName, minJointAngle, maxJointAngle, minJointSpeed, maxJointSpeed, jointSpeedIncrement, timeout=10, usewebapi=False, **kwargs):
+        taskparameters = {
+            'command': '', # TODO: fill in the command name
+            'jointName': jointName,
+            'minJointAngle': minJointAngle,
+            'maxJointAngle': maxJointAngle,
+            'minJointSpeed': minJointSpeed,
+            'maxJointSpeed': maxJointSpeed,
+            'jointSpeedIncrement': jointSpeedIncrement
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    # def RunDynamicsIdentificationInertiaTest(self):
+    #     # TODO
+    #     pass
+
+    # def RunDynamicsIdentificationCenterOfMassTest(self):
+    #     # TODO
+    #     pass
+
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
         """
