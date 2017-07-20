@@ -811,23 +811,11 @@ class ControllerClient(object):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
-    def RunDynamicsIdentificationFrictionTest(self, timeout=100, usewebapi=False, **kwargs):
-        '''
-        taskparameters = {
-            'command': 'RunDynamicsIdentificationFrictionTest', # TODO: fill in the command name
-            'jointName': jointName,
-            'minJointAngle': minJointAngle,
-            'maxJointAngle': maxJointAngle,
-            'minJointSpeed': minJointSpeed,
-            'maxJointSpeed': maxJointSpeed,
-            'jointSpeedIncrement': jointSpeedIncrement
-        }
+
+    def RunDynamicsIdentificationFrictionTest(self, timeout=10, usewebapi=False, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'RunDynamicsIdentificationFrictionTest'
         taskparameters.update(kwargs)
-        '''
-        taskparameters = kwargs.copy()
-        taskparameters.update({'command': 'RunDynamicsIdentificationFrictionTest'})
-        print taskparameters
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     # def RunDynamicsIdentificationInertiaTest(self):
