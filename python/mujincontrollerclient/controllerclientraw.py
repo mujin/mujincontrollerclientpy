@@ -72,6 +72,9 @@ class ControllerWebClient(object):
             self._language = self._locale.split('.', 1)[0].replace('_', '-').lower()
 
     def Login(self, timeout=5):
+        if timeout == 0:
+            raise ControllerClientError(_('Cannot set timeout to 0, use None if no timeout is desired.'))
+
         session = requests.Session()
         session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
@@ -128,6 +131,9 @@ class ControllerWebClient(object):
         return True
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
+        if timeout == 0:
+            raise ControllerClientError(_('Cannot set timeout to 0, use None if no timeout is desired.'))
+
         if not self.IsLoggedIn():
             self.Login(timeout=timeout)
 
