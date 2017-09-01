@@ -473,6 +473,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
         :param targetname: the target object name that the ikparamnames belong to
         :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
+        :param filteroptionslist: A list of filter option strings can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions
         :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
 
         :return: A dictionary of:
