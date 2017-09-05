@@ -789,7 +789,7 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=1000, usewebapi=False, **kwargs):
+    def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs step response test on specified joint and returns result
         """
         taskparameters = {
