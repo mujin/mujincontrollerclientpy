@@ -98,7 +98,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robotname'] = robotname
 
         log.verbose('robotname = %r, robots = %r', robotname, robots)
-
+        
         if 'robotspeed' not in taskparameters:
             if robotspeed is None:
                 robotspeed = self._robotspeed
@@ -110,8 +110,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                 robotaccelmult = self._robotaccelmult
             if robotaccelmult is not None:
                 taskparameters['robotaccelmult'] = robotaccelmult
-
-        if 'envclearance' not in taskparameters:
+        
+        if 'envclearance' not in taskparameters or taskparameters['envclearance'] is None:
             if envclearance is None:
                 envclearance = self._envclearance
             if envclearance is not None:
@@ -424,7 +424,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -439,10 +439,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'command': 'MoveJoints',
             'goaljoints': list(jointvalues),
             'jointindices': list(jointindices),
-            'envclearance': envclearance,
             'execute': execute,
         }
-
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+        
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
 
@@ -472,6 +473,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
         :param targetname: the target object name that the ikparamnames belong to
         :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
+        :param filteroptionslist: A list of filter option strings can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions
         :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
 
         :return: A dictionary of:
