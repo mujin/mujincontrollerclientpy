@@ -235,6 +235,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if error is not None:
             log.warn('GetAPIServerErrorFromZMQ returned error for %r', response)
             raise error
+        if response is None:
+            log.warn(u'got no response from task %r', taskparameters)
+            return None
+        
         return response['output']
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
