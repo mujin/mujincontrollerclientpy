@@ -487,6 +487,14 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
         assert(status == 202)
 
+    def SetRobotAttachedActuator(self, robotpk, attachedactuatorpk, attachedacturtordata, fields=None, usewebapi=True, timeout=5):
+        """sets the attachedactuatorpk values via a WebAPI PUT call
+        :param attachedacturtordata: key-value pairs of the data to modify on the attachedactuator
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
+        assert(status == 202)
+
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
@@ -811,7 +819,27 @@ class ControllerClient(object):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-        
+
+    def RunDynamicsIdentificationFrictionTest(self, timeout, usewebapi=False, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'RunDynamicsIdentificationFrictionTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetTimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    # def RunDynamicsIdentificationInertiaTest(self):
+    #     # TODO
+    #     pass
+
+    # def RunDynamicsIdentificationCenterOfMassTest(self):
+    #     # TODO
+    #     pass
+
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
         """
