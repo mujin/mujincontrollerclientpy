@@ -299,7 +299,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
     
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
@@ -676,7 +676,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
 
     #
     # Sensor mappings related
