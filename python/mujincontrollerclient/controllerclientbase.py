@@ -299,7 +299,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
     
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
@@ -676,7 +676,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
 
     #
     # Sensor mappings related
@@ -690,7 +690,7 @@ class ControllerClient(object):
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
-        instobjects = response['instobjects']
+        instobjects = response['objects']
         sensormapping = {}
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0:
@@ -714,7 +714,7 @@ class ControllerClient(object):
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
-        instobjects = response['instobjects']
+        instobjects = response['objects']
         cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
