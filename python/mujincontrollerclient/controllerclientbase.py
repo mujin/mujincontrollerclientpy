@@ -831,6 +831,12 @@ class ControllerClient(object):
         taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
+    def GetAutoGenerateFrictionTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetAutoGenerateFrictionTestRangeFromCollision'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     # def RunDynamicsIdentificationInertiaTest(self):
     #     # TODO
