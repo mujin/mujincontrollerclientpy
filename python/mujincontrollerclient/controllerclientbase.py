@@ -880,9 +880,15 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def TimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
+    def GetTimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'TimeToRunDynamicsIdentificationFrictionTest'
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
+    def GetAutoGenerateFrictionTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetAutoGenerateFrictionTestRangeFromCollision'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
