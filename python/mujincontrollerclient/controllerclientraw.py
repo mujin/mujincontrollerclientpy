@@ -80,7 +80,7 @@ class ControllerWebClient(object):
         }
         response = session.get('%s/login/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
-            raise AuthenticationError(_('Failed to authenticate: %r') % response.content)
+            raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
 
         csrftoken = response.cookies.get('csrftoken', None)
 
@@ -98,7 +98,7 @@ class ControllerWebClient(object):
         response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
         if response.status_code != requests.codes.ok:
-            raise AuthenticationError(_('Failed to authenticate: %r') % response.content)
+            raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
 
         self._session = session
         self._csrftoken = csrftoken
@@ -178,17 +178,17 @@ class ControllerWebClient(object):
 
         if request_type == 'HEAD' and response.status_code == 200:
             # just return without doing anything for head
-            return response.status_code, response.content
+            return response.status_code, response.content.decode('utf-8')
 
         if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
-            return response.status_code, response.content
+            return response.status_code, response.content.decode('utf-8')
 
         # try to convert everything else
         try:
             content = json.loads(response.content)
         except ValueError, e:
-            log.warn(u'caught exception during json decode for content (%r): %s', response.content, e)
+            log.warn(u'caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
             self.Logout() # always logout the session when we hit an error
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         
