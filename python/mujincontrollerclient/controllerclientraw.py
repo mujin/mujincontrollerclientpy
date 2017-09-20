@@ -178,11 +178,11 @@ class ControllerWebClient(object):
 
         if request_type == 'HEAD' and response.status_code == 200:
             # just return without doing anything for head
-            return response.status_code, response.content.decode('utf-8')
+            return response.status_code, response.content
 
         if request_type == 'DELETE' and response.status_code == 204:
             # just return without doing anything for deletes
-            return response.status_code, response.content.decode('utf-8')
+            return response.status_code, response.content
 
         # try to convert everything else
         try:
