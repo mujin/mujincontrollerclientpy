@@ -20,7 +20,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
     """
     tasktype = 'binpicking'
     
-    def __init__(self, robotspeed=None, regionname=None, envclearance=10.0, **kwargs):
+    def __init__(self, regionname=None, **kwargs):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -30,7 +30,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no hearbeat is received, e.g. 7
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param robotname: name of the robot, e.g. VP-5243I
-        :param robotspeed: speed of the robot, e.g. 0.4
         :param regionname: name of the bin, e.g. container1
         :param toolname: name of the manipulator, e.g. 2BaseZ
         :param envclearance: environment clearance in milimeter, e.g. 20
@@ -40,26 +39,14 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         super(BinpickingControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         
         # bin picking task
-        self.robotspeed = robotspeed
         self.regionname = regionname
-        self.envclearance = envclearance
-
-    def SetRobotSpeed(self, robotspeed):
-        self.robotspeed = robotspeed
-    
-    def ExecuteCommand(self, taskparameters, robotspeed=None, **kwargs):
-        if 'robotspeed' not in taskparameters:
-            if robotspeed is None:
-                robotspeed = self.robotspeed
-            if robotspeed is not None:
-                taskparameters['robotspeed'] = robotspeed
-        return super(BinpickingControllerClient, self).ExecuteCommand(taskparameters, **kwargs)
+        
     
     #########################
     # robot commands
     #########################
     
-    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=15, toolname=None, robotspeed=None, timeout=1000, **kwargs):
+    def PickAndPlace(self, goaltype, goals, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, freeinc=[0.08], worksteplength=None, densowavearmgroup=5, regionname=None, cameranames=None, envclearance=None, toolname=None, robotspeed=None, timeout=1000, **kwargs):
         """picks up an object with the targetnamepattern and places it down at one of the goals. First computes the entire plan from robot moving to a grasp and then moving to its destination, then runs it on the real robot. Task finishes once the real robot is at the destination.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -112,7 +99,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
     
-    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=15, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=None, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -167,11 +154,15 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
     
-    def StopPickPlaceThread(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
-        :params resetstate: if True, then reset the order state variables
+        :param resetExecutionState: if True, then reset the order state variables. By default True
+        :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
         """
-        taskparameters = {'command': 'StopPickPlaceThread'}
+        taskparameters = {'command': 'StopPickPlaceThread',
+                          'resetExecutionState': resetExecutionState,
+                          'resetStatusPickPlace':resetStatusPickPlace,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
@@ -202,28 +193,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'ComputeIK',
                           }
         taskparameters.update(kwargs)
-        if 'envclearance' not in taskparameters:
-            taskparameters['envclearance'] = self.envclearance
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
-    
-    def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
-        """
-        :param toolname: tool name, string
-        :param limit: number of solutions to return, int
-        :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
-        :param targetname: the target object name that the ikparamnames belong to
-        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
-        :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
 
-        :return: A dictionary of:
-        - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
-        """
-        taskparameters = {'command': 'ComputeIKFromParameters',
-                          }
-        taskparameters.update(kwargs)
-        if 'envclearance' not in taskparameters:
-            taskparameters['envclearance'] = self.envclearance
-        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
     
     def InitializePartsWithPhysics(self, timeout=10, **kwargs):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.
@@ -233,6 +204,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param duration: the duration in seconds to continue the physics until it is stopped.
         :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
         :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
+        :param forcegravity: if not None, the gravity with which the objects should fall with. If None, then uses the scene's gravity
         """
         taskparameters = {'command': 'InitializePartsWithPhysics',
                           }
@@ -439,7 +411,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
                                    timeout=timeout)
 
-    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, usewebapi=True, timeout=10, **kwargs):
+    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, ikparamnames=None, usewebapi=True, timeout=10, **kwargs):
         """
         Check if grasp model is generated for given setup
         :param graspsetname: str. Name of graspset like 'all5d'
@@ -452,7 +424,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'CheckGraspModelIk',
             'graspsetname': graspsetname,
             'targeturi': targeturi,
-            'toolname': toolname
+            'toolname': toolname,
+            'ikparamnames': ikparamnames,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
@@ -482,3 +455,43 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
+    
+    def ClearVisualization(self, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
+        """
+        clears visualization
+        """
+        taskparameters = {'command': 'ClearVisualization'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def GetPlanStatistics(self, timeout=1, usewebapi=True, fireandforget=False, **kwargs):
+        """
+        get plan and execute statistics of the last pick and place
+        """
+        taskparameters = {'command': 'GetPlanStatistics'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def ResetCurrentLayoutData(self, usewebapi=False, fireandforget=True, **kwargs):
+        """
+        resets current layout data
+        """
+        taskparameters = {'command': 'ResetCurrentLayoutData'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
+        
+    def SetCurrentLayoutDataSendOnObjectUpdateData(self, doUpdate, containername=None, containerLayoutSize=None, ioVariableName=None, usewebapi=False, fireandforget=True, **kwargs):
+        """
+        Sets currentLayoutDataSendOnObjectUpdateData structure
+        :param doUpdate: if True then currentLayoutData will be send on every ObjectUpdate, else currentLayoutDataSendOnObjectUpdate structure is reset
+        """
+        taskparameters = {'command': 'SetCurrentLayoutDataSendOnObjectUpdateData',
+                          'doUpdate': doUpdate}
+        if containername is not None:
+            taskparameters['containername'] = containername
+        if containerLayoutSize is not None:
+            taskparameters['containerLayoutSize'] = containerLayoutSize
+        if ioVariableName is not None:
+            taskparameters['ioVariableName'] = ioVariableName
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)

@@ -13,11 +13,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     """
     _robotname = None # optional name of the robot selected
     _robots = None # a dict of robot params
+    _robotspeed = None # speed of the robot, e.g. 0.4
+    _robotaccelmult = None # current robot accel mult
+    _envclearance = None # environment clearance in milimeter, e.g. 20
 
-    def __init__(self, robotname, robots, **kwargs):
+    def __init__(self, robotname, robots, robotspeed=None, robotaccelmult=None, envclearance=10.0, **kwargs):
+        """
+        :param robotspeed: speed of the robot, e.g. 0.4
+        :param envclearance: environment clearance in milimeter, e.g. 20
+        """
         super(RealtimeRobotControllerClient, self).__init__(**kwargs)
         self._robotname = robotname
         self._robots = robots
+        self._robotspeed = robotspeed
+        self._robotaccelmult = robotaccelmult
+        self._envclearance = envclearance
         
     def GetRobotName(self):
         return self._robotname
@@ -27,7 +37,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def GetRobots(self):
         return self._robots
-
+    
+    def SetRobots(self, robots):
+        self._robots = robots
+    
     def GetRobotControllerUri(self):
         robots = self._robots or {}
         return robots.get(self._robotname, {}).get('robotControllerUri', '')
@@ -42,7 +55,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def IsRobotDeviceIOConfigured(self):
         return len(self.GetRobotDeviceIOUri()) > 0
     
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, usewebapi=None, timeout=10, fireandforget=False):
+    def SetRobotSpeed(self, robotspeed):
+        self._robotspeed = robotspeed
+
+    def SetRobotAccelMult(self, robotaccelmult):
+        self._robotaccelmult = robotaccelmult
+    
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -75,10 +94,29 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         
         if robots is not None:
             taskparameters['robots'] = robots
-        if robotname in robots:
+        if robots is None or robotname in robots:
             taskparameters['robotname'] = robotname
 
-        log.verbose('robotname = %s, robots = %r', robotname, robots)
+        log.verbose('robotname = %r, robots = %r', robotname, robots)
+        
+        if 'robotspeed' not in taskparameters:
+            if robotspeed is None:
+                robotspeed = self._robotspeed
+            if robotspeed is not None:
+                taskparameters['robotspeed'] = robotspeed
+
+        if 'robotaccelmult' not in taskparameters:
+            if robotaccelmult is None:
+                robotaccelmult = self._robotaccelmult
+            if robotaccelmult is not None:
+                taskparameters['robotaccelmult'] = robotaccelmult
+        
+        if 'envclearance' not in taskparameters or taskparameters['envclearance'] is None:
+            if envclearance is None:
+                envclearance = self._envclearance
+            if envclearance is not None:
+                taskparameters['envclearance'] = envclearance
+
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
@@ -126,7 +164,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
     
-    def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, timeout=10, **kwargs):
+    def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, robotaccelmult=None, timeout=10, **kwargs):
         """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
         :param goaltype: type of the goal, e.g. translationdirection5d
         :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
@@ -134,16 +172,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param envclearance: clearance in milimeter, default is self.envclearance
         :param closegripper: whether to close gripper once the goal is reached, default is 0
         """
-        if envclearance is None:
-            envclearance = self.envclearance
         taskparameters = {'command': 'MoveToHandPosition',
                           'goaltype': goaltype,
                           'goals': goals,
-                          'envclearance': envclearance,
                           'closegripper': closegripper,
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, envclearance=envclearance, toolname=toolname, timeout=timeout)
     
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
@@ -365,7 +400,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'SaveScene'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
+    def SaveGripper(self, timeout=10, **kwargs):
+        """
+        Separate gripper from a robot in a scene and save it.
+        :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
+        :param robotname: str. Name of robot waiting for extracting hand from.
+        :param manipname: str. Name of manipulator.
+        :param timeout:
+        :return:
+        """
+
+        taskparameters = {'command': 'SaveGripper'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
     def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
         """resets the robot bridge states
         """
@@ -375,7 +424,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=15, timeout=10, usewebapi=True, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -390,19 +439,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'command': 'MoveJoints',
             'goaljoints': list(jointvalues),
             'jointindices': list(jointindices),
-            'envclearance': envclearance,
             'execute': execute,
         }
-
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+        
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
 
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
 
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
@@ -419,6 +465,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
+    def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
+        """
+        :param toolname: tool name, string
+        :param limit: number of solutions to return, int
+        :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
+        :param targetname: the target object name that the ikparamnames belong to
+        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
+        :param filteroptionslist: A list of filter option strings can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions
+        :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
+
+        :return: A dictionary of:
+        - solutions: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
+        """
+        taskparameters = {'command': 'ComputeIKFromParameters',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
     def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
         taskparameters = {'command': 'StartIPython'}
@@ -453,24 +517,38 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
     
+    def ClearRobotBridgeError(self, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'ClearRobotBridgeError',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+
     #
     # jogging related
     #
-    def SetJogModeVelocities(self, jogtype, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+    def SetJogModeVelocities(self, jogtype, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+        """
+        :param jogtype: One of 'joints', 'world', 'robot', 'tool'
+        :param canJogInCheckMode: if true, then allow jogging even if in check mode. By default it is false.
+        """
         taskparameters = {
             'command': 'SetJogModeVelocities',
             'jogtype': jogtype,
             'movejointsigns': movejointsigns,
         }
-        if toolname is not None:
-            taskparameters['toolname'] = toolname
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
+        if canJogInCheckMode is not None:
+            taskparameters['canJogInCheckMode'] = canJogInCheckMode
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def EndJogMode(self,usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'EndJogMode',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
     def SetRobotBridgeServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
         taskparameters = {
             'command': 'SetRobotBridgeServoOn',
@@ -506,3 +584,41 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['unit'] = unit
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
+    
+    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
+        """resets any cached templates
+        """
+        taskparameters = {
+            'command': 'ResetCacheTemplates',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
+        """resets any cached templates
+        """
+        taskparameters = {
+            'command': 'ResetCacheTemplates',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=1, **kwargs):
+        """enables publishing collision data to the robotbridge
+        """
+        taskparameters = {
+            'command': 'SetRobotBridgeExternalIOPublishing',
+            'enable': bool(enable)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
+    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, **kwargs):
+        """enables publishing collision data to the robotbridge
+        """
+        taskparameters = {
+            'command': 'SetIgnoreObjectsFromUpdateWithPrefix',
+            'prefixes': prefixes
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)

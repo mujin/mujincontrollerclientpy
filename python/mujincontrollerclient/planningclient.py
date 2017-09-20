@@ -230,10 +230,15 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if fireandforget:
             # for fire and forget commands, no response will be available
             return None
-        
+
         error = GetAPIServerErrorFromZMQ(response)
         if error is not None:
+            log.warn('GetAPIServerErrorFromZMQ returned error for %r', response)
             raise error
+        if response is None:
+            log.warn(u'got no response from task %r', taskparameters)
+            return None
+        
         return response['output']
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
@@ -243,6 +248,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param fireandforget: whether we should return immediately after sending the command
         :return: return the server response in json format
         """
+        if not 'timestamp' in taskparameters:
+            taskparameters['timestamp'] = int(time.time()*1000.0)
         log.verbose(u'Executing task with parameters: %r', taskparameters)
         if slaverequestid is None:
             slaverequestid = self._slaverequestid

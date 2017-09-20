@@ -299,8 +299,16 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
-
+        return response['objects']
+    
+    def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+    
     def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
@@ -447,9 +455,20 @@ class ControllerClient(object):
         return response['geometries']
 
     #
-    # Tools related
+    # Object Tools related
     #
-
+    def GetRobotTools(self, robotpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response['tools']
+    
+    def GetRobotTool(self, robotpk, toolpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'robot/%s/tool/%s/' % (robotpk, toolpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+    
     def CreateRobotTool(self, robotpk, tooldata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
@@ -469,6 +488,41 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
         assert(status == 204)
 
+    #
+    # InstObject Tools related
+    #
+    
+    def GetInstRobotTools(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response['tools']
+
+    def GetInstRobotTool(self, scenepk, instobjectpk, toolpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/%s' % (scenepk, instobjectpk, toolpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+    
+    def CreateInstRobotTool(self, scenepk, instobjectpk, tooldata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('POST', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
+        assert(status == 201)
+        return response
+    
+    def SetInstRobotTool(self, scenepk, instobjectpk, toolpk, tooldata, fields=None, usewebapi=True, timeout=5):
+        """sets the tool values via a WebAPI PUT call
+        :param tooldata: key-value pairs of the data to modify on the tool
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
+        assert(status == 202)
+    
+    def DeleteInstRobotTool(self, scenepk, instobjectpk, toolpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), timeout=timeout)
+        assert(status == 204)
+    
     #
     # Attached sensors related
     #
@@ -544,9 +598,9 @@ class ControllerClient(object):
         assert(status == 200)
         return response
 
-    def GetResultProgram(self, resultpk, programtype=None, usewebapi=True, timeout=5):
+    def GetResultProgram(self, resultpk, programtype=None, format='dat', usewebapi=True, timeout=5):
         assert(usewebapi)
-        params = {'format': 'dat'}
+        params = {'format': format}
         if programtype is not None and len(programtype) > 0:
             params['type'] = programtype
         # custom http call because APICall currently only supports json
@@ -608,7 +662,7 @@ class ControllerClient(object):
             positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
             positions.resize(len(positions) / 3, 3)
             geometry['positions'] = positions
-            indices = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=uint32)
+            indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
             indices.resize(len(indices) / 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
@@ -622,7 +676,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
 
     #
     # Sensor mappings related
@@ -636,7 +690,7 @@ class ControllerClient(object):
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
-        instobjects = response['instobjects']
+        instobjects = response['objects']
         sensormapping = {}
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0:
@@ -660,7 +714,7 @@ class ControllerClient(object):
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
-        instobjects = response['instobjects']
+        instobjects = response['objects']
         cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
@@ -775,3 +829,80 @@ class ControllerClient(object):
         for part in path.strip('/').split('/'):
             parts.append(part)
             self.MakeDirectory('/'.join(parts), timeout=timeout)
+
+    def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
+        """runs frequency test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningFrequencyTest',
+            'jointName': jointName,
+            'freqMin': freqMin,
+            'freqMax': freqMax,
+            'amplitude': amplitude
+         }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
+        """runs step response test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningStepTest',
+            'jointName': jointName,
+            'amplitude': amplitude
+        }
+        taskparameters.update(kwargs)
+        log.warn('sending taskparameters=%r', taskparameters)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
+        """runs maximum length sequence test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningMaximulLengthSequence',
+            'jointName': jointName,
+            'amplitude': amplitude
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
+    def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets motor control parameter schema
+        """
+        taskparameters = {
+            'command': 'GetMotorControlParameterSchema',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetMotorControlParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
+        """Gets motor control parameters as name-value dict
+        """
+        taskparameters = {
+            'command': 'GetMotorControlParameter',
+            'jointName' : jointName,
+            'parameterName' : parameterName
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetMotorControlParameters(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets cached motor control parameters as name-value dict
+        """
+        taskparameters = {
+            'command': 'GetMotorControlParameters'
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def SetMotorControlParameter(self, jointName, parameterName, parameterValue, timeout=10, usewebapi=False, **kwargs):
+        """Sets motor control parameter
+        """
+        taskparameters = {
+            'command': 'SetMotorControlParameter',
+            'jointName': jointName,
+            'parameterName': parameterName,
+            'parameterValue': parameterValue
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
