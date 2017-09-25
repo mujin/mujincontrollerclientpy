@@ -60,7 +60,7 @@ class APIServerError(Exception):
     responseerrorcode = None # the error code coming from the server
     responsestacktrace = None # the traceback from the error. should be unicode
     inputcommand = None # the command sent to the server
-    def __init__(self, responseerror_message, responsestacktrace=None, responseerrorcode=None, inputcommand=None):
+    def __init__(self, responseerror_message, responsestacktrace=None, responseerrorcode=None, inputcommand=None, detailerrorcode=None):
         if isinstance(responseerror_message, unicode):
             self.responseerror_message = responseerror_message
         elif responseerror_message is not None:
@@ -72,7 +72,7 @@ class APIServerError(Exception):
 
         self.responseerrorcode = responseerrorcode
         self.inputcommand = inputcommand
-        
+        self.detailerrorcode = detailerrorcode
     def __unicode__(self):
         if self.responseerror_message is not None:
             return self.responseerror_message
@@ -83,7 +83,10 @@ class APIServerError(Exception):
         return unicode(self).encode('utf-8')
     
     def __repr__(self):
-        return '<%s(%r, %r, %r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsestacktrace, self.responseerrorcode, self.inputcommand)
+        if self.detailerrorcode is None:
+            return '<%s(%r, %r, %r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsestacktrace, self.responseerrorcode, self.inputcommand)
+        else:
+            return '<%s(%r, %r, %r, %r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsestacktrace, self.responseerrorcode, self.inputcommand, self.detailerrorcode)
 
 def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
     inputcommand = {'request_type':request_type, 'url':url, 'status_code':status_code}
@@ -95,16 +98,18 @@ def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
         responsestacktrace = content.get('stacktrace',None)
         if responsestacktrace is not None:
             responsestacktrace = responsestacktrace.encode('utf-8')
-        responseerror_message = content.get('error_message', None)
+        responseerror_message = content.get('errormessage', None)
         if responseerror_message is not None:
             responseerror_message = responseerror_message.encode('utf-8')
-        responseerrorcode = content.get('error_code',None)
+        responseerrorcode = content.get('errorcode',None)
+        detailerrorcode = content.get('detailerrorcode', None)
     except ValueError:
+        raise
         if isinstance(responsecontent, unicode):
             responseerror_message = responsecontent.encode('utf-8')
         else:
             responseerror_message = responsecontent
-    return APIServerError(responseerror_message, responsestacktrace, responseerrorcode, inputcommand)
+    return APIServerError(responseerror_message, responsestacktrace, responseerrorcode, inputcommand, detailerrorcode=detailerrorcode)
 
 def GetAPIServerErrorFromZMQ(response):
     """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
@@ -114,7 +119,7 @@ def GetAPIServerErrorFromZMQ(response):
     
     if 'error' in response:
         if isinstance(response['error'], dict):
-            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
+            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'], detailerrorcode=response['error'].get('detailerrorcode', None))
         
         else:
             return APIServerError(response['error'])
