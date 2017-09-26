@@ -81,7 +81,7 @@ class ZmqSocketPool(object):
             try:
                 self._ctxown.destroy()
             except Exception:
-                log.exception()
+                log.exception('caught exception when destroying context')
             self._ctxown = None
         self._ctx = None
 
@@ -110,9 +110,10 @@ class ZmqSocketPool(object):
         self._closecount += 1
         del self._sockets[socket]
         try:
-            socket.close()
+            # make sure we do not linger when closing socket
+            socket.close(linger=0)
         except:
-            log.exception()
+            log.exception('caught exception when closing socket')
 
     def _StartPollingSocket(self, socket):
         assert(socket not in self._pollingsockets)
@@ -139,7 +140,7 @@ class ZmqSocketPool(object):
                     socket.recv(zmq.NOBLOCK)
                 except:
                     # when error occur, throw the socket away
-                    log.exception()
+                    log.exception('caught exception when recv')
                     self._StopPollingSocket(socket)
                     self._CloseSocket(socket)
                     continue
