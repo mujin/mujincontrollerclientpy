@@ -4,8 +4,9 @@
 # logging
 import time
 import zmq
+import weakref
 
-from . import TimeoutError
+from . import TimeoutError, UserInterrupt
 
 import logging
 log = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ class ZmqSocketPool(object):
 
     def _OpenSocket(self):
         if not self._isok:
-            return None
+            raise UserInterrupt(u'Cannot open socket to %s, pool is going away' % (self._url,))
 
         socket = self._ctx.socket(zmq.REQ)
         socket.connect(self._url)
@@ -198,8 +199,7 @@ class ZmqSocketPool(object):
             # otherwise, wait by a small blocking poll
             self._Poll(timeout=50)
 
-        # TODO: raise UserInterrupt
-        return None
+        raise UserInterrupt(u'Interrupted when waiting for a socket to %s to become available, pool is going away' % (self._url,))
 
     def ReleaseSocket(self, socket, reuse=True):
         """release a socket after use, if caller did not call recv, the pool will take care of that
@@ -211,13 +211,107 @@ class ZmqSocketPool(object):
             else:
                 self._CloseSocket(socket)
 
+class ZmqClientHandle(object):
+
+    _isok = False
+    _client = None # weakref to ZmqClient
+    _socket = None # raw zmq socket to be returned back to the pool
+
+    def __init__(self, client, socket):
+        self._client = client
+        self._socket = socket
+        self._isok = True
+
+    def __del__(self):
+        self.Destroy()
+
+    def SetDestroy(self):
+        self._isok = False
+
+    def Destroy(self):
+        self.SetDestroy()
+
+        if self._client is not None:
+            self._client.CloseHandle(self)
+            self._client = None
+        if self._socket is not None:
+            log.warn('a leftover socket was not returned to the pool, closing immediately: %r', self._socket)
+            self._socket.close(linger=0)
+            self._socket = None
+
+    def Close(self):
+        self.Destroy()
+    
+    def SendCommand(self, command, timeout=10.0, sendjson=True):
+        """sends command via established zmq socket
+
+        :param command: command in json format
+        :param timeout: if None, block. If >= 0, use as timeout
+        :param sendjson: if True (default), will send data as json
+        """
+
+        # send phase
+        starttime = time.time()
+        while self._isok:
+            # timeout checking
+            elapsedtime = time.time() - starttime
+            if timeout is not None and elapsedtime > timeout:
+                raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._client.GetURL(), elapsedtime))
+            
+            # poll to see if we can send, if not, loop
+            if self._socket.poll(50, zmq.POLLOUT) == 0:
+                continue
+
+            if sendjson:
+                self._socket.send_json(command, zmq.NOBLOCK)
+            else:
+                self._socket.send(command, zmq.NOBLOCK)
+
+            # break when successfully sent
+            return
+
+        raise UserInterrupt(u'Interrupted during send to %s' % (self._client.GetURL(),))
+
+    def ReceiveResponse(self, timeout=10.0, recvjson=True):
+        """receive response to a previous SendCommand call, SendCommand must be called with blockwait=False and fireandforget=False
+
+        :param timeout: if None, block. If >= 0, use as timeout
+        :param recvjson: if True (default), will parse received data as json
+
+        :return: returns the recv or recv_json response
+        """
+
+        # receive phase
+        starttime = time.time()
+        while self._isok:
+            # timeout checking
+            elapsedtime = time.time() - starttime
+            if timeout is not None and elapsedtime > timeout:
+                raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._client.GetURL(), elapsedtime, timeout))
+            
+            # poll to see if something has been received, if received nothing, loop
+            startpolltime = time.time()
+            waitingevents = self._socket.poll(50, zmq.POLLIN)
+            endpolltime = time.time()
+            if endpolltime - startpolltime > 0.2: # due to python delays sometimes this can be 0.11s
+                log.critical('polling time took %fs!', endpolltime - startpolltime)
+            if waitingevents == 0:
+                continue
+            
+            if recvjson:
+                return self._socket.recv_json(zmq.NOBLOCK)
+            else:
+                return self._socket.recv(zmq.NOBLOCK)
+
+        raise UserInterrupt(u'Interrupted during receive to %s' % (self._client.GetURL(),))
+
 class ZmqClient(object):
 
     _hostname = None
     _port = None
     _url = None
     _pool = None
-    _socket = None
+    _handles = None
     _isok = False
     
     def __init__(self, hostname, port, ctx=None, limit=100):
@@ -234,7 +328,7 @@ class ZmqClient(object):
         self._url = 'tcp://%s:%d' % (self._hostname, self._port)
 
         self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit)
-        self._socket = None
+        self._handles = []
         self._isok = True
     
     def __del__(self):
@@ -243,6 +337,9 @@ class ZmqClient(object):
     def Destroy(self):
         self.SetDestroy()
 
+        for handle in (self._handles or []):
+            handle.Destroy()
+        self._handles = None
         if self._pool is not None:
             self._ReleaseSocket()
             self._pool.Destroy()
@@ -250,6 +347,8 @@ class ZmqClient(object):
 
     def SetDestroy(self):
         self._isok = False
+        for handle in (self._handles or []):
+            handle.SetDestroy()
         if self._pool is not None:
             self._pool.SetDestroy()
 
@@ -263,6 +362,11 @@ class ZmqClient(object):
         """
         return self._port
 
+    def GetURL(self):
+        """returns the url socket is connected to
+        """
+        return self._url
+
     # TODO: this is for backward compatibility, remove once all callers are updated
     @property
     def hostname(self):
@@ -273,122 +377,59 @@ class ZmqClient(object):
     def port(self):
         return self._port
 
-    def _AcquireSocket(self, timeout=None):
-        # if we were holding on to a socket before, release it before acquiring one
-        self._ReleaseSocket()
-        self._socket = self._pool.AcquireSocket(timeout=timeout)
-
-    def _ReleaseSocket(self):
-        if self._socket is not None:
-            self._pool.ReleaseSocket(self._socket)
-            self._socket = None
-    
     def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True):
         """sends command via established zmq socket
 
         :param command: command in json format
         :param timeout: if None, block. If >= 0, use as timeout
-        :param blockwait: if True (default), will call receive also, otherwise, caller needs to call ReceiveCommand later
+        :param blockwait: if True (default), will call receive also, otherwise, caller needs to call ReceiveResponse later on the returned handle
         :param fireandforget: if True, will send command and immediately return without trying to receive, blockwait will be set to False
         :param sendjson: if True (default), will send data as json
         :param recvjson: if True (default), will parse received data as json
         
         :return: returns the response from the zmq server in json format if blockwait is True
         """
-        log.verbose(u'Sending command via ZMQ: %s', command)
 
-        if fireandforget:
-            blockwait = False
+        releasehandle = True
+        handle = self.OpenHandle(timeout=timeout)
 
-        # acquire a socket for sending
-        self._AcquireSocket(timeout=timeout)
-
-        # we may be exiting, the pool refused to give us a socket
-        if not self._isok or self._socket is None:
-            # TODO: raise UserInterrupt
-            return None
-
-        releasesocket = True
         try:
-            # send phase
-            starttime = time.time()
-            while self._isok:
-                # timeout checking
-                elapsedtime = time.time() - starttime
-                if timeout is not None and elapsedtime > timeout:
-                    raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._url, elapsedtime))
-                
-                # poll to see if we can send, if not, loop
-                if self._socket.poll(50, zmq.POLLOUT) == 0:
-                    continue
+            handle.SendCommand(command, timeout=timeout, sendjson=sendjson)
 
-                if sendjson:
-                    self._socket.send_json(command, zmq.NOBLOCK)
-                else:
-                    self._socket.send(command, zmq.NOBLOCK)
-
-                # break when successfully sent
-                break
-
-            # for fire and forget, no need to receive
             if fireandforget:
-                return None
+                return
 
-            # keep the socket and let caller call receive
             if not blockwait:
-                releasesocket = False
-                return None
+                releasehandle = False
+                return handle
 
-            # receive
-            return self.ReceiveCommand(timeout=timeout, recvjson=recvjson)
-
+            return handle.ReceiveResponse(timeout=timeout, recvjson=recvjson)
         finally:
-            # release socket
-            if releasesocket:
-                self._ReleaseSocket()
+            if releasehandle and handle is not None:
+                handle.Close()
+            handle = None
 
-        # TODO: raise UserInterrupt
-        return None
-
-
-    def ReceiveCommand(self, timeout=10.0, recvjson=True):
-        """receive response to a previous SendCommand call, SendCommand must be called with blockwait=False and fireandforget=False
+    def OpenHandle(self, timeout=10.0):
+        """acquire a handle to communicate
 
         :param timeout: if None, block. If >= 0, use as timeout
-        :param recvjson: if True (default), will parse received data as json
-
-        :return: returns the recv or recv_json response
         """
+        socket = self._pool.AcquireSocket(timeout=timeout)
+        handle = ZmqClientHandle(weakref.proxy(self), socket)
+        self._handles.append(handle)
+        return handle
 
-        # should have called SendCommand with blockwait=False first
-        assert(self._socket is not None)
+    def CloseHandle(self, handle):
+        """closes a handle, returns its socket to the pool
+        """
+        if handle not in self._handles:
+            return
+        if handle._socket is not None:
+            self._pool.ReleaseSocket(handle._socket)
+        handle._isok = False
+        handle._client = None
+        handle._socket = None
+        self._handles.remove(handle)
+        
+        
 
-        try:
-            # receive phase
-            starttime = time.time()
-            while self._isok:
-                # timeout checking
-                elapsedtime = time.time() - starttime
-                if timeout is not None and elapsedtime > timeout:
-                    raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
-                
-                # poll to see if something has been received, if received nothing, loop
-                startpolltime = time.time()
-                waitingevents = self._socket.poll(50, zmq.POLLIN)
-                endpolltime = time.time()
-                if endpolltime - startpolltime > 0.2: # due to python delays sometimes this can be 0.11s
-                    log.critical('polling time took %fs!', endpolltime-startpolltime)
-                if waitingevents == 0:
-                    continue
-                
-                if recvjson:
-                    return self._socket.recv_json(zmq.NOBLOCK)
-                else:
-                    return self._socket.recv(zmq.NOBLOCK)
-
-        finally:
-            # release socket
-            self._ReleaseSocket()
-
-        # TODO: raise UserInterrupt
-        return None

@@ -130,6 +130,9 @@ class TimeoutError(Exception):
 class AuthenticationError(Exception):
     pass
 
+class UserInterrupt(Exception):
+    pass
+
 class ControllerClientError(ClientExceptionBase):
     def __unicode__(self):
         return _('Controller Client Error:\n%s')%self.msg
