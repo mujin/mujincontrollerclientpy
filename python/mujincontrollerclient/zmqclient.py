@@ -341,7 +341,6 @@ class ZmqClient(object):
             handle.Destroy()
         self._handles = None
         if self._pool is not None:
-            self._ReleaseSocket()
             self._pool.Destroy()
             self._pool = None
 
