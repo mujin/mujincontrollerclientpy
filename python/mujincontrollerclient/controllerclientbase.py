@@ -206,12 +206,12 @@ class ControllerClient(object):
         # note that /fileupload does not have trailing slash for some reason
         response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
         
         try:
             content = json.loads(response.content)
         except ValueError:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
         
         return content['filename']
 
@@ -299,7 +299,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
     
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
@@ -684,7 +684,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
-        return response['instobjects']
+        return response['objects']
 
     #
     # Sensor mappings related
@@ -698,7 +698,7 @@ class ControllerClient(object):
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
-        instobjects = response['instobjects']
+        instobjects = response['objects']
         sensormapping = {}
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0:
@@ -722,7 +722,7 @@ class ControllerClient(object):
             scenepk = self.scenepk
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
         assert(status == 200)
-        instobjects = response['instobjects']
+        instobjects = response['objects']
         cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
@@ -746,7 +746,7 @@ class ControllerClient(object):
         """
         response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [200, 301, 404]:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
         return response.status_code != 404
 
     def ConstructFileFullURL(self, filename):
@@ -769,14 +769,14 @@ class ControllerClient(object):
         """
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
         
         return response
 
     def UploadFile(self, path, f, timeout=5):
         response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f, timeout=timeout)
         if response.status_code not in [201, 201, 204]:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
 
     def ListFiles(self, path='', depth=None, timeout=5):
         """
@@ -789,7 +789,7 @@ class ControllerClient(object):
             depth = 'infinity'
         response = self._webclient.Request('PROPFIND', path, headers={'Depth': str(depth)}, timeout=timeout)
         if response.status_code not in [207]:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
 
         import xml.etree.cElementTree as xml
         import email.utils
@@ -804,7 +804,8 @@ class ControllerClient(object):
         for e in tree.findall('{DAV:}response'):
             name = prop(e, 'href')
             assert(name.startswith(path))
-            name = name[len(path):].strip('/')
+            # webdav returns quoted utf-8 filenames, so we decode here to unicode
+            name = unquote(name[len(path):].strip('/')).decode('utf-8')
             size = int(prop(e, 'getcontentlength', 0))
             isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
             modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
@@ -822,7 +823,7 @@ class ControllerClient(object):
     def DeleteFile(self, path, timeout=5):
         response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [204, 404]:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
 
     def DeleteDirectory(self, path, timeout=5):
         self.DeleteFile(path, timeout=timeout)
@@ -830,7 +831,7 @@ class ControllerClient(object):
     def MakeDirectory(self, path, timeout=5):
         response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [201, 301, 405]:
-            raise ControllerClientError(response.content)
+            raise ControllerClientError(response.content.decode('utf-8'))
 
     def MakeDirectories(self, path, timeout=5):
         parts = []
