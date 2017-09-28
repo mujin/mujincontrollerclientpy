@@ -874,21 +874,26 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
+    #Calls RunDynamicsIdentificationFrictionTest in realtimerobottask3.py from systemmanager.py
+    #sends dict and commandName for func handing in realtimerobottaskpy
     def RunDynamicsIdentificationFrictionTest(self, timeout, usewebapi=False, **kwargs):
         taskparameters = dict()
         taskparameters['command'] = 'RunDynamicsIdentificationFrictionTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
+    #Calls GetTimeToRunDynamicsIdentificationFrictionTest in realtimerobottask3.py from systemmanager.py
+    #sends dict and commandName for func handing in realtimerobottask3. py
     def GetTimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
         taskparameters = dict()
         taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-        
-    def GetAutoGenerateFrictionTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
+
+    #Calls CalculateTestRangeFromCollision in realtimerobottask3.py from systemmanager.py
+    #sends dict and commandName for func handing in realtimerobottask3.py
+    def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'GetAutoGenerateFrictionTestRangeFromCollision'
+        taskparameters['command'] = 'CalculateTestRangeFromCollision'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
