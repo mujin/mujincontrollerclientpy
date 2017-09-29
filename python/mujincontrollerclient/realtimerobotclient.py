@@ -61,7 +61,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def SetRobotAccelMult(self, robotaccelmult):
         self._robotaccelmult = robotaccelmult
     
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
+    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False, blockwait=True):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -117,7 +117,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             if envclearance is not None:
                 taskparameters['envclearance'] = envclearance
 
-        return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget, blockwait=blockwait)
     
     def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
         """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
@@ -366,12 +366,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
-    def CalibrateGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def CalibrateGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, blockwait=True, **kwargs):
         """goes through the gripper calibration procedure
         """
         taskparameters = {'command': 'CalibrateGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget, blockwait=blockwait)
 
     def StopGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'StopGripper'}
@@ -424,7 +424,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, blockwait=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -448,7 +448,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['startvalues'] = list(startvalues)
 
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
 
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
