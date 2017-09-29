@@ -212,7 +212,11 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None):
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, blockwait=True):
+        """
+        :param blockwait: If False, caller needs to call ReceiveResponse later on the returned handle (default: {True})
+        """
+
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -225,11 +229,14 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
-        response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+        response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, blockwait=blockwait)
         
         if fireandforget:
             # for fire and forget commands, no response will be available
             return None
+        if not blockwait: 
+            # Return handle
+            return response
 
         error = GetAPIServerErrorFromZMQ(response)
         if error is not None:
@@ -241,12 +248,21 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         
         return response['output']
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
+    def ReceiveResponse(self, handle, timeout=2.0):
+        response = handle.ReceiveResponse(timeout=timeout)
+        self._commandsocket.CloseHandle(handle)
+        return response
+
+    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None, blockwait=True):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
         :param fireandforget: whether we should return immediately after sending the command
-        :return: return the server response in json format
+        :param blockwait: If False, caller needs to call ReceiveResponse later on the returned handle (default: {True})
+        :return:
+            If blockwait, (ZmqClientHandle)
+            If fireandforget, None
+            Otherwise, (str) json response
         """
         if not 'timestamp' in taskparameters:
             taskparameters['timestamp'] = int(time.time()*1000.0)
@@ -260,7 +276,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if usewebapi:
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
-            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget)
+            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget, blockwait=blockwait)
 
     #
     # Config
