@@ -379,14 +379,14 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def ReplaceBodies(self, bodieslist, timeout=10, usewebapi=False, blockwait=True, **kwargs):
+    def ReplaceBodies(self, bodieslist, timeout=10, usewebapi=False, blockwait=True, fireandforget=False, **kwargs):
         """replaces bodies
         """
         taskparameters = {'command': 'ReplaceBodies',
                           'bodieslist': bodieslist
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait, fireandforget=fireandforget)
 
     def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=True,
                                        timeout=10, **kwargs):
