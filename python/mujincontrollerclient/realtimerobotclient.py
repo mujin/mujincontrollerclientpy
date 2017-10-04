@@ -450,13 +450,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
 
-    def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
+    def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, blockwait=True, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
             'iovalues': list(iovalues)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
 
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
@@ -509,13 +509,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, usewebapi=None, **kwargs):
+    def SetRobotBridgeIOVariables(self, iovalues, timeout=10, usewebapi=None, blockwait=True, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
             'iovalues': list(iovalues),
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
     
     def ClearRobotBridgeError(self, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
