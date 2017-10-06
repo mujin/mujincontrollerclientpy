@@ -523,7 +523,17 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-
+    
+    def SetRobotBridgePause(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetRobotBridgePause'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def SetRobotBridgeResume(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetRobotBridgeResume'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     #
     # jogging related
     #
