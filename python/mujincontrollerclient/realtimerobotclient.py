@@ -45,16 +45,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         robots = self._robots or {}
         return robots.get(self._robotname, {}).get('robotControllerUri', '')
 
-    def GetRobotDeviceIOParam(self):
+    def GetRobotDevices(self):
         robots = self._robots or {}
-        return robots.get(self._robotname, {}).get('robotDeviceIOParam', None)
+        return robots.get(self._robotname, {}).get('devices', None)
     
     def IsRobotControllerConfigured(self):
         return len(self.GetRobotControllerUri()) > 0
     
     def IsRobotDeviceIOConfigured(self):
-        robotDeviceIOParam = self.GetRobotDeviceIOParam() or {}
-        return len(robotDeviceIOParam.get('host', '')) > 0
+        devices = self.GetRobotDevices() or []
+        if len(devices) > 0:
+            return any([len(deviceParams.get('params',{}).get('host','')) > 0 for deviceParams in devices])
+        
+        return False
     
     def SetRobotSpeed(self, robotspeed):
         self._robotspeed = robotspeed
