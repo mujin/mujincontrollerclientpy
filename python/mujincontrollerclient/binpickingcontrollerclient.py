@@ -495,3 +495,20 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['ioVariableName'] = ioVariableName
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def StartPackFormationComputationThread(self, timeout=10, usewebapi=None, **kwargs):
+        """Start a background loop to copmute packing formation. 
+        """
+        taskparameters = {'command': 'StartPackFormationComputationThread',
+                          'debuglevel': debuglevel,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
+    
+    def StopPackFormationComputationThread(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        """
+        taskparameters = {'command': 'StopPickPlaceThread',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
