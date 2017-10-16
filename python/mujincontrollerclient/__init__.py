@@ -93,17 +93,10 @@ def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
     try:
         content = json.loads(responsecontent)
         responsestacktrace = content.get('stacktrace',None)
-        if responsestacktrace is not None:
-            responsestacktrace = responsestacktrace.encode('utf-8')
         responseerror_message = content.get('error_message', None)
-        if responseerror_message is not None:
-            responseerror_message = responseerror_message.encode('utf-8')
         responseerrorcode = content.get('error_code',None)
     except ValueError:
-        if isinstance(responsecontent, unicode):
-            responseerror_message = responsecontent.encode('utf-8')
-        else:
-            responseerror_message = responsecontent
+        responseerror_message = responsecontent
     return APIServerError(responseerror_message, responsestacktrace, responseerrorcode, inputcommand)
 
 def GetAPIServerErrorFromZMQ(response):
