@@ -45,15 +45,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         robots = self._robots or {}
         return robots.get(self._robotname, {}).get('robotControllerUri', '')
 
-    def GetRobotDeviceIOUri(self):
+    def GetRobotDevices(self):
         robots = self._robots or {}
-        return robots.get(self._robotname, {}).get('robotDeviceIOUri', '')
+        return robots.get(self._robotname, {}).get('devices', None)
     
     def IsRobotControllerConfigured(self):
         return len(self.GetRobotControllerUri()) > 0
     
     def IsRobotDeviceIOConfigured(self):
-        return len(self.GetRobotDeviceIOUri()) > 0
+        devices = self.GetRobotDevices() or []
+        if len(devices) > 0:
+            return any([len(deviceParams.get('params',{}).get('host','')) > 0 for deviceParams in devices])
+        
+        return False
     
     def SetRobotSpeed(self, robotspeed):
         self._robotspeed = robotspeed
@@ -523,7 +527,17 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-
+    
+    def SetRobotBridgePause(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetRobotBridgePause'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def SetRobotBridgeResume(self, timeout=10, **kwargs):
+        taskparameters = {'command': 'SetRobotBridgeResume'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     #
     # jogging related
     #
