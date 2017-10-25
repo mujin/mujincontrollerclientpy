@@ -617,7 +617,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=1, **kwargs):
+    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
         """
         taskparameters = {
@@ -625,7 +625,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'enable': bool(enable)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
         
     def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, blockwait=True, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
