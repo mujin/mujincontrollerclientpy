@@ -712,9 +712,9 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'scene/%s/' % scenepk, fields='instobjects', timeout=timeout)
         assert(status == 200)
-        instobjects = response['objects']
+        instobjects = response['instobjects']
         cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
