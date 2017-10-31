@@ -462,6 +462,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
+    def GetRobotBridgeIOVariableAsciiHex16(self, ioname, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'GetRobotBridgeIOVariableAsciiHex16',
+            'ioname': ioname
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'ComputeIkParamPosition',
