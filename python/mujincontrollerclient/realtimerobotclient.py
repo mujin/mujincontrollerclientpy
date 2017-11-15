@@ -393,6 +393,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
+    def ExecuteRobotProgram(self, robotProgramName, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """execute a robot specific program by name
+        """
+        taskparameters = {
+            'command': 'ExecuteRobotProgram',
+            'robotProgramName': robotProgramName,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
