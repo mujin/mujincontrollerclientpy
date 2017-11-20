@@ -736,3 +736,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def IsProfilingRunning(self, timeout=10, usewebapi=False):
+        """Queries if profiling is running on planning
+        """
+        return self.ExecuteCommand({ 'command': 'IsProfilingRunning' }, usewebapi=usewebapi, timeout=timeout)
+
+    def StartProfiling(self, timeout=10, usewebapi=False):
+        """Start profiling planning 
+        """
+        return self.ExecuteCommand({ 'command': 'StartProfiling' }, usewebapi=usewebapi, timeout=timeout)
+
+    def StopProfiling(self, timeout=10, usewebapi=False):
+        """Stop profiling planning 
+        """
+        return self.ExecuteCommand({ 'command': 'StopProfiling' }, usewebapi=usewebapi, timeout=timeout)
+
