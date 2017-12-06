@@ -104,10 +104,11 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
-    def StartITLProgram(self, program, parameters=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+
+    def StartITLProgram(self, taskname, program, parameters=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'StartITLProgram',
+            'taskname': taskname,
             'program': program,
             'parameters': parameters,
         }
@@ -115,6 +116,24 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def DeleteITLProgram(self, taskname, program, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'DeleteITLProgram',
+            'taskname': taskname,
+            'program': program,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def RenameITLProgram(self, taskname, program, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'RenameITLProgram',
+            'taskname': taskname,
+            'program': program,
+        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
