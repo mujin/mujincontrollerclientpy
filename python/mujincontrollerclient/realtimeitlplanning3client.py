@@ -128,20 +128,20 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def RenameITLProgram(self, taskname, program, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+    def RenameITLProgram(self, oldName, newName, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'RenameITLProgram',
-            'taskname': taskname,
-            'program': program,
+            'oldName': oldName,
+            'newName': newName,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def CopyITLProgram(self, taskname, program, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+    def CopyITLProgram(self, oldName, newName, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'CopyITLProgram',
-            'taskname': taskname,
-            'program': program,
+            'oldName': oldName,
+            'newName': newName,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
