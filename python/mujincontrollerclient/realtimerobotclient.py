@@ -184,7 +184,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, envclearance=envclearance, toolname=toolname, timeout=timeout)
     
-    def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
+    def UpdateObjects(self, envstate, targetname=None, unit="mm", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
         :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0], 'object_uri':'mujin:/asdfas.mujin.dae'}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
         :param unit: unit of envstate
@@ -197,8 +197,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['objectname'] = targetname
             taskparameters['object_uri'] = u'mujin:/%s.mujin.dae' % (targetname)
         taskparameters.update(kwargs)
-        if state is not None:
-            taskparameters['state'] = json.dumps(state)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def Grab(self, targetname, toolname=None, timeout=10, **kwargs):
@@ -428,15 +426,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'SaveGripper'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
-    def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
-        """resets the robot bridge states
-        """
-        taskparameters = {
-            'command': 'ResetRobotBridges'
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi)
     
     def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
@@ -463,14 +452,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
-
-    def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        taskparameters = {
-            'command': 'SetRobotBridgeIOVariables',
-            'iovalues': list(iovalues)
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
@@ -608,15 +589,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['unit'] = unit
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
-    
-    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
-        """resets any cached templates
-        """
-        taskparameters = {
-            'command': 'ResetCacheTemplates',
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
         """resets any cached templates
