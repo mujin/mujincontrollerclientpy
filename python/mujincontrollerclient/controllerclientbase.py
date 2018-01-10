@@ -720,10 +720,11 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
+        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, url_params={'limit': 0}, fields='attachedsensors,object_pk,name', timeout=timeout)
         assert(status == 200)
         instobjects = response['objects']
-        cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
+        cameracontainernames = set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
+        sensormapping = dict(sensormapping)
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
                 cameracontainerpk = instobject['object_pk']
@@ -736,6 +737,9 @@ class ControllerClient(object):
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
                             status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
+                        del sensormapping[camerafullname]
+        if sensormapping:
+            raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
     #
     # WebDAV related
