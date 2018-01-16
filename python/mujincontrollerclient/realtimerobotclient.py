@@ -480,6 +480,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
+    def ComputeObjectTransformToManip(self, bodyname, ikparamname, transformtype='origin', robotname=None, timeout=10, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'ComputeObjectTransformToManip',
+            'bodyname': bodyname,
+            'ikparamname': ikparamname,
+            'transformtype': transformtype,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
     def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
         """
         :param toolname: tool name, string
