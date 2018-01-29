@@ -691,10 +691,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters['command'] = 'RunDynamicsIdentificationFrictionTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def GetTimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
+    
+    def RunDynamicsIdentificationComTest(self, timeout, usewebapi=False, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
+        taskparameters['command'] = 'RunDynamicsIdentificationComTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetTimeToRunDynamicsIdentificationTriangularTraj(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTriangularTraj'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
