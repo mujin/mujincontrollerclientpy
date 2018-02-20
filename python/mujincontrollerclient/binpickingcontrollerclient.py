@@ -536,3 +536,13 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def GetLatestPackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """
+        Gets latest pack formation computation result
+        """
+        taskparameters = {'command': 'GetLatestPackFormationResult',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        
