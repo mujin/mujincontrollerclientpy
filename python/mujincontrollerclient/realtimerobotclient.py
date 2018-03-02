@@ -415,7 +415,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SaveGripper(self, timeout=10, **kwargs):
+    def SaveGripper(self, timeout=10, robotname=None,  **kwargs):
         """
         Separate gripper from a robot in a scene and save it.
         :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
@@ -427,7 +427,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters = {'command': 'SaveGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
 
     def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
         """resets the robot bridge states
