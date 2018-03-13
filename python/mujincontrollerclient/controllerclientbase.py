@@ -911,3 +911,24 @@ class ControllerClient(object):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    #
+    # Log related
+    #
+
+    def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False):
+        """ restarts controller
+        """
+        params = {
+            'keyword': (keyword or '').strip(),
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+            'level': level,
+        }
+
+        response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=1)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
+        return json.loads(response.content)
