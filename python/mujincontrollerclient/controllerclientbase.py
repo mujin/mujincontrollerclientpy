@@ -916,7 +916,7 @@ class ControllerClient(object):
     # Log related
     #
 
-    def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False):
+    def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """ restarts controller
         """
         params = {
@@ -928,7 +928,7 @@ class ControllerClient(object):
             'level': level,
         }
 
-        response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=1)
+        response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
         return json.loads(response.content)
