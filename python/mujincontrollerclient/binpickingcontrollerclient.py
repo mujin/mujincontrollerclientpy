@@ -495,3 +495,44 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['ioVariableName'] = ioVariableName
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def StartPackFormationComputationThread(self, timeout=10, debuglevel=4, toolname=None, usewebapi=None, **kwargs):
+        """Start a background loop to copmute packing formation. 
+        """
+        taskparameters = {'command': 'StartPackFormationComputationThread',
+                          'debuglevel': debuglevel,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
+    
+    def StopPackFormationComputationThread(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        """
+        taskparameters = {'command': 'StopPickPlaceThread',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def VisualizePackingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        """
+        taskparameters = {'command': 'VisualizePackingState',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def GetPackFormationSolution(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        """
+        taskparameters = {'command': 'GetPackFormationSolution',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def SendPackFormationComputationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        """
+        taskparameters = {'command': 'SendPackFormationComputationResult',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)

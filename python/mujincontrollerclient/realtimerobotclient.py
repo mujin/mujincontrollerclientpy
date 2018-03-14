@@ -393,6 +393,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
+    def ExecuteRobotProgram(self, robotProgramName, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """execute a robot specific program by name
+        """
+        taskparameters = {
+            'command': 'ExecuteRobotProgram',
+            'robotProgramName': robotProgramName,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
     def SaveScene(self, timeout=10, **kwargs):
         """saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
@@ -405,7 +415,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SaveGripper(self, timeout=10, **kwargs):
+    def SaveGripper(self, timeout=10, robotname=None,  **kwargs):
         """
         Separate gripper from a robot in a scene and save it.
         :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
@@ -417,7 +427,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters = {'command': 'SaveGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
 
     def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
         """resets the robot bridge states
@@ -453,7 +463,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
-
+    
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, blockwait=True, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
@@ -461,6 +471,23 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, blockwait=blockwait)
+    
+    def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """returns the data of the IO in ascii hex as a string
+        
+        :param ioname: One IO name to read
+        :param ionames: a list of the IO names to read
+        """
+        taskparameters = {
+            'command': 'GetRobotBridgeIOVariableAsciiHex16'
+        }
+        if ioname is not None and len(ioname) > 0:
+            taskparameters['ioname'] = ioname
+        if ionames is not None and len(ionames) > 0:
+            taskparameters['ionames'] = ionames
+        
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
@@ -626,8 +653,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-        
-    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, blockwait=True, fireandforget=False, **kwargs):
+
+    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, fireandforget=False, blockwait=True, **kwargs):
         """enables publishing collision data to the robotbridge
         """
         taskparameters = {
@@ -635,4 +662,4 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'prefixes': prefixes
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, blockwait=blockwait, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget, blockwait=blockwait)

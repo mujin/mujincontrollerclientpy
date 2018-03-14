@@ -121,6 +121,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def GetSlaveRequestId(self):
         return self._slaverequestid
 
+    def GetCommandSocketRaw(self):
+        return self._commandsocket
+    
     def DeleteJobs(self, usewebapi=True, timeout=5):
         """ cancels all jobs
         """
