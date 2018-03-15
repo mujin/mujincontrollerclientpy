@@ -154,7 +154,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
     
-    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, timeout=10, usewebapi=None, fireandforget=False, blockwait=True, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         :param resetExecutionState: if True, then reset the order state variables. By default True
         :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
@@ -164,7 +164,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           'resetStatusPickPlace':resetStatusPickPlace,
                           }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget, blockwait=blockwait)
     
     def GetPickPlaceStatus(self, timeout=10, **kwargs):
         """gets the status of the pick and place thread
