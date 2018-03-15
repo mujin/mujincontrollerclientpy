@@ -311,7 +311,7 @@ class ZmqClient(object):
     _port = None
     _url = None
     _pool = None
-    _handles = None
+    _handles = None # (list of weakref.proxy)
     _isok = False
     
     def __init__(self, hostname, port, ctx=None, limit=100):
@@ -338,7 +338,8 @@ class ZmqClient(object):
         self.SetDestroy()
 
         for handle in (self._handles or []):
-            handle.Destroy()
+            if handle is not None:
+                handle.Destroy()
         self._handles = None
         if self._pool is not None:
             self._pool.Destroy()
@@ -347,7 +348,8 @@ class ZmqClient(object):
     def SetDestroy(self):
         self._isok = False
         for handle in (self._handles or []):
-            handle.SetDestroy()
+            if handle is not None:
+                handle.SetDestroy()
         if self._pool is not None:
             self._pool.SetDestroy()
 
@@ -389,24 +391,16 @@ class ZmqClient(object):
         :return: returns the response from the zmq server in json format if blockwait is True
         """
 
-        releasehandle = True
         handle = self.OpenHandle(timeout=timeout)
 
-        try:
-            handle.SendCommand(command, timeout=timeout, sendjson=sendjson)
+        handle.SendCommand(command, timeout=timeout, sendjson=sendjson)
 
-            if fireandforget:
-                return
+        if fireandforget:
+            return
+        if not blockwait:
+            return handle
 
-            if not blockwait:
-                releasehandle = False
-                return handle
-
-            return handle.ReceiveResponse(timeout=timeout, recvjson=recvjson)
-        finally:
-            if releasehandle and handle is not None:
-                handle.Close()
-            handle = None
+        return handle.ReceiveResponse(timeout=timeout, recvjson=recvjson)
 
     def OpenHandle(self, timeout=10.0):
         """acquire a handle to communicate
@@ -415,7 +409,7 @@ class ZmqClient(object):
         """
         socket = self._pool.AcquireSocket(timeout=timeout)
         handle = ZmqClientHandle(weakref.proxy(self), socket)
-        self._handles.append(handle)
+        self._handles.append(weakref.proxy(handle))
         return handle
 
     def CloseHandle(self, handle):
