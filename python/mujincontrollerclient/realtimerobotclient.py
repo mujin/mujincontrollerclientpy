@@ -709,9 +709,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
     
-    def GetTimeToRunDynamicsIdentificationTriangularTraj(self, usewebapi=False, timeout=10, **kwargs):
+    def GetTimeToRunDynamicsIdentificationTest(self, usewebapi=False, timeout=10, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTriangularTraj'
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
