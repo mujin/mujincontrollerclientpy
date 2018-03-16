@@ -214,11 +214,11 @@ class ZmqSocketPool(object):
 class ZmqClientHandle(object):
 
     _isok = False
-    _client = None # weakref to ZmqClient
+    _clientRef = None # (weakref.ref) to ZmqClient
     _socket = None # raw zmq socket to be returned back to the pool
 
-    def __init__(self, client, socket):
-        self._client = client
+    def __init__(self, clientRef, socket):
+        self._clientRef = clientRef
         self._socket = socket
         self._isok = True
 
@@ -231,9 +231,9 @@ class ZmqClientHandle(object):
     def Destroy(self):
         self.SetDestroy()
 
-        if self._client is not None:
-            self._client.CloseHandle(self)
-            self._client = None
+        client = self._clientRef()
+        if client is not None:
+            client.CloseHandle(self)
         if self._socket is not None:
             log.warn('a leftover socket was not returned to the pool, closing immediately: %r', self._socket)
             self._socket.close(linger=0)
@@ -311,7 +311,7 @@ class ZmqClient(object):
     _port = None
     _url = None
     _pool = None
-    _handles = None # (list of weakref.proxy)
+    _handleRefs = None # (weakref.Weakset)
     _isok = False
     
     def __init__(self, hostname, port, ctx=None, limit=100):
@@ -328,7 +328,7 @@ class ZmqClient(object):
         self._url = 'tcp://%s:%d' % (self._hostname, self._port)
 
         self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit)
-        self._handles = []
+        self._handleRefs = weakref.WeakSet()
         self._isok = True
     
     def __del__(self):
@@ -337,19 +337,17 @@ class ZmqClient(object):
     def Destroy(self):
         self.SetDestroy()
 
-        for handle in (self._handles or []):
-            if handle is not None:
-                handle.Destroy()
-        self._handles = None
+        for handle in (self._handleRefs or []):
+            handle.Destroy()
+        self._handleRefs = None
         if self._pool is not None:
             self._pool.Destroy()
             self._pool = None
 
     def SetDestroy(self):
         self._isok = False
-        for handle in (self._handles or []):
-            if handle is not None:
-                handle.SetDestroy()
+        for handle in (self._handleRefs or []):
+            handle.SetDestroy()
         if self._pool is not None:
             self._pool.SetDestroy()
 
@@ -399,7 +397,6 @@ class ZmqClient(object):
             return
         if not blockwait:
             return handle
-
         return handle.ReceiveResponse(timeout=timeout, recvjson=recvjson)
 
     def OpenHandle(self, timeout=10.0):
@@ -408,21 +405,23 @@ class ZmqClient(object):
         :param timeout: if None, block. If >= 0, use as timeout
         """
         socket = self._pool.AcquireSocket(timeout=timeout)
-        handle = ZmqClientHandle(weakref.proxy(self), socket)
-        self._handles.append(weakref.proxy(handle))
+        handle = ZmqClientHandle(weakref.ref(self), socket)
+        self._handleRefs.add(handle)
         return handle
 
     def CloseHandle(self, handle):
         """closes a handle, returns its socket to the pool
         """
-        if handle not in self._handles:
-            return
         if handle._socket is not None:
             self._pool.ReleaseSocket(handle._socket)
+            handle._socket = None
         handle._isok = False
-        handle._client = None
-        handle._socket = None
-        self._handles.remove(handle)
+        handle._clientRef = lambda: None
+
+        try:
+            self._handleRefs.remove(handle)
+        except KeyError:
+            pass
         
         
 
