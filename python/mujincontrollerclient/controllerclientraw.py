@@ -78,27 +78,29 @@ class ControllerWebClient(object):
         headers = {
             'Accept-Language': self._language,
         }
-        response = session.get('%s/login/' % self._baseurl, headers=headers, timeout=timeout)
+        response = session.head('%s/api/v1/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
 
         csrftoken = response.cookies.get('csrftoken', None)
 
-        data = {
-            'username': self._username,
-            'password': self._password,
-            'this_is_the_login_form': '1',
-            'next': '/',
-        }
+        # for older mujin systems, a second POST request is required for logging in
+        if response.cookies.get('sessionid', None) is None:
+            data = {
+                'username': self._username,
+                'password': self._password,
+                'this_is_the_login_form': '1',
+                'next': '/',
+            }
 
-        headers = {
-            'X-CSRFToken': csrftoken,
-            'Accept-Language': self._language,
-        }
-        response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
+            headers = {
+                'X-CSRFToken': csrftoken,
+                'Accept-Language': self._language,
+            }
+            response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
-        if response.status_code != requests.codes.ok:
-            raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
+            if response.status_code != requests.codes.ok:
+                raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
 
         self._session = session
         self._csrftoken = csrftoken
