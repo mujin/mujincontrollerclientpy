@@ -106,7 +106,10 @@ def GetPrimaryKeyFromURI(uri):
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
     res = urlparse(unicode(uri))
+    if len(res.scheme) > 0 and res.scheme != 'mujin':
+        log.warn(_('Only mujin: sceheme supported of %s') % uri)
     path = res.path[1:]
+
     return quote(path.encode('utf-8'), '')
 
 
