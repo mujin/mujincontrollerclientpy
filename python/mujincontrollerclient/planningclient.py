@@ -121,6 +121,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def GetSlaveRequestId(self):
         return self._slaverequestid
 
+    def GetCommandSocketRaw(self):
+        return self._commandsocket
+    
     def DeleteJobs(self, usewebapi=True, timeout=5):
         """ cancels all jobs
         """
@@ -237,6 +240,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if error is not None:
             log.warn('GetAPIServerErrorFromZMQ returned error for %r', response)
             raise error
+        if response is None:
+            log.warn(u'got no response from task %r', taskparameters)
+            return None
+        
         return response['output']
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, allowrespawn=False, timeout=None, fireandforget=None):
