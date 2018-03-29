@@ -106,7 +106,10 @@ def GetPrimaryKeyFromURI(uri):
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
     res = urlparse(unicode(uri))
+    if len(res.scheme) > 0 and res.scheme != 'mujin':
+        log.warn(_('Only mujin: sceheme supported of %s') % uri)
     path = res.path[1:]
+
     return quote(path.encode('utf-8'), '')
 
 
@@ -715,7 +718,8 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'scene/%s/' % scenepk, fields='instobjects', timeout=timeout)
         assert(status == 200)
         instobjects = response['instobjects']
-        cameracontainernames = list(set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()]))
+        cameracontainernames = set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
+        sensormapping = dict(sensormapping)
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
                 cameracontainerpk = instobject['object_pk']
@@ -728,6 +732,9 @@ class ControllerClient(object):
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
                             status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
+                        del sensormapping[camerafullname]
+        if sensormapping:
+            raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
     #
     # WebDAV related
@@ -907,3 +914,24 @@ class ControllerClient(object):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    #
+    # Log related
+    #
+
+    def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
+        """ restarts controller
+        """
+        params = {
+            'keyword': (keyword or '').strip(),
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+            'level': level,
+        }
+
+        response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
+        return json.loads(response.content)

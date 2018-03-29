@@ -78,27 +78,29 @@ class ControllerWebClient(object):
         headers = {
             'Accept-Language': self._language,
         }
-        response = session.get('%s/login/' % self._baseurl, headers=headers, timeout=timeout)
+        response = session.head('%s/api/v1/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
 
         csrftoken = response.cookies.get('csrftoken', None)
 
-        data = {
-            'username': self._username,
-            'password': self._password,
-            'this_is_the_login_form': '1',
-            'next': '/',
-        }
+        # for older mujin systems, a second POST request is required for logging in
+        if response.cookies.get('sessionid', None) is None:
+            data = {
+                'username': self._username,
+                'password': self._password,
+                'this_is_the_login_form': '1',
+                'next': '/',
+            }
 
-        headers = {
-            'X-CSRFToken': csrftoken,
-            'Accept-Language': self._language,
-        }
-        response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
+            headers = {
+                'X-CSRFToken': csrftoken,
+                'Accept-Language': self._language,
+            }
+            response = session.post('%s/login/' % self._baseurl, data=data, headers=headers, timeout=timeout)
 
-        if response.status_code != requests.codes.ok:
-            raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
+            if response.status_code != requests.codes.ok:
+                raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
 
         self._session = session
         self._csrftoken = csrftoken
@@ -140,6 +142,12 @@ class ControllerWebClient(object):
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
 
+        # for GET and HEAD requests, have a retry logic in case keep alive connection is being closed by server
+        if method in ('GET', 'HEAD'):
+            try:
+                return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+            except requests.ConnectionError, e:
+                log.warn('caught connection error, maybe server is racing to close keep alive connection, try again: %s', e)
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 	
     # python port of the javascript API Call function
