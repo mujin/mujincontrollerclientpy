@@ -546,3 +546,11 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
         
+    def ClearPackingStateVisualization(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """
+        Clear packing visualization
+        """
+        taskparameters = {'command': 'ClearPackingStateVisualization',
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
