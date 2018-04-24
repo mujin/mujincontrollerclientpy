@@ -5,6 +5,7 @@
 import time
 import zmq
 import weakref
+import weakrefmethod
 
 from . import TimeoutError, UserInterrupt
 
@@ -214,11 +215,11 @@ class ZmqSocketPool(object):
 class ZmqClientHandle(object):
 
     _isok = False
-    _clientRef = None # (weakref.ref) to ZmqClient
+    _closeHandleMethod = None # (weakrefmethod.WeakMethod) of ZmqClient.CloseHandle
     _socket = None # raw zmq socket to be returned back to the pool
 
-    def __init__(self, clientRef, socket):
-        self._clientRef = clientRef
+    def __init__(self, closeHandleMethod, socket):
+        self._closeHandleMethod = closeHandleMethod
         self._socket = socket
         self._isok = True
 
@@ -231,9 +232,9 @@ class ZmqClientHandle(object):
     def Destroy(self):
         self.SetDestroy()
 
-        client = self._clientRef()
-        if client is not None:
-            client.CloseHandle(self)
+        closeHandle = self._closeHandleMethod()
+        if closeHandle is not None:
+            closeHandle(self)
         if self._socket is not None:
             log.warn('a leftover socket was not returned to the pool, closing immediately: %r', self._socket)
             self._socket.close(linger=0)
@@ -405,7 +406,7 @@ class ZmqClient(object):
         :param timeout: if None, block. If >= 0, use as timeout
         """
         socket = self._pool.AcquireSocket(timeout=timeout)
-        handle = ZmqClientHandle(weakref.ref(self), socket)
+        handle = ZmqClientHandle(weakrefmethod.WeakMethod(self.CloseHandle), socket)
         self._handleRefs.add(handle)
         return handle
 
