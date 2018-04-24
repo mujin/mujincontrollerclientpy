@@ -5,7 +5,6 @@
 import time
 import zmq
 import weakref
-import weakrefmethod
 
 from . import TimeoutError, UserInterrupt
 
@@ -96,7 +95,7 @@ class ZmqSocketPool(object):
 
     def _OpenSocket(self):
         if not self._isok:
-            raise UserInterrupt(u'Cannot open socket to %s, pool is going away' % (self._url,))
+            raise UserInterrupt(u'Cannot open socket to %s, pool is going away' % self._url)
 
         socket = self._ctx.socket(zmq.REQ)
         socket.connect(self._url)
@@ -200,7 +199,7 @@ class ZmqSocketPool(object):
             # otherwise, wait by a small blocking poll
             self._Poll(timeout=50)
 
-        raise UserInterrupt(u'Interrupted when waiting for a socket to %s to become available, pool is going away' % (self._url,))
+        raise UserInterrupt(u'Interrupted when waiting for a socket to %s to become available, pool is going away' % self._url)
 
     def ReleaseSocket(self, socket, reuse=True):
         """release a socket after use, if caller did not call recv, the pool will take care of that
@@ -215,13 +214,15 @@ class ZmqSocketPool(object):
 class ZmqClientHandle(object):
 
     _isok = False
-    _closeHandleMethod = None # (weakrefmethod.WeakMethod) of ZmqClient.CloseHandle
+    _clientRef = None # (weakref.ref) to ZmqClient
     _socket = None # raw zmq socket to be returned back to the pool
+    _url = None # For logging only. This is needed because ZmqClient can go out of scope
 
-    def __init__(self, closeHandleMethod, socket):
-        self._closeHandleMethod = closeHandleMethod
+    def __init__(self, client, socket):
+        self._clientRef = weakref.ref(client)
         self._socket = socket
         self._isok = True
+        self._url = client.GetURL()
 
     def __del__(self):
         self.Destroy()
@@ -232,9 +233,9 @@ class ZmqClientHandle(object):
     def Destroy(self):
         self.SetDestroy()
 
-        closeHandle = self._closeHandleMethod()
-        if closeHandle is not None:
-            closeHandle(self)
+        client = self._clientRef()
+        if client is not None:
+            client.CloseHandle(self)
         if self._socket is not None:
             log.warn('a leftover socket was not returned to the pool, closing immediately: %r', self._socket)
             self._socket.close(linger=0)
@@ -257,7 +258,7 @@ class ZmqClientHandle(object):
             # timeout checking
             elapsedtime = time.time() - starttime
             if timeout is not None and elapsedtime > timeout:
-                raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._client.GetURL(), elapsedtime))
+                raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._url, elapsedtime))
             
             # poll to see if we can send, if not, loop
             if self._socket.poll(50, zmq.POLLOUT) == 0:
@@ -271,7 +272,7 @@ class ZmqClientHandle(object):
             # break when successfully sent
             return
 
-        raise UserInterrupt(u'Interrupted during send to %s' % (self._client.GetURL(),))
+        raise UserInterrupt(u'Interrupted during send to %s' % (self._url,))
 
     def ReceiveResponse(self, timeout=10.0, recvjson=True):
         """receive response to a previous SendCommand call, SendCommand must be called with blockwait=False and fireandforget=False
@@ -288,7 +289,7 @@ class ZmqClientHandle(object):
             # timeout checking
             elapsedtime = time.time() - starttime
             if timeout is not None and elapsedtime > timeout:
-                raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._client.GetURL(), elapsedtime, timeout))
+                raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
             
             # poll to see if something has been received, if received nothing, loop
             startpolltime = time.time()
@@ -304,7 +305,7 @@ class ZmqClientHandle(object):
             else:
                 return self._socket.recv(zmq.NOBLOCK)
 
-        raise UserInterrupt(u'Interrupted during receive to %s' % (self._client.GetURL(),))
+        raise UserInterrupt(u'Interrupted during receive to %s' % (self._url,))
 
 class ZmqClient(object):
 
@@ -406,7 +407,7 @@ class ZmqClient(object):
         :param timeout: if None, block. If >= 0, use as timeout
         """
         socket = self._pool.AcquireSocket(timeout=timeout)
-        handle = ZmqClientHandle(weakrefmethod.WeakMethod(self.CloseHandle), socket)
+        handle = ZmqClientHandle(self, socket)
         self._handleRefs.add(handle)
         return handle
 
