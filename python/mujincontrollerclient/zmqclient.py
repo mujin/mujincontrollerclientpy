@@ -220,18 +220,21 @@ class ZmqClient(object):
     _socket = None
     _isok = False
     
-    def __init__(self, hostname, port, ctx=None, limit=100):
+    def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None):
         """creates a new zmq client, uses zmq req socket over tcp
 
         :param hostname: hostname or ip to connect to
         :param port: port to connect to
         :param ctx: optionally specifies a zmq context to use, if not provided, a new zmq context will be created
         :param limit: defaults to 100, limit the number of underlying zmq socket to create, usually one socket will actually be used, but if server times out frequently and you use fireandforget, then this limit caps the number of sockets we can use
+        :param url: allow passing of zmq socket url instead of hostname and port
         """
 
         self._hostname = hostname
         self._port = int(port)
-        self._url = 'tcp://%s:%d' % (self._hostname, self._port)
+        self._url = url
+        if self._url is None:
+            self._url = 'tcp://%s:%d' % (self._hostname, self._port)
 
         self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit)
         self._socket = None
