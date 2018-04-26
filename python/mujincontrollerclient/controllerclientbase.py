@@ -920,7 +920,7 @@ class ControllerClient(object):
     #
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
-        """ restarts controller
+        """Retrieves user log from controller.
         """
         params = {
             'keyword': (keyword or '').strip(),
@@ -934,4 +934,30 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
+        return json.loads(response.content)
+
+    #
+    # Upgrade related
+    #
+
+    def Upgrade(self, f, timeout=300.0):
+        """Upgrade controller with specified upgrade image file.
+        """
+        response = self._webclient.Request('POST', '/upgrade/', files={'upgrade': f}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to upgrade, status is %d: %s') % (response.status_code, response.content.decode('utf-8')))
+
+    def CancelUpgrade(self, timeout=1.0):
+        """Cancel the upgrade in process.
+        """
+        response = self._webclient.Request('DELETE', '/upgrade/', timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to cancel upgrade, status is %d: %s') % (response.status_code, response.content.decode('utf-8')))
+
+    def GetUpgradeStatus(self, timeout=1.0):
+        """Retrieve status from upgrade in progress.
+        """
+        response = self._webclient.Request('GET', '/upgrade/', timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to get upgrade status, status is %d: %s') % (response.status_code, response.content.decode('utf-8')))
         return json.loads(response.content)
