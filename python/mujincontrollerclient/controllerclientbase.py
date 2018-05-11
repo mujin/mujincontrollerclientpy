@@ -943,4 +943,3 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
         return json.loads(response.content)
->>>>>>> f7d4eb4050cca02f902e68abd28e9db5e9271829
