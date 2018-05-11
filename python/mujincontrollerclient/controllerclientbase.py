@@ -106,7 +106,10 @@ def GetPrimaryKeyFromURI(uri):
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
     res = urlparse(unicode(uri))
+    if len(res.scheme) > 0 and res.scheme != 'mujin':
+        log.warn(_('Only mujin: sceheme supported of %s') % uri)
     path = res.path[1:]
+
     return quote(path.encode('utf-8'), '')
 
 
@@ -843,3 +846,101 @@ class ControllerClient(object):
             parts.append(part)
             self.MakeDirectory('/'.join(parts), timeout=timeout)
 
+    def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
+        """runs frequency test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningFrequencyTest',
+            'jointName': jointName,
+            'freqMin': freqMin,
+            'freqMax': freqMax,
+            'amplitude': amplitude
+         }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
+        """runs step response test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningStepTest',
+            'jointName': jointName,
+            'amplitude': amplitude
+        }
+        taskparameters.update(kwargs)
+        log.warn('sending taskparameters=%r', taskparameters)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
+        """runs maximum length sequence test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningMaximulLengthSequence',
+            'jointName': jointName,
+            'amplitude': amplitude
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        
+    def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets motor control parameter schema
+        """
+        taskparameters = {
+            'command': 'GetMotorControlParameterSchema',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetMotorControlParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
+        """Gets motor control parameters as name-value dict
+        """
+        taskparameters = {
+            'command': 'GetMotorControlParameter',
+            'jointName' : jointName,
+            'parameterName' : parameterName
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetMotorControlParameters(self, usewebapi=False, timeout=10, **kwargs):
+        """Gets cached motor control parameters as name-value dict
+        """
+        taskparameters = {
+            'command': 'GetMotorControlParameters'
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def SetMotorControlParameter(self, jointName, parameterName, parameterValue, timeout=10, usewebapi=False, **kwargs):
+        """Sets motor control parameter
+        """
+        taskparameters = {
+            'command': 'SetMotorControlParameter',
+            'jointName': jointName,
+            'parameterName': parameterName,
+            'parameterValue': parameterValue
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    #
+    # Log related
+    #
+
+    def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
+        """ restarts controller
+        """
+        params = {
+            'keyword': (keyword or '').strip(),
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+            'level': level,
+        }
+
+        response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
+        return json.loads(response.content)
+>>>>>>> f7d4eb4050cca02f902e68abd28e9db5e9271829
