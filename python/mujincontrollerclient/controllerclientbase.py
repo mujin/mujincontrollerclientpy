@@ -940,10 +940,19 @@ class ControllerClient(object):
     # Upgrade related
     #
 
-    def Upgrade(self, f, timeout=300.0):
+    def Upgrade(self, f=None, uploadonly=False, autorestart=True, timeout=300.0):
         """Upgrade controller with specified upgrade image file.
         """
-        response = self._webclient.Request('POST', '/upgrade/', files={'upgrade': f}, timeout=timeout)
+        files = None
+        if f:
+            files={'upgrade': f}
+
+        params = {
+            'uploadonly': 'true' if uploadonly else 'false',
+            'autorestart': 'true' if autorestart else 'false',
+        }
+
+        response = self._webclient.Request('POST', '/upgrade/', files=files, params=params, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to upgrade, status is %d: %s') % (response.status_code, response.content.decode('utf-8')))
 
