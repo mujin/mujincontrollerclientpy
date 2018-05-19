@@ -612,7 +612,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
+    
     def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, robotname=None, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
         '''returns robot configs for grasp visualization
         '''
@@ -626,14 +626,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
     
-    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
+    def ResetCacheTemplates(self, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """resets any cached templates
         """
         taskparameters = {
             'command': 'ResetCacheTemplates',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
         """resets any cached templates
