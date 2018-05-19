@@ -142,6 +142,12 @@ class ControllerWebClient(object):
         if self._csrftoken:
             headers['X-CSRFToken'] = self._csrftoken
 
+        # for GET and HEAD requests, have a retry logic in case keep alive connection is being closed by server
+        if method in ('GET', 'HEAD'):
+            try:
+                return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+            except requests.ConnectionError, e:
+                log.warn('caught connection error, maybe server is racing to close keep alive connection, try again: %s', e)
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 	
     # python port of the javascript API Call function
