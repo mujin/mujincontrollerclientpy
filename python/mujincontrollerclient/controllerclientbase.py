@@ -761,15 +761,19 @@ class ControllerClient(object):
             '',
         ))
 
-    def DownloadFile(self, filename, timeout=5):
+    def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
         """downloads a file given filename
 
         :return: a streaming response
         """
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True, timeout=timeout)
+        headers = {}
+        if ifmodifiedsince:
+            headers['If-Modified-Since'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT', ifmodifiedsince.timetuple())
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
+        if ifmodifiedsince and response.status_code == 304:
+            return response
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
-        
         return response
 
     def UploadFile(self, path, f, timeout=5):
