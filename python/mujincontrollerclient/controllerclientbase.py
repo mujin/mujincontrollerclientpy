@@ -12,10 +12,10 @@ log = getLogger(__name__)
 from urlparse import urlparse, urlunparse
 from urllib import quote, unquote
 import os
-import time
 import datetime
-import weakref
+import calendar
 import base64
+import email.utils
 from numpy import fromstring, uint32
 
 try:
@@ -768,7 +768,7 @@ class ControllerClient(object):
         """
         headers = {}
         if ifmodifiedsince:
-            headers['If-Modified-Since'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT', ifmodifiedsince.timetuple())
+            headers['If-Modified-Since'] = email.utils.formatdate(timeval=calendar.timegm(ifmodifiedsince.timetuple()), localtime=False, usegmt=True)
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
