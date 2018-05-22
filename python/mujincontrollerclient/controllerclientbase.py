@@ -13,9 +13,7 @@ from urlparse import urlparse, urlunparse
 from urllib import quote, unquote
 import os
 import datetime
-import calendar
 import base64
-import email.utils
 from numpy import fromstring, uint32
 
 try:
@@ -111,6 +109,16 @@ def GetPrimaryKeyFromURI(uri):
     path = res.path[1:]
 
     return quote(path.encode('utf-8'), '')
+
+
+def FormatHTTPDate(dt):
+    """Return a string representation of a date according to RFC 1123 (HTTP/1.1).
+
+    The supplied date must be in UTC.
+    """
+    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
+    month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1]
+    return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
 
 class ControllerClient(object):
@@ -768,7 +776,7 @@ class ControllerClient(object):
         """
         headers = {}
         if ifmodifiedsince:
-            headers['If-Modified-Since'] = email.utils.formatdate(timeval=calendar.timegm(ifmodifiedsince.timetuple()), localtime=False, usegmt=True)
+            headers['If-Modified-Since'] = FormatHTTPDate(ifmodifiedsince)
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
