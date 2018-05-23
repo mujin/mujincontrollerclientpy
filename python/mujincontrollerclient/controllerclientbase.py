@@ -857,6 +857,7 @@ class ControllerClient(object):
         for part in path.strip('/').split('/'):
             parts.append(part)
             self.MakeDirectory('/'.join(parts), timeout=timeout)
+
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """ restarts controller
         """
