@@ -167,3 +167,11 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
+    def PlotContacts(self, report={}, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
+        taskparameters = {
+            'command': 'PlotContacts',
+            'report' : report
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
