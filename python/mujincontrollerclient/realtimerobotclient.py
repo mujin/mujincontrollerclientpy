@@ -183,6 +183,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, envclearance=envclearance, toolname=toolname, timeout=timeout)
+
+    def MoveToolLinear(self, goaltype, goals, toolname=None, robotspeed=None, robotaccelmult=None, timeout=10, **kwargs):
+        """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
+        :param goaltype: type of the goal, e.g. translationdirection5d
+        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+        :param toolname: name of the manipulator, default is self.toolname
+        """
+        taskparameters = {'command': 'MoveToolLinear',
+                          'goaltype': goaltype,
+                          'goals': goals,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, toolname=toolname, timeout=timeout)
     
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
