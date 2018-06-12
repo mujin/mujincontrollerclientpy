@@ -12,9 +12,7 @@ log = getLogger(__name__)
 from urlparse import urlparse, urlunparse
 from urllib import quote, unquote
 import os
-import time
 import datetime
-import weakref
 import base64
 from numpy import fromstring, uint32
 
@@ -106,8 +104,21 @@ def GetPrimaryKeyFromURI(uri):
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
     res = urlparse(unicode(uri))
+    if len(res.scheme) > 0 and res.scheme != 'mujin':
+        log.warn(_('Only mujin: sceheme supported of %s') % uri)
     path = res.path[1:]
+
     return quote(path.encode('utf-8'), '')
+
+
+def FormatHTTPDate(dt):
+    """Return a string representation of a date according to RFC 1123 (HTTP/1.1).
+
+    The supplied date must be in UTC.
+    """
+    weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][dt.weekday()]
+    month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.month - 1]
+    return '%s, %02d %s %04d %02d:%02d:%02d GMT' % (weekday, dt.day, month, dt.year, dt.hour, dt.minute, dt.second)
 
 
 class ControllerClient(object):
@@ -766,15 +777,19 @@ class ControllerClient(object):
             '',
         ))
 
-    def DownloadFile(self, filename, timeout=5):
+    def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
         """downloads a file given filename
 
         :return: a streaming response
         """
-        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), stream=True, timeout=timeout)
+        headers = {}
+        if ifmodifiedsince:
+            headers['If-Modified-Since'] = FormatHTTPDate(ifmodifiedsince)
+        response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
+        if ifmodifiedsince and response.status_code == 304:
+            return response
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
-        
         return response
 
     def UploadFile(self, path, f, timeout=5):
@@ -843,3 +858,19 @@ class ControllerClient(object):
             parts.append(part)
             self.MakeDirectory('/'.join(parts), timeout=timeout)
 
+    def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
+        """ restarts controller
+        """
+        params = {
+            'keyword': (keyword or '').strip(),
+            'cursor': (cursor or '').strip(),
+            'includecursor': 'true' if includecursor else 'false',
+            'forward': 'true' if forward else 'false',
+            'limit': str(limit or 0),
+            'level': level,
+        }
+
+        response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
+        return json.loads(response.content)

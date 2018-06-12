@@ -428,7 +428,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SaveGripper(self, timeout=10, **kwargs):
+    def SaveGripper(self, timeout=10, robotname=None,  **kwargs):
         """
         Separate gripper from a robot in a scene and save it.
         :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
@@ -440,7 +440,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters = {'command': 'SaveGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
 
     def ResetRobotBridges(self, robots=None, timeout=10, usewebapi=True, **kwargs):
         """resets the robot bridge states
@@ -484,7 +484,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
+
+    def SetRobotBridgeIOVariablesAsciiHex16(self, iovalues, robotname=None, timeout=20, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'SetRobotBridgeIOVariablesAsciiHex16',
+            'iovalues': list(iovalues)
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+            
     def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """returns the data of the IO in ascii hex as a string
         
@@ -620,7 +628,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
+    
     def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, robotname=None, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
         '''returns robot configs for grasp visualization
         '''
@@ -634,14 +642,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
     
-    def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
+    def ResetCacheTemplates(self, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """resets any cached templates
         """
         taskparameters = {
             'command': 'ResetCacheTemplates',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def ResetCacheTemplates(self, usewebapi=False, timeout=1, **kwargs):
         """resets any cached templates
