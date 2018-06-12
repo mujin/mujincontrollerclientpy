@@ -724,15 +724,27 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunDynamicsIdentificationFrictionTest(self, timeout, usewebapi=False, **kwargs):
+    def RunDynamicsIdentificationTest(self, timeout, usewebapi=False, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'RunDynamicsIdentificationFrictionTest'
+        taskparameters['command'] = 'RunDynamicsIdentificationTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetTimeToRunDynamicsIdentificationTest(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetTimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
+    def GetInertiaChildJointStartValues(self, usewebapi=False, timeout=10, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
+        taskparameters['command'] = 'GetInertiaChildJointStartValues'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'CalculateTestRangeFromCollision'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
