@@ -146,7 +146,7 @@ class ControllerWebClient(object):
         if method in ('GET', 'HEAD'):
             try:
                 return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
-            except requests.ConnectionError, e:
+            except requests.ConnectionError as e:
                 log.warn('caught connection error, maybe server is racing to close keep alive connection, try again: %s', e)
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 	
@@ -195,7 +195,7 @@ class ControllerWebClient(object):
         # try to convert everything else
         try:
             content = json.loads(response.content)
-        except ValueError, e:
+        except ValueError as e:
             log.warn(u'caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
             self.Logout() # always logout the session when we hit an error
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
@@ -281,7 +281,7 @@ class ControllerWebClient(object):
                             status_text_prev = response['status_text']
 
                         jobstatus = response['status']
-                    except APIServerError, e:
+                    except APIServerError as e:
                         # most likely job finished
                         log.warn(u'problem with requesting job: %s', e)
                         jobstatus = '2'
@@ -296,7 +296,7 @@ class ControllerWebClient(object):
                             if 'errormessage' in result and len(result['errormessage']) > 0:
                                 raise BinPickingError(result['errormessage'])
                             return result['output']
-                except socket.error, e:
+                except socket.error as e:
                     log.error(e)
 
                 # tasks can be long, so sleep
@@ -351,7 +351,7 @@ class ControllerWebClient(object):
                             status_text_prev = response['status_text']
 
                         jobstatus = response['status']
-                    except APIServerError, e:
+                    except APIServerError as e:
                         # most likely job finished
                         log.warn(u'problem with requesting job: %s', e)
                         jobstatus = '2'
@@ -367,7 +367,7 @@ class ControllerWebClient(object):
                                 raise HandEyeCalibrationError(result['errormessage'])
                             return result['output']
 
-                except socket.error, e:
+                except socket.error as e:
                     log.error(e)
 
                 # tasks can be long, so sleep

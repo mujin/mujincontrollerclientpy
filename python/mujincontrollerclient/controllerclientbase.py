@@ -9,8 +9,12 @@ from logging import getLogger
 log = getLogger(__name__)
 
 # system imports
-from urlparse import urlparse, urlunparse
-from urllib import quote, unquote
+import sys
+if sys.version_info[0]<3:
+    from urlparse import urlparse, urlunparse
+    from urllib import quote, unquote
+else:
+    from urllib.parse import urlparse, urlunparse, quote, unquote
 import os
 import datetime
 import base64

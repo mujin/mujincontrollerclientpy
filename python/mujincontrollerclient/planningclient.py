@@ -155,7 +155,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                             lastheartbeatts = time.time()
                         else:
                             self._taskstate = None
-                    except zmq.ZMQError, e:
+                    except zmq.ZMQError as e:
                         log.error('failed to receive from publisher')
                         log.error(e)
             if self._isokheartbeat:
