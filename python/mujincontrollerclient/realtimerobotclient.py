@@ -244,14 +244,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GetDOFValues(self, targetname, unit='mm', timeout=10, **kwargs):
+    def GetJointValues(self, unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
-        :param targetname: name of the object
         :param unit: unit of prismatic joints
         :return: dofvalues of the object in a json dictionary, e.g. {'dofvalues': [180,100]}
         """
-        taskparameters = {'command': 'GetDOFValues',
-                          'targetname': targetname,
+        taskparameters = {'command': 'GetJointValues',
                           'unit': unit,
                           }
         taskparameters.update(kwargs)
@@ -280,16 +278,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SetDOFValues(self, targetname, dofvalues, unit='mm', timeout=10, **kwargs):
+    def SetInstantaneousJointValues(self, jointvalues, unit='mm', timeout=10, **kwargs):
         """sets the transform of an object
-        :param targetname: name of the object
-        :param dofvalues: dofvalues
+        :param jointvalues: jointvalues
         :param unit: unit of prismatic joints
         """
-        taskparameters = {'command': 'SetDOFValues',
-                          'targetname': targetname,
+        taskparameters = {'command': 'SetInstantaneousJointValues',
                           'unit': unit,
-                          'dofvalues': dofvalues,
+                          'jointvalues': jointvalues,
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
