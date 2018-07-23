@@ -132,12 +132,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
     
-    def GetJointValues(self, timeout=10, **kwargs):
+    def GetJointValues(self, unit='mm', timeout=10, **kwargs):
         """gets the current robot joint values
         :return: current joint values in a json dictionary with
         - currentjointvalues: [0,0,0,0,0,0]
         """
-        taskparameters = {'command': 'GetJointValues'}
+        taskparameters = {'command': 'GetJointValues',
+                          'unit': unit,
+                          }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
@@ -244,17 +246,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GetJointValues(self, unit='mm', timeout=10, **kwargs):
-        """gets the transform of an object
-        :param unit: unit of prismatic joints
-        :return: current jointvalues of the object in a json dictionary, e.g. {'currentjointvalues': [180,100]}
-        """
-        taskparameters = {'command': 'GetJointValues',
-                          'unit': unit,
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
     def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
         """sets the transform of an object
         :param targetname: name of the object
