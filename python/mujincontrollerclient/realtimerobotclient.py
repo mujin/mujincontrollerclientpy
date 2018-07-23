@@ -247,7 +247,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def GetJointValues(self, unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
         :param unit: unit of prismatic joints
-        :return: dofvalues of the object in a json dictionary, e.g. {'dofvalues': [180,100]}
+        :return: current jointvalues of the object in a json dictionary, e.g. {'currentjointvalues': [180,100]}
         """
         taskparameters = {'command': 'GetJointValues',
                           'unit': unit,
