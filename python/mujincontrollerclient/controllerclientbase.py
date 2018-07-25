@@ -10,7 +10,7 @@ log = getLogger(__name__)
 
 # system imports
 from urlparse import urlparse, urlunparse
-from urllib import quote, unquote
+import urllib
 import os
 import datetime
 import base64
@@ -41,20 +41,19 @@ def GetFilenameFromURI(uri, mujinpath):
       GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
       returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
     """
-    index = uri.find(id_separator)
-    if index >= 0:
-        res = urlparse(uri[:index])
-    else:
-        res = urlparse(uri)
+    mujinpath = unicode(mujinpath)
+    res = urlparse(uri)
     if res.scheme != 'mujin':
         raise ControllerClientError(_('Only mujin: sceheme supported of %s') % uri)
     if len(res.path) == 0 or res.path[0] != '/':
         raise ControllerClientError(_('path is not absolute on URI %s') % uri)
-    if os.path.exists(res.path):
-        # it's already an absolute path, so return as is. making sure user can read from this path is up to the filesystem permissions
-        return res, res.path
-    else:
-        return res, os.path.join(mujinpath, res.path[1:])
+
+    path = urllib.unquote(res.path)
+    index = uri.rfind(id_separator)
+    if index >= 0:
+        path = path[:index]
+    filename = path.decode('utf-8')[1:]
+    return res, os.path.join(mujinpath, filename)
 
 
 def GetURIFromPrimaryKey(pk):
@@ -66,19 +65,21 @@ def GetURIFromPrimaryKey(pk):
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
-    pkunicode = GetUnicodeFromPrimaryKey(pk)
-    # check if separator is present
-    index = pkunicode.find(id_separator)
-    if index >= 0:
-        basefilename = pkunicode[0:index]
-        if len(os.path.splitext(basefilename)[1]) == 0:
-            # no extension present in basefilename, so default to mujin.dae
-            basefilename += u'.mujin.dae'
-        return u'mujin:/' + basefilename + pkunicode[index:]
-    if len(os.path.splitext(pkunicode)[1]) == 0:
-        # no extension present in basefilename, so default to mujin.dae
-        pkunicode += u'.mujin.dae'
-    return u'mujin:/' + pkunicode
+    return 'mujin:/' + pk
+
+    # pkunicode = GetUnicodeFromPrimaryKey(pk)
+    # # check if separator is present
+    # index = pkunicode.find(id_separator)
+    # if index >= 0:
+    #     basefilename = pkunicode[0:index]
+    #     if len(os.path.splitext(basefilename)[1]) == 0:
+    #         # no extension present in basefilename, so default to mujin.dae
+    #         basefilename += u'.mujin.dae'
+    #     return u'mujin:/' + basefilename + pkunicode[index:]
+    # if len(os.path.splitext(pkunicode)[1]) == 0:
+    #     # no extension present in basefilename, so default to mujin.dae
+    #     pkunicode += u'.mujin.dae'
+    # return u'mujin:/' + pkunicode
 
 
 def GetUnicodeFromPrimaryKey(pk):
@@ -90,10 +91,8 @@ def GetUnicodeFromPrimaryKey(pk):
       GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
     """
-    if not isinstance(pk, unicode):
-        return unicode(unquote(str(pk)), 'utf-8')
-    else:
-        return pk
+    
+    return urllib.unquote(pk).decode('utf-8')
 
 
 def GetPrimaryKeyFromURI(uri):
@@ -108,7 +107,8 @@ def GetPrimaryKeyFromURI(uri):
         log.warn(_('Only mujin: sceheme supported of %s') % uri)
     path = res.path[1:]
 
-    return quote(path.encode('utf-8'), '')
+    return path
+    # return urllib.quote(path.encode('utf-8'), '')
 
 
 def FormatHTTPDate(dt):
@@ -816,7 +816,7 @@ class ControllerClient(object):
             name = prop(e, 'href')
             assert(name.startswith(path))
             # webdav returns quoted utf-8 filenames, so we decode here to unicode
-            name = unquote(name[len(path):].strip('/')).decode('utf-8')
+            name = urllib.unquote(name[len(path):].strip('/')).decode('utf-8')
             size = int(prop(e, 'getcontentlength', 0))
             isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
             modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
