@@ -464,6 +464,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
+    def MoveToDropOff(self, dropOffInfo, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        """moves the robot to desired joint angles specified in jointvalues
+        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
+        :param envclearance: environment clearance in milimeter
+        """
+        taskparameters = {
+            'command': 'MoveToDropOff',
+            'dropOffInfo': dropOffInfo,
+            'execute': execute,
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+        if startvalues is not None:
+            taskparameters['startvalues'] = list(startvalues)
+        
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+    
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
