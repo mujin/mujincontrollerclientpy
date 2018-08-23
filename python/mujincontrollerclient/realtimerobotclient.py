@@ -309,7 +309,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, **kwargs):
         """removes objects with prefix
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
@@ -321,6 +321,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['prefixes'] = [unicode(prefix) for prefix in prefixes]
         if objectPrefixesExpectingFromSlaveTrigger is not None:
             taskparameters['objectPrefixesExpectingFromSlaveTrigger'] = objectPrefixesExpectingFromSlaveTrigger
+        if removeRegionNames is not None:
+            taskparameters['removeRegionNames'] = removeRegionNames
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def GetTrajectoryLog(self, timeout=10, **kwargs):
@@ -461,6 +463,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
 
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+    
+    def MoveToDropOff(self, dropOffInfo, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        """moves the robot to desired joint angles specified in jointvalues
+        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
+        :param envclearance: environment clearance in milimeter
+        """
+        taskparameters = {
+            'command': 'MoveToDropOff',
+            'dropOffInfo': dropOffInfo,
+            'execute': execute,
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+        if startvalues is not None:
+            taskparameters['startvalues'] = list(startvalues)
+        
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
