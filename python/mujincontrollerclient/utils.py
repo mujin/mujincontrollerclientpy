@@ -2,6 +2,10 @@
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
 # because '#' in URL parsing is a special role
+from urlparse import urlparse, urlunparse, ParseResult
+import urllib
+import os
+
 id_separator = u'@'
 fragment_separator = u'#'
 
@@ -17,37 +21,35 @@ def ParseMujinURI(uri, allowfragments=True, fragmentidentifier=id_separator):
 
     uri = unicode(uri)
     i = uri.find(':')
-    if i<= 0 :
-        raise MujinExceptionBase(_("no scheme defined"))
+
+    if not uri[:i] == "mujin":
+        # if scheme is not mujin specified, use the standard uri parse
+        parseresult =  urlparse(uri, allowfragments)
+        parseresult = ParseResult(parseresult.scheme, parseresult.netloc, urllib.unquote(parseresult.path), parseresult.params, parseresult.query, parseresult.fragment)
     else:
-        if not uri[:i] == "mujin":
-            # if scheme is not mujin specified, use the standard uri parse
-            parseresult =  urlparse(uri, allowfragments)
-            parseresult = ParseResult(parseresult.scheme, parseresult.netloc, urllib.unquote(parseresult.path), parseresult.params, parseresult.query, parseresult.fragment)
+        # it's a mujinuri
+        scheme = uri[:i].lower()
+        uri = uri[i+1:]
+        if uri[:2] == "//":
+            # usually we need to split hostname from url
+            # for now mujin uri doesn't have definition of hostname in uri
+            log.warn("uri {} includs hostname which is not defined".format(uri))
+            raise MujinExceptionBase(_('mujin scheme has no hostname defined {}').format(uri))
         else:
-            # it's a mujinuri
-            scheme = uri[:i].lower()
-            uri = uri[i+1:]
-            if uri[:2] == "//":
-                # usually we need to split hostname from url
-                # for now mujin uri doesn't have definition of hostname in uri
-                log.warn("uri {} includs hostname which is not defined".format(uri))
-                raise MujinExceptionBase(_('mujin scheme has no hostname defined {}').format(uri))
-            else:
-                if allowfragments:
-                    # split by the last appeared id_separator
-                    separatorindex = uri.rfind(fragmentidentifier)
-                    if separatorindex >= 0:
-                        path = uri[:separatorindex]
-                        fragment = uri[separatorindex+1:]
-                    else:
-                        path = uri
-                        fragment = u""
+            if allowfragments:
+                # split by the last appeared id_separator
+                separatorindex = uri.rfind(fragmentidentifier)
+                if separatorindex >= 0:
+                    path = uri[:separatorindex]
+                    fragment = uri[separatorindex+1:]
                 else:
                     path = uri
                     fragment = u""
-                parseresult = ParseResult(scheme, "", path, params="", query="", fragment=fragment)
-        return parseresult
+            else:
+                path = uri
+                fragment = u""
+            parseresult = ParseResult(scheme, "", path, params="", query="", fragment=fragment)
+    return parseresult
 
 
 
@@ -273,3 +275,10 @@ def GetUnicodeFromPrimaryKey(pk):
     #     return unicode(unquote(str(pk)), 'utf-8')
     # else:
     #     return pk
+
+
+def GetTargetNameFromPK(self, pk):
+    return urllib.unquote(pk).decode('utf-8')[:-len(".mujin.dae")]
+
+def GetPKFromTargetName(self, name):
+    return urllib.quote(name.encode('utf-8')) + ".mujin.dae"
