@@ -259,6 +259,14 @@ def GetFilenameFromURI(uri, mujinpath, allowfragment=True, fragmentidentifier=id
         filepath = res.path
     return res, filepath
 
+
+def GetFilenameFromTargetName(targetname, withsuffix=True):
+    filename = urllib.unquote(targetname)
+    if withsuffix:
+        return filename + ".mujin.dae"
+    else:
+        return filename   # used to compose filename.tar.gz
+
 def GetUnicodeFromPrimaryKey(pk):
     """Given the encoded primary key (has to be str object), returns the unicode string.
     If pk is a unicode object, will return the string as is.
@@ -277,8 +285,11 @@ def GetUnicodeFromPrimaryKey(pk):
     #     return pk
 
 
-def GetTargetNameFromPK(self, pk):
-    return urllib.unquote(pk).decode('utf-8')[:-len(".mujin.dae")]
+def GetTargetNameFromPK(pk):
+    return pk[:-len(".mujin.dae")]
+    #return urllib.unquote(pk).decode('utf-8')[:-len(".mujin.dae")]
 
-def GetPKFromTargetName(self, name):
-    return urllib.quote(name.encode('utf-8')) + ".mujin.dae"
+def GetPKFromTargetName(name):
+    return name+".mujin.dae"
+    #return urllib.quote(name.encode('utf-8')) + ".mujin.dae"
+
