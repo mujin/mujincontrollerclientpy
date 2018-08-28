@@ -16,7 +16,7 @@ def ParseMujinURI(uri, allowfragments=True, fragmentidentifier=id_separator):
 
     uri will include 5 parts <scheme>://<netloc>/<path>?<query>#<fragment>
     mujinuri only have scheme which is mujin:/
-    mujinuri will not have # because we use @ as separator to separate lie abc.mujin.dae@body0_motion
+    mujinuri will not have # as fragment part because we use @ as separator to separate lie abc.mujin.dae@body0_motion
     """
 
     uri = unicode(uri)
@@ -54,7 +54,9 @@ def ParseMujinURI(uri, allowfragments=True, fragmentidentifier=id_separator):
 
 
 def UnparseMujinURI(uriparts, fragmentidentifier=id_separator):
-    """ compose a mujin uri
+    """ compose a uri. This function will call urlunparse if scheme is not mujin.
+
+    uriparts is a ParseResult or a tuple which has six parts (scheme, netloc, path, params, query, fragment)
     """
     scheme, netloc, url, params, query, fragment = uriparts
     if scheme == "mujin":
@@ -73,9 +75,8 @@ def UnparseMujinURI(uriparts, fragmentidentifier=id_separator):
 
 def GetPrimaryKeyFromURI(uri):
     """
-    uri is unicode
+    uri is a mujin scheme uri which is unicode
     primarykey is utf-8 encoded and quoted.
-
     example:
 
       GetPrimaryKeyFromURI(u'mujin:/测试_test_#?._%20_\x03test..mujin.dae')
@@ -89,29 +90,38 @@ def GetPrimaryKeyFromURI(uri):
 
 
 def GetPkFromUrl(username, url, scenetype=None):
-    '''
+    """ extract primarykey from url.
+
+    Move from planningcommon.utils
     examples:
 
       GetPkFromUrl(u'testuser',u'http://localhost/su/testuser/%E3%83%AC%E3%82%A4%E3%82%A2%E3%82%A6%E3%83%88%E8%A9%95%E4%BE%A11_copy.mujin.dae')
-      returns: '%E3%83%AC%E3%82%A4%E3%82%A2%E3%82%A6%E3%83%88%E8%A9%95%E4%BE%A11_copy'
-    '''
+      returns: '%E3%83%AC%E3%82%A4%E3%82%A2%E3%82%A6%E3%83%88%E8%A9%95%E4%BE%A11_copy.mujin.dae'
+    """
     pk = url[len(u'%(baseurl)s/su/%(username)s/' % {'baseurl': GetBaseUrl(), 'username': username}):]
     if scenetype is None or scenetype == 'mujincollada':
         pk = pk[:pk.find('.mujin.dae')]
     return pk
 
 def GetPrimaryKeyFromFilename(filename, mujinpath):
-    if filename.startswith(mujinpath):
+    """  extract primarykey from filename . 
+
+    filename is unicode without quote. need to remove mujinpath if it's given.
+
+    >>> GetPrimaryKeyFromFilename("/data/detection/测试_test.mujin.dae", "/data/detection")
+    ...%E6%B5%8B%E8%AF%95_test.mujin.dae
+    """
+    if mujinpath and filename.startswith(mujinpath):
         filename = filename[len(mujinpath)+1:]
     return urllib.quote(filename.encode('utf-8'))
 
-
 def GetPrimaryKeyFromParsedURI(res):
     """input the parameters from urlparse
+
+    res: urlparse.ParsedResult
     example:
-    
     GetPrimaryKeyFromURI(urlparse(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'))
-    returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
+    returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae'
     """
     if res.fragment:
         return GetPrimaryKeyFromUnicode(res.path[1:]) + id_separator + GetPrimaryKeyFromUnicode(res.fragment)
@@ -120,16 +130,18 @@ def GetPrimaryKeyFromParsedURI(res):
 
 
 def GetPrimaryKeyFromUnicode(s):
-    """
+    """ Transfer  Unicode str to PrimaryKey(utf-8 encoded and quoted)
     example:
 
-      GetPrimaryKeyFromUnicode(u'\u691c\u8a3c\u52d5\u4f5c1_121122')
-      returns: '%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
+      GetPrimaryKeyFromUnicode(u'\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
+      returns: '%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae'
     """
     return urllib.quote(s.encode('utf-8'))
 
 
 def GetBaseUrl():
+    """ Get base url, moved from planningcommon.utils
+    """
 #    if os.environ.get('MUJIN_ENV','') == 'dev':
 #        return u'http://localhost:8000'
     MUJIN_DOMAIN_URL = os.environ.get('MUJIN_DOMAIN_URL', None)
@@ -138,7 +150,6 @@ def GetBaseUrl():
 
     if os.environ.get('MUJIN_ENV', '') == 'production':
         return u'https://controller.mujin.co.jp'
-
     else:
         return u'http://localhost'
 
@@ -150,7 +161,7 @@ def GetBaseUri(uri):
     return uri
 
 def GetURIFromPrimaryKey(pk):
-    """Given the encoded primary key (has to be str object), returns the unicode URL.
+    """Given the encoded primary key (utf-8 encoded and quoted), returns the unicode URL.
     example:
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
@@ -182,6 +193,8 @@ def GetUriFromUrl(username, url, scenetype=None):
 
 
 def GetURIFromFilename(filename, mujinpath):
+    """ Compose a mujin uri from filename. 
+    """
     filename = filename[len(mujinpath)+1:]
     return UnparseMujinURI(('mujin', '', filename , '', '', ''))
 
@@ -199,8 +212,7 @@ def GetUrlFromPk(username, pk):
     return url
 
 def GetUrlFromUri(username, uri):
-    '''
-    url includes quote(encoded(uri)) , quote(encoded(uri)) is equal to primarykey
+    ''' url includes quote(encoded(mujinuri))
     examples:
 
       GetUrlFromUri(u'testuser', u'mujin:/kawada_nut.mujin.dae')
@@ -216,6 +228,8 @@ def GetUrlFromUri(username, uri):
     return GetUrlFromPk(username, pk)
 
 def GetFilenameFromPrimaryKey(pk):
+    """ return filename from primary key
+    """
     uri = GetURIFromPrimaryKey(pk)
     parseresult = ParseMujinURI(uri, allowfragments=True) # allow fragments will separate object_pk in fragments
     filename = parseresult.path[1:] # the first character is /
@@ -223,7 +237,8 @@ def GetFilenameFromPrimaryKey(pk):
 
 def GetFilenameFromURI(uri, mujinpath, allowfragment=True, fragmentidentifier=id_separator):
     """returns the filesystem path that the URI points to.
-    :param uri: points to mujin:/ resource
+
+    uri: if uri is mujin scheme, will join mujin path. otherwise it will directly use parsed path result.
     
     example:
     
@@ -241,6 +256,8 @@ def GetFilenameFromURI(uri, mujinpath, allowfragment=True, fragmentidentifier=id
     return res, filepath
 
 def GetFilenameFromTargetName(targetname, withsuffix=True):
+    """ Unquote targetname to get filename, if withsuffix is True, add the .mujin.dae suffix
+    """
     filename = urllib.unquote(targetname)
     if withsuffix:
         return filename + ".mujin.dae"
@@ -253,8 +270,8 @@ def GetUnicodeFromPrimaryKey(pk):
     
     example:
 
-      GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
-      returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
+      GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae')
+      returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
     pk = urllib.unquote(pk)
     return pk.decode('utf-8')
@@ -264,7 +281,6 @@ def GetTargetNameFromPK(pk):
     
 def GetPKFromTargetName(name):
     return name+".mujin.dae"
-
 
 def GetTargetNameFromFilename(filename, mujinpath=""):
     return GetTargetNameFromPK(GetPrimaryKeyFromFilename(filename, ""))
