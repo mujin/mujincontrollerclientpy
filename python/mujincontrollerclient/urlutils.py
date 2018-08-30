@@ -14,13 +14,12 @@
 from urlparse import urlparse, urlunparse, ParseResult
 import urllib
 import os
+import logging
+from mujincommon import MujinExceptionBase
 
-id_separator = u'@'
-fragment_separator = u'#'
+log = logging.getLogger(__name__)
 
-
-# TODO(simon): make this internal to this file
-def ParseMujinURI(uri, allowfragments=True, fragmentidentifier=id_separator):
+def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
     """ Mujin uri is unicode and special characters like #, ? and @ will be part of the path
 
     uri will include 5 parts <scheme>://<netloc>/<path>?<query>#<fragment>
@@ -31,10 +30,9 @@ def ParseMujinURI(uri, allowfragments=True, fragmentidentifier=id_separator):
     uri = unicode(uri)
     i = uri.find(':')
 
-    if not uri[:i] == "mujin":
+    if not uri[:i].lower() == "mujin":
         # if scheme is not mujin specified, use the standard uri parse
-        parseresult =  urlparse(uri, allowfragments)
-        parseresult = ParseResult(parseresult.scheme, parseresult.netloc, urllib.unquote(parseresult.path), parseresult.params, parseresult.query, parseresult.fragment)
+        return urlparse(uri, allowfragments)
     else:
         # it's a mujinuri
         scheme = uri[:i].lower()
@@ -46,23 +44,21 @@ def ParseMujinURI(uri, allowfragments=True, fragmentidentifier=id_separator):
             raise MujinExceptionBase(_('mujin scheme has no hostname defined {}').format(uri))
         else:
             if allowfragments:
-                # split by the last appeared id_separator
-                separatorindex = uri.rfind(fragmentidentifier)
+                # split by the last appeared fragmentseparator
+                separatorindex = uri.rfind(fragmentseparator)
                 if separatorindex >= 0:
                     path = uri[:separatorindex]
                     fragment = uri[separatorindex+1:]
                 else:
                     path = uri
-                    fragment = u""
+                    fragment = ""
             else:
                 path = uri
-                fragment = u""
+                fragment = ""
             parseresult = ParseResult(scheme, "", path, params="", query="", fragment=fragment)
     return parseresult
 
-
-# TODO(simon): make this internal to this file
-def UnparseMujinURI(uriparts, fragmentidentifier=id_separator):
+def _UnparseURI(uriparts, fragmentseparator):
     """ compose a uri. This function will call urlunparse if scheme is not mujin.
 
     uriparts is a ParseResult or a tuple which has six parts (scheme, netloc, path, params, query, fragment)
@@ -75,14 +71,21 @@ def UnparseMujinURI(uriparts, fragmentidentifier=id_separator):
         if url and url[:1] != '/':
             url = '/' + url
         if fragment:
-            url = url + fragmentidentifier + fragment
-        return unicode( scheme+ ':' + unicode(url) )
+            url = url + fragmentseparator + fragment
+        return unicode(scheme + ':' + url)
     else:
         # for rfc urlparse, make sure fragment_separator is #
+        if fragment != '#':
+            log.warn("_UnparseURI get wrong fragment separator {} with scheme {}".format(fragmentseparator, scheme))
         return urlunparse((scheme, netloc, url, params, query, fragment))
 
+def GetSchemeFromURI(uri):
+    return _ParseURI(uri).scheme
 
-def GetPrimaryKeyFromURI(uri):
+def GetFragmentFromURI(uri, fragmentseparator):
+    return _ParseURI(uri, fragmentseparator).fragment
+
+def GetPrimaryKeyFromURI(uri, allowfragments, fragmentseparator, primarykeyseparator):
     """
     uri is a mujin scheme uri which is unicode
     primarykey is utf-8 encoded and quoted.
@@ -91,11 +94,11 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/测试_test_#?._%20_\x03test..mujin.dae')
       returns '%E6%B5%8B%E8%AF%95_test_%23%3F._%2520_%03test..mujin.dae'
     """
-    res = ParseMujinURI(uri)
+    res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if res.fragment:
-        return urllib.quote(res.path[1:].encode('utf-8'))+ str(id_separator) + urllib.quote(res.fragment.encode('utf-8'))
+        return urllib.quote(res.path[1:].encode('utf-8'))+ str(primarykeyseparator) + urllib.quote(res.fragment.encode('utf-8'))
     else:
-        return  urllib.quote(str(res.path[1:]))
+        return urllib.quote(res.path[1:].encode('utf-8'))
 
 
 def GetPrimaryKeyFromFilename(filename, mujinpath):
@@ -110,72 +113,52 @@ def GetPrimaryKeyFromFilename(filename, mujinpath):
         filename = filename[len(mujinpath)+1:]
     return urllib.quote(filename.encode('utf-8'))
 
-# TODO(simon): make this internal to this file
-def GetPrimaryKeyFromParsedURI(res):
-    """input the parameters from urlparse
-
-    res: urlparse.ParsedResult
-    example:
-    GetPrimaryKeyFromURI(urlparse(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'))
-    returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae'
+def GetURIFromURI(uri, allowfragments=True, fragmentseparator='#', keepfragment=False, newfragmentseparator=''):
     """
-    if res.fragment:
-        return GetPrimaryKeyFromUnicode(res.path[1:]) + id_separator + GetPrimaryKeyFromUnicode(res.fragment)
+    """
+    res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
+    if not newfragmentseparator:
+        newfragmentseparator = fragmentseparator
+    if keepfragment:
+        uri = _UnparseURI((res.scheme, res.netloc, res.path, res.params, res.query, res.fragment), fragmentseparator=newfragmentseparator)
     else:
-        return GetPrimaryKeyFromUnicode(res.path[1:])
-
-# TODO(simon): need to replace this with FromFilename
-def GetPrimaryKeyFromUnicode(s):
-    """ Transfer  Unicode str to PrimaryKey(utf-8 encoded and quoted)
-    example:
-
-      GetPrimaryKeyFromUnicode(u'\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
-      returns: '%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae'
-    """
-    return urllib.quote(s.encode('utf-8'))
-
-# TODO(simon): rename this to GetURIFromURI(allowfragment=False, fragmentseparator='#')
-# TODO(simon): equivalent to GetURIFromPrimaryKey(GetPrimaryKeyFromURI(uri))
-def GetBaseUri(uri):
-    """returns the URI before the separator
-    """
-    res = ParseMujinURI(uri)
-    uri = UnparseMujinURI((res.scheme, res.netloc, res.path[1:], res.params, res.query, "")) # remove the fragment part
+        uri = _UnparseURI((res.scheme, res.netloc, res.path, res.params, res.query, ""), fragmentseparator=newfragmentseparator) # remove the fragment part
     return uri
 
-def GetURIFromPrimaryKey(pk):
+def GetURIFromPrimaryKey(pk, primarykeyseparator, fragmentseparator):
     """Given the encoded primary key (utf-8 encoded and quoted), returns the unicode URL.
     example:
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
-    unicodepk = GetUnicodeFromPrimaryKey(pk)
-    index = unicodepk.rfind(id_separator)
+    unicodepk = urllib.unquote(pk).decode('utf-8')
+    index = unicodepk.rfind(primarykeyseparator)
     if index >= 0:
         path = unicodepk[:index]
         fragment = unicodepk[index+1:]
     else:
         path = unicodepk
         fragment = ""
-    return UnparseMujinURI(('mujin', '', path, '', '', fragment))
+    return _UnparseURI(('mujin', '', path, '', '', fragment), fragmentseparator)
 
 
 def GetURIFromFilename(filename, mujinpath):
-    """ Compose a mujin uri from filename. 
+    """ Compose a mujin uri from filename.
     """
     filename = filename[len(mujinpath)+1:]
-    return UnparseMujinURI(('mujin', '', filename , '', '', ''))
+    return _UnparseURI(('mujin', '', filename , '', '', ''), '') # no fragment
 
 
-def GetFilenameFromPrimaryKey(pk):
+def GetFilenameFromPrimaryKey(pk, primarykeyseparator):
     """ return filename from primary key
     """
-    uri = GetURIFromPrimaryKey(pk)
-    parseresult = ParseMujinURI(uri, allowfragments=True) # allow fragments will separate object_pk in fragments
+    uri = GetURIFromPrimaryKey(pk, primarykeyseparator, '#') # here uri fragment separator is not important , since our goal is to remove fragment here.
+    baseuri = GetURIFromURI(uri, allowfragments=True, fragmentseparator='#')
+    parseduri = _ParseURI(baseuri, allowfragments=False)
     filename = parseresult.path[1:] # the first character is /
-    return filename
+    return unicode(filename)
 
-def GetFilenameFromURI(uri, mujinpath, allowfragment=True, fragmentidentifier=id_separator):
+def GetFilenameFromURI(uri, mujinpath, allowfragments=True, fragmentseparator='@'):
     """returns the filesystem path that the URI points to.
 
     uri: if uri is mujin scheme, will join mujin path. otherwise it will directly use parsed path result.
@@ -185,7 +168,7 @@ def GetFilenameFromURI(uri, mujinpath, allowfragment=True, fragmentidentifier=id
       GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
       returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
     """
-    res = ParseMujinURI(uri, allowfragment, fragmentidentifier)
+    res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if len(res.path) == 0:
         raise MujinExceptionBase(_('need path in URI %s') % uri)
 
@@ -193,49 +176,31 @@ def GetFilenameFromURI(uri, mujinpath, allowfragment=True, fragmentidentifier=id
         filepath = os.path.join(mujinpath, res.path[1:])
     else:
         filepath = res.path
-    return res, filepath
+    return res, unicode(filepath)
 
-# TODO(simon): there is no TargetName there is only PartType
-def GetFilenameFromTargetName(targetname, withsuffix=True):
-    """ Unquote targetname to get filename, if withsuffix is True, add the .mujin.dae suffix
+def GetFilenameFromPartType(targetname, suffix='.mujin.dae'):
+    """ Unquote parttype to get filename, if withsuffix is True, add the .mujin.dae suffix
     """
-    filename = urllib.unquote(targetname)
-    if withsuffix:
-        return filename + ".mujin.dae"
+    if suffix:
+        return unicode(targetname +  suffix)
     else:
-        return filename   # used to compose filename.tar.gz
+        return unicode(targetname)   # used to compose filename.tar.gz
 
-# TODO(simon): need to replace this with GetFileName
-def GetUnicodeFromPrimaryKey(pk):
-    """Given the encoded primary key (has to be str object), returns the unicode string.
-    If pk is a unicode object, will return the string as is.
-    
-    example:
-
-      GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae')
-      returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
+def GetPartTypeFromPrimaryKey(pk):
+    """ return a unicode partype
     """
-    pk = urllib.unquote(pk)
-    return pk.decode('utf-8')
+    if pk.endswith('.mujin.dae'):
+        return urllib.unquote(pk[:-len(".mujin.dae")]).decode('utf-8')
+    else:
+        return urllib.unquote(pk.decode('utf-8'))
 
-# TODO(simon): there is no TargetName there is only PartType
-# TODO(simon): PrimaryKey
-def GetTargetNameFromPK(pk):
-    return pk[:-len(".mujin.dae")]
-    
-# TODO(simon): there is no TargetName there is only PartType
-# TODO(simon): PrimaryKey
-def GetPKFromTargetName(name):
-    return name+".mujin.dae"
+def GetPrimaryKeyFromPartType(parttype):
+    return str(urllib.quote(parttype).encode('utf-8') + ".mujin.dae")
 
-# TODO(simon): there is no TargetName there is only PartType
-def GetTargetNameFromFilename(filename, mujinpath=""):
-    return GetTargetNameFromPK(GetPrimaryKeyFromFilename(filename, ""))
+def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
+    if filename.startswith(mujinpath):
+        filename = filename[len(mujinpath)+1:]
+    if filename.endswith(suffix):
+        filename = filename[:-len(suffix)]
+    return filename
 
-# TODO(simon): this has to be internal
-def Quote(value):
-    return urllib.quote(value)
-
-# TODO(simon): this has to be internal
-def Unquote(value):
-    return urllib.unquote(value)

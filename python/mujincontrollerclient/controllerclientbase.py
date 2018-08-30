@@ -26,8 +26,6 @@ from . import ControllerClientError
 from . import controllerclientraw
 from . import ugettext as _
 
-from .urlutils import id_separator, fragment_separator, GetFilenameFromURI, GetURIFromPrimaryKey, GetUnicodeFromPrimaryKey, GetPrimaryKeyFromURI
-
 def FormatHTTPDate(dt):
     """Return a string representation of a date according to RFC 1123 (HTTP/1.1).
 
