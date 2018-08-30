@@ -155,7 +155,7 @@ def GetFilenameFromPrimaryKey(pk, primarykeyseparator):
     uri = GetURIFromPrimaryKey(pk, primarykeyseparator, '#') # here uri fragment separator is not important , since our goal is to remove fragment here.
     baseuri = GetURIFromURI(uri, allowfragments=True, fragmentseparator='#')
     parseduri = _ParseURI(baseuri, allowfragments=False)
-    filename = parseresult.path[1:] # the first character is /
+    filename = parseduri.path[1:] # the first character is /
     return unicode(filename)
 
 def GetFilenameFromURI(uri, mujinpath, allowfragments=True, fragmentseparator='@'):
@@ -192,10 +192,10 @@ def GetPartTypeFromPrimaryKey(pk):
     if pk.endswith('.mujin.dae'):
         return urllib.unquote(pk[:-len(".mujin.dae")]).decode('utf-8')
     else:
-        return urllib.unquote(pk.decode('utf-8'))
+        return urllib.unquote(pk).decode('utf-8')
 
 def GetPrimaryKeyFromPartType(parttype):
-    return str(urllib.quote(parttype).encode('utf-8') + ".mujin.dae")
+    return str(urllib.quote(parttype.encode('utf-8') + ".mujin.dae"))
 
 def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
     if filename.startswith(mujinpath):
