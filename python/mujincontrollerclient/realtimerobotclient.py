@@ -141,6 +141,18 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
+    def MoveJointStraight(self, deltagoalvalue, jointName, timeout=10, robotspeed=None, **kwargs):
+        """moves joint straight
+        :param jointName: name of the joint to move
+        :param deltagoalvalue: how much to move joint in delta
+        """
+        taskparameters = {'command': 'MoveJointStraight',
+                          'deltagoalvalue': deltagoalvalue,
+                          'jointName': jointName,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+
     def MoveToolLinear(self, goaltype, goals, toolname=None, timeout=10, robotspeed=None, **kwargs):
         """moves the tool linear
         :param goaltype: type of the goal, e.g. translationdirection5d
