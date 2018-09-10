@@ -285,7 +285,9 @@ class ZmqClient(object):
     def port(self):
         return self._port
 
-    def _CheckingCallerThread(self):
+    def _CheckCallerThread(self):
+        """catch bad caller who use zmq client from multiple threads and causes random race conditions.
+        """
         callerthread = repr(threading.current_thread())
         oldcallerthread = self._callerthread
         self._callerthread = callerthread
@@ -316,7 +318,7 @@ class ZmqClient(object):
         """
         log.verbose(u'Sending command via ZMQ: %s', command)
 
-        self._CheckingCallerThread()
+        self._CheckCallerThread()
 
         if fireandforget:
             blockwait = False
@@ -381,7 +383,7 @@ class ZmqClient(object):
 
         :return: returns the recv or recv_json response
         """
-        self._CheckingCallerThread()
+        self._CheckCallerThread()
 
         # should have called SendCommand with blockwait=False first
         assert(self._socket is not None)
