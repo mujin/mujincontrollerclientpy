@@ -289,8 +289,8 @@ class ZmqClient(object):
         callerthread = repr(threading.current_thread())
         oldcallerthread = self._callerthread
         self._callerthread = callerthread
-        if oldcallerthread is not None and oldcallerthread != callerthread:
-            assert False, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
+        if oldcallerthread is not None:
+            assert oldcallerthread == callerthread, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
 
     def _AcquireSocket(self, timeout=None):
         # if we were holding on to a socket before, release it before acquiring one
