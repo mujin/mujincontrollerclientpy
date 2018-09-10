@@ -2,6 +2,7 @@
 # Copyright (C) 2012-2015 MUJIN Inc
 
 import zmq
+import threading
 
 from . import TimeoutError
 
@@ -226,6 +227,7 @@ class ZmqClient(object):
     _pool = None
     _socket = None
     _isok = False
+    _callerthread = None # last caller thread
     
     def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None):
         """creates a new zmq client, uses zmq req socket over tcp
@@ -283,6 +285,13 @@ class ZmqClient(object):
     def port(self):
         return self._port
 
+    def _CheckingCallerThread(self):
+        callerthread = repr(threading.current_thread())
+        oldcallerthread = self._callerthread
+        self._callerthread = callerthread
+        if oldcallerthread is not None and oldcallerthread != callerthread:
+            assert False, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
+
     def _AcquireSocket(self, timeout=None):
         # if we were holding on to a socket before, release it before acquiring one
         self._ReleaseSocket()
@@ -306,6 +315,8 @@ class ZmqClient(object):
         :return: returns the response from the zmq server in json format if blockwait is True
         """
         log.verbose(u'Sending command via ZMQ: %s', command)
+
+        self._CheckingCallerThread()
 
         if fireandforget:
             blockwait = False
@@ -370,6 +381,7 @@ class ZmqClient(object):
 
         :return: returns the recv or recv_json response
         """
+        self._CheckingCallerThread()
 
         # should have called SendCommand with blockwait=False first
         assert(self._socket is not None)
