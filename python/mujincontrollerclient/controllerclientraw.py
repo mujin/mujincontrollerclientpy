@@ -24,7 +24,7 @@ try:
 except ImportError:
     import json
 
-from . import ControllerClientError
+from . import GetMonotonicTime, TimeoutError
 from . import APIServerError, AuthenticationError, GetAPIServerErrorFromWeb
 from . import ugettext as _
 
@@ -267,11 +267,11 @@ class ControllerWebClient(object):
         jobpk = response['jobpk']
         # query the task results
         status_text_prev = None
-        starttime = time.time()
+        starttime = GetMonotonicTime()
         try:
             while self._isok:
                 try:
-                    if timeout is not None and time.time() - starttime > timeout:
+                    if timeout is not None and GetMonotonicTime() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
                     try:
                         status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)
@@ -337,11 +337,11 @@ class ControllerWebClient(object):
         jobpk = response['jobpk']
         # query the task results
         status_text_prev = None
-        starttime = time.time()
+        starttime = GetMonotonicTime()
         try:
             while self._isok:
                 try:
-                    if timeout is not None and time.time() - starttime > timeout:
+                    if timeout is not None and GetMonotonicTime() - starttime > timeout:
                         raise TimeoutError('failed to get result in time, quitting')
                     try:
                         status, response = self.APICall('GET', u'job/%s' % jobpk, timeout=5)

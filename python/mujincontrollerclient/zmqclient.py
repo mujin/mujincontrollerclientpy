@@ -4,19 +4,12 @@
 import zmq
 import threading
 
-from . import TimeoutError
+from . import TimeoutError, GetMonotonicTime
 
 # logging
 import logging
 log = logging.getLogger(__name__)
 
-# use GetMonotonicTime if possible
-try:
-    from mujincommon import GetMonotonicTime
-except ImportError:
-    import time
-    def GetMonotonicTime():
-        return time.time()
 
 class ZmqSocketPool(object):
 
@@ -292,7 +285,9 @@ class ZmqClient(object):
         oldcallerthread = self._callerthread
         self._callerthread = callerthread
         if oldcallerthread is not None:
-            assert oldcallerthread == callerthread, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
+            # assert oldcallerthread == callerthread, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
+            if oldcallerthread != callerthread:
+                log.error('zmqclient used from multiple threads, this is a bug in the caller: previously = %s, now = %s' % (oldcallerthread, callerthread))
 
     def _AcquireSocket(self, timeout=None):
         # if we were holding on to a socket before, release it before acquiring one

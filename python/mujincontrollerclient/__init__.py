@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2014-2015 MUJIN Inc.
+# Copyright (C) 2014-2018 MUJIN Inc.
+
+# use GetMonotonicTime if possible
+try:
+    from mujincommon import GetMonotonicTime
+except ImportError:
+    import time
+    def GetMonotonicTime():
+        return time.time()
 
 try:
     import mujincommon.i18n
@@ -13,26 +21,6 @@ except ImportError:
 _ = ugettext
 
 import json
-
-from logging import addLevelName, NOTSET, getLoggerClass
-
-VERBOSE = 5
-
-class MujinLogger(getLoggerClass()):
-    def __init__(self, name, level=NOTSET):
-        super(MujinLogger, self).__init__(name, level)
-
-        addLevelName(VERBOSE, "VERBOSE")
-    
-    def verbose(self, msg, *args, **kwargs):
-        if self.isEnabledFor(VERBOSE):
-            self._log(VERBOSE, msg, args, **kwargs)
-
-#     def __eq__(self, r):
-#         return self.msg == r.msg
-#     
-#     def __ne__(self, r):
-#         return self.msg != r.msg
 
 class ClientExceptionBase(Exception):
     """client base exception
@@ -141,14 +129,3 @@ class BinPickingError(ClientExceptionBase):
 class HandEyeCalibrationError(ClientExceptionBase):
     def __unicode__(self):
         return _('Hand-eye Calibration Client Error:\n%s')%self.msg
-
-from traceback import format_exc
-
-
-def GetExceptionStack():
-    """returns the unicode of format_exc
-    """
-    s = format_exc()
-    if isinstance(s, unicode):
-        return s
-    return unicode(s, 'utf-8')
