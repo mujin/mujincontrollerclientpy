@@ -9,11 +9,8 @@ from logging import getLogger
 log = getLogger(__name__)
 
 # system imports
-from urlparse import urlparse
-from urllib import quote, unquote
 import os
 import time
-import datetime
 
 try:
     import zmq
@@ -25,9 +22,8 @@ from threading import Thread
 import weakref
 
 # mujin imports
-from . import ControllerClientError, GetAPIServerErrorFromZMQ
+from . import GetAPIServerErrorFromZMQ, GetMonotonicTime
 from . import controllerclientbase, zmqclient
-from . import ugettext as _
 
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
@@ -144,22 +140,22 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             poller = zmq.Poller()
             poller.register(socket, zmq.POLLIN)
 
-            lastheartbeatts = time.time()
-            while self._isokheartbeat and time.time() - lastheartbeatts < reinitializetimeout:
+            lastheartbeatts = GetMonotonicTime()
+            while self._isokheartbeat and GetMonotonicTime() - lastheartbeatts < reinitializetimeout:
                 socks = dict(poller.poll(50))
                 if socket in socks and socks.get(socket) == zmq.POLLIN:
                     try:
                         reply = socket.recv_json(zmq.NOBLOCK)
                         if 'taskstate' in reply:
                             self._taskstate = reply['taskstate']
-                            lastheartbeatts = time.time()
+                            lastheartbeatts = GetMonotonicTime()
                         else:
                             self._taskstate = None
                     except zmq.ZMQError, e:
                         log.error('failed to receive from publisher')
                         log.error(e)
             if self._isokheartbeat:
-                log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
+                log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
 
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
