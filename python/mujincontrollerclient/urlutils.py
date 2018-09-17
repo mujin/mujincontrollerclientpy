@@ -41,7 +41,7 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
             # usually we need to split hostname from url
             # for now mujin uri doesn't have definition of hostname in uri
             log.warn("uri {} includs hostname which is not defined".format(uri))
-            raise MujinExceptionBase(_('mujin scheme has no hostname defined {}').format(uri))
+            raise MujinExceptionBase('mujin scheme has no hostname defined {}'%uri)
         else:
             if allowfragments:
                 # split by the last appeared fragmentseparator
@@ -170,7 +170,7 @@ def GetFilenameFromURI(uri, mujinpath, allowfragments=True, fragmentseparator='@
     """
     res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if len(res.path) == 0:
-        raise MujinExceptionBase(_('need path in URI %s') % uri)
+        raise MujinExceptionBase('need path in URI %s'% uri)
 
     if res.scheme == "mujin":
         filepath = os.path.join(mujinpath, res.path[1:])
