@@ -41,7 +41,7 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
             # usually we need to split hostname from url
             # for now mujin uri doesn't have definition of hostname in uri
             log.warn("uri {} includs hostname which is not defined".format(uri))
-            raise MujinExceptionBase(_('mujin scheme has no hostname defined {}').format(uri))
+            raise MujinExceptionBase('mujin scheme has no hostname defined {}'.format(uri))
         else:
             if allowfragments:
                 # split by the last appeared fragmentseparator
@@ -77,7 +77,7 @@ def _UnparseURI(uriparts, fragmentseparator):
         # for rfc urlparse, make sure fragment_separator is #
         if fragment != '#':
             log.warn("_UnparseURI get wrong fragment separator {} with scheme {}".format(fragmentseparator, scheme))
-        return urlunparse((scheme, netloc, url, params, query, fragment))
+        return unicode(urlunparse((scheme, netloc, url, params, query, fragment)))
 
 def GetSchemeFromURI(uri):
     return _ParseURI(uri).scheme
@@ -96,9 +96,9 @@ def GetPrimaryKeyFromURI(uri, allowfragments, fragmentseparator, primarykeysepar
     """
     res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if res.fragment:
-        return urllib.quote(res.path[1:].encode('utf-8'))+ str(primarykeyseparator) + urllib.quote(res.fragment.encode('utf-8'))
+        return str(urllib.quote(res.path[1:].encode('utf-8'))+ str(primarykeyseparator) + urllib.quote(res.fragment.encode('utf-8')))
     else:
-        return urllib.quote(res.path[1:].encode('utf-8'))
+        return str(urllib.quote(res.path[1:].encode('utf-8')))
 
 
 def GetPrimaryKeyFromFilename(filename, mujinpath):
@@ -131,6 +131,7 @@ def GetURIFromPrimaryKey(pk, primarykeyseparator, fragmentseparator):
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122.mujin.dae')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
+    pk = str(pk)
     unicodepk = urllib.unquote(pk).decode('utf-8')
     index = unicodepk.rfind(primarykeyseparator)
     if index >= 0:
@@ -152,6 +153,7 @@ def GetURIFromFilename(filename, mujinpath):
 def GetFilenameFromPrimaryKey(pk, primarykeyseparator):
     """ return filename from primary key
     """
+    pk = str(pk)
     uri = GetURIFromPrimaryKey(pk, primarykeyseparator, '#') # here uri fragment separator is not important , since our goal is to remove fragment here.
     baseuri = GetURIFromURI(uri, allowfragments=True, fragmentseparator='#')
     parseduri = _ParseURI(baseuri, allowfragments=False)
@@ -170,7 +172,7 @@ def GetFilenameFromURI(uri, mujinpath, allowfragments=True, fragmentseparator='@
     """
     res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if len(res.path) == 0:
-        raise MujinExceptionBase(_('need path in URI %s') % uri)
+        raise MujinExceptionBase('need path in URI %s'% uri)
 
     if res.scheme == "mujin":
         filepath = os.path.join(mujinpath, res.path[1:])
@@ -189,6 +191,7 @@ def GetFilenameFromPartType(targetname, suffix='.mujin.dae'):
 def GetPartTypeFromPrimaryKey(pk):
     """ return a unicode partype
     """
+    pk = str(pk)
     if pk.endswith('.mujin.dae'):
         return urllib.unquote(pk[:-len(".mujin.dae")]).decode('utf-8')
     else:
