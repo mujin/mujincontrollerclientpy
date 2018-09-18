@@ -729,9 +729,10 @@ class ControllerClient(object):
         files = {}
         for e in tree.findall('{DAV:}response'):
             name = prop(e, 'href')
+            name = unquote(name).decode('utf-8')
             assert(name.startswith(path))
             # webdav returns quoted utf-8 filenames, so we decode here to unicode
-            name = unquote(name[len(path):].strip('/')).decode('utf-8')
+            name = name[len(path):].strip('/')
             size = int(prop(e, 'getcontentlength', 0))
             isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
             modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
