@@ -201,7 +201,7 @@ def GetPrimaryKeyFromPartType(parttype):
     return str(urllib.quote(parttype.encode('utf-8') + ".mujin.dae"))
 
 def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
-    if filename.startswith(mujinpath):
+    if mujinpath and filename.startswith(mujinpath):
         filename = filename[len(mujinpath)+1:]
     if filename.endswith(suffix):
         filename = filename[:-len(suffix)]
