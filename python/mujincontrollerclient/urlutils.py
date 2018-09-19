@@ -180,13 +180,13 @@ def GetFilenameFromURI(uri, mujinpath, allowfragments=True, fragmentseparator='@
         filepath = res.path
     return res, unicode(filepath)
 
-def GetFilenameFromPartType(targetname, suffix='.mujin.dae'):
+def GetFilenameFromPartType(parttype, suffix='.mujin.dae'):
     """ Unquote parttype to get filename, if withsuffix is True, add the .mujin.dae suffix
     """
     if suffix:
-        return unicode(targetname +  suffix)
+        return unicode(parttype +  suffix)
     else:
-        return unicode(targetname)   # used to compose filename.tar.gz
+        return unicode(parttype)   # used to compose filename.tar.gz
 
 def GetPartTypeFromPrimaryKey(pk):
     """ return a unicode partype
