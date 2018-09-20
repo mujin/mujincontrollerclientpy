@@ -41,7 +41,7 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
             # usually we need to split hostname from url
             # for now mujin uri doesn't have definition of hostname in uri
             log.warn("uri {} includs hostname which is not defined".format(uri))
-            raise MujinExceptionBase('mujin scheme has no hostname defined {}'%uri)
+            raise MujinExceptionBase('mujin scheme has no hostname defined %s'%uri)
         else:
             if allowfragments:
                 # split by the last appeared fragmentseparator
@@ -114,7 +114,11 @@ def GetPrimaryKeyFromFilename(filename, mujinpath):
     return urllib.quote(filename.encode('utf-8'))
 
 def GetURIFromURI(uri, allowfragments=True, fragmentseparator='#', keepfragment=False, newfragmentseparator=''):
-    """
+    """ Compose a new uri from old one
+    allowfragments: if it's true, ParseURI will keep the fragments of old uri
+    fragmentseparator: the separator used in old uri
+    keepfragment: uri fragment part will be kept in the new uri if Ture, otherwise it will be removed.
+    newfragmentseparator:  the new fragment separator used in new uri.
     """
     res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if not newfragmentseparator:
