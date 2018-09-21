@@ -11,7 +11,6 @@
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
 # because '#' in URL parsing is a special role
-from __future__ import unicode_literals
 from urlparse import urlparse, urlunparse, ParseResult
 import urllib
 import os
@@ -30,7 +29,7 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
     >>> print(_ParseURI(u"mujin:/测试_test.mujin.dae", allowfragments=True, fragmentseparator='@').path)
     /测试_test.mujin.dae
     >>> _ParseURI(u"mujin:/测试_test.mujin.dae@body0_motion", allowfragments=False, fragmentseparator='@').fragment
-    u''
+    ''
     >>> print(_ParseURI(u"mujin:/测试_test.mujin.dae@body0_motion", allowfragments=True, fragmentseparator='#').path)
     /测试_test.mujin.dae@body0_motion
     """
@@ -100,11 +99,11 @@ def GetSchemeFromURI(uri):
 def GetFragmentFromURI(uri, fragmentseparator):
     u"""
     >>> GetFragmentFromURI(u"mujin:/测试_test.mujin.dae", fragmentseparator='@')
-    u''
+    ''
     >>> GetFragmentFromURI(u"mujin:/测试_test.mujin.dae@body0_motion", fragmentseparator='@')
     u'body0_motion'
     >>> GetFragmentFromURI(u"mujin:/测试_test.mujin.dae#body0_motion", fragmentseparator='@')
-    u''
+    ''
     """
     return _ParseURI(uri, fragmentseparator).fragment
 
@@ -267,8 +266,5 @@ def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
 
 
 if __name__ == "__main__":
-    import sys
-    reload(sys)
-    sys.setdefaultencoding("UTF-8")
     import doctest
     doctest.testmod()
