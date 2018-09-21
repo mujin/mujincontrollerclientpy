@@ -39,7 +39,7 @@ if __name__ == "__main__":
         if urlobj.username is not None:
             username = urlobj.username
         if urlobj.password is not None:
-            password = uurlobj.password
+            password = urlobj.password
         self = controllerclientbase.ControllerClient(options.url, username, password)
     else:
         conffile = options.config
