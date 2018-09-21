@@ -263,8 +263,3 @@ def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
     if filename.endswith(suffix):
         filename = filename[:-len(suffix)]
     return unicode(filename)
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
