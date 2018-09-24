@@ -28,6 +28,7 @@ import weakref
 from . import ControllerClientError, GetAPIServerErrorFromZMQ
 from . import controllerclientbase, zmqclient
 from . import ugettext as _
+from . import urlutils
 
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
@@ -168,10 +169,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
-        sceneuri = controllerclientbase.GetURIFromPrimaryKey(scenepk)
+        sceneuri = urlutils.GetURIFromPrimaryKey(scenepk, primarykeyseparator='@', fragmentseparator='@')
         # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
-        scenefilename = controllerclientbase.GetFilenameFromURI(sceneuri, mujinpath)[1]
+        scenefilename = urlutils.GetFilenameFromURI(sceneuri, mujinpath, allowfragments=True, fragmentseparator='@')[1]
         self._sceneparams = {'scenetype': 'mujincollada', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
 
     #
