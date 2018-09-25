@@ -124,7 +124,7 @@ def GetPrimaryKeyFromURI(uri, allowfragments, fragmentseparator, primarykeysepar
     """
     res = _ParseURI(uri, allowfragments=allowfragments, fragmentseparator=fragmentseparator)
     if res.fragment:
-        return str(urllib.quote(res.path[1:].encode('utf-8'))+ str(primarykeyseparator) + urllib.quote(res.fragment.encode('utf-8')))
+        return str(urllib.quote(res.path[1:].encode('utf-8'))+ primarykeyseparator + urllib.quote(res.fragment.encode('utf-8')))
     else:
         return str(urllib.quote(res.path[1:].encode('utf-8')))
 
@@ -140,6 +140,7 @@ def GetPrimaryKeyFromFilename(filename, mujinpath):
     '/data/u/mujin/%E6%B5%8B%E8%AF%95_test.mujin.dae'
     """
     if mujinpath and filename.startswith(mujinpath):
+        mujinpath = mujinpath.rstrip('/')
         filename = filename[len(mujinpath)+1:]
     return urllib.quote(filename.encode('utf-8'))
 
@@ -188,7 +189,9 @@ def GetURIFromFilename(filename, mujinpath):
     >>> GetURIFromFilename(u"/data/detection/test.mujin.dae", u"/data/detection")
     u'mujin:/test.mujin.dae'
     """
-    filename = filename[len(mujinpath)+1:]
+    if mujinpath and filename.startswith(mujinpath):
+        mujinpath = mujinpath.rstrip('/')
+        filename = filename[len(mujinpath)+1:]
     return _UnparseURI(('mujin', '', filename , '', '', ''), '') # no fragment
 
 
@@ -230,7 +233,7 @@ def GetFilenameFromPartType(parttype, suffix='.mujin.dae'):
     测试_test.tar.gz
     """
     if suffix:
-        return unicode(parttype + suffix)
+        return unicode(parttype+suffix)
     else:
         return unicode(parttype)   # used to compose filename.tar.gz
 
@@ -259,6 +262,7 @@ def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
     测试_test
     """
     if mujinpath and filename.startswith(mujinpath):
+        mujinpath = mujinpath.rstrip('/')
         filename = filename[len(mujinpath)+1:]
     if filename.endswith(suffix):
         filename = filename[:-len(suffix)]
