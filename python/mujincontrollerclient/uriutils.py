@@ -230,7 +230,7 @@ def GetFilenameFromPartType(parttype, suffix='.mujin.dae'):
     测试_test.tar.gz
     """
     if suffix:
-        return unicode(parttype +  suffix)
+        return unicode(parttype + suffix)
     else:
         return unicode(parttype)   # used to compose filename.tar.gz
 
@@ -251,7 +251,7 @@ def GetPrimaryKeyFromPartType(parttype):
     >>> GetPrimaryKeyFromPartType(u'测试_test')
     '%E6%B5%8B%E8%AF%95_test.mujin.dae'
     """
-    return str(urllib.quote( (parttype+".mujin.dae").encode('utf-8')))
+    return str(urllib.quote((parttype+".mujin.dae").encode('utf-8')))
 
 def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
     u"""
