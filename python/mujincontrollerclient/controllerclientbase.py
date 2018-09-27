@@ -11,6 +11,7 @@ log = getLogger(__name__)
 # system imports
 from urlparse import urlparse, urlunparse
 from urllib import quote, unquote
+import httplib
 import os
 import datetime
 import base64
@@ -696,6 +697,12 @@ class ControllerClient(object):
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
+
+    def DownloadSceneFile(self, filename, timeout=5):
+        response = self._webclient.Request('GET', u'/downloadscenefile', params={'filename': filename}, timeout=timeout)
+        if response.status_code != httplib.OK:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
