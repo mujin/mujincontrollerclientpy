@@ -144,7 +144,7 @@ def GetPrimaryKeyFromFilename(filename, mujinpath):
         filename = filename[len(mujinpath)+1:]
     return urllib.quote(filename.encode('utf-8'))
 
-def GetURIFromURI(uri, allowfragments, fragmentseparator, keepfragment=False, newfragmentseparator=''):
+def GetURIFromURI(uri, allowfragments, fragmentseparator, keepfragment=False, newfragmentseparator='@'):
     """ Compose a new uri from old one
     allowfragments: if it's true, ParseURI will keep the fragments of old uri
     fragmentseparator: the separator used in old uri
