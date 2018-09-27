@@ -13,11 +13,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     """
     _robotname = None # optional name of the robot selected
     _robots = None # a dict of robot params
+    _devices = None # a dict of device params
     _robotspeed = None # speed of the robot, e.g. 0.4
     _robotaccelmult = None # current robot accel mult
     _envclearance = None # environment clearance in milimeter, e.g. 20
 
-    def __init__(self, robotname, robots, robotspeed=None, robotaccelmult=None, envclearance=10.0, **kwargs):
+    def __init__(self, robotname, robots, devices, robotspeed=None, robotaccelmult=None, envclearance=10.0, **kwargs):
         """
         :param robotspeed: speed of the robot, e.g. 0.4
         :param envclearance: environment clearance in milimeter, e.g. 20
@@ -25,6 +26,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         super(RealtimeRobotControllerClient, self).__init__(**kwargs)
         self._robotname = robotname
         self._robots = robots
+        self._devices = devices
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
         self._envclearance = envclearance
@@ -40,20 +42,22 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def SetRobots(self, robots):
         self._robots = robots
+
+    def GetDevices(self):
+        return self._devices
+
+    def SetDevices(self, devices):
+        self._devices = devices
     
     def GetRobotControllerUri(self):
         robots = self._robots or {}
         return robots.get(self._robotname, {}).get('robotControllerUri', '')
 
-    def GetRobotDevices(self):
-        robots = self._robots or {}
-        return robots.get(self._robotname, {}).get('devices', None)
-    
     def IsRobotControllerConfigured(self):
         return len(self.GetRobotControllerUri()) > 0
     
-    def IsRobotDeviceIOConfigured(self):
-        devices = self.GetRobotDevices() or []
+    def IsDeviceIOConfigured(self):
+        devices = self.GetDevices() or []
         if len(devices) > 0:
             return any([len(deviceParams.get('params',{}).get('host','')) > 0 for deviceParams in devices])
         
@@ -65,7 +69,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def SetRobotAccelMult(self, robotaccelmult):
         self._robotaccelmult = robotaccelmult
     
-    def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
+    def ExecuteCommand(self, taskparameters, robotname=None, devices=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
         
         executes a command on the task.
@@ -84,6 +88,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             robotname = self._robotname
         if robots is None:
             robots = self._robots
+        if devices is None:
+            devices = self._devices
 
         # caller wants to use a different tool
         if toolname is not None:
@@ -100,8 +106,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robots'] = robots
         if robots is None or robotname in robots:
             taskparameters['robotname'] = robotname
+        if devices is not None:
+            taskparameters['devices'] = devices
 
-        log.verbose('robotname = %r, robots = %r', robotname, robots)
+        log.verbose('robotname = %r, robots = %r, devices = %r', robotname, robots, devices)
         
         if 'robotspeed' not in taskparameters:
             if robotspeed is None:
