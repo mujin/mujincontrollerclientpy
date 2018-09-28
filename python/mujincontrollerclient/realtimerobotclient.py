@@ -30,7 +30,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
         self._envclearance = envclearance
-        
+    
     def GetRobotName(self):
         return self._robotname
 
@@ -42,7 +42,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def SetRobots(self, robots):
         self._robots = robots
-
+    
+    def SetRobotConfig(self, robotname, robotconfig):
+        self._robots[robotname] = robotconfig
+    
     def GetDevices(self):
         return self._devices
 
