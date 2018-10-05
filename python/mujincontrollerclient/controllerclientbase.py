@@ -397,6 +397,14 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
         assert(status == 202)
     
+    def GetObjectLinks(self, objectpk, fields=None, usewebapi=True, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/link/' % (objectpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+    
     def GetObjectLink(self, objectpk, linkpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
