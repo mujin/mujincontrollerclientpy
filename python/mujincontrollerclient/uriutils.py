@@ -592,14 +592,14 @@ class MujinResourceIdentifier(object):
             index = primarykey.rfind(self._primarykeyseparator)
             if index >= 0:
                 self._primarykey = primarykey[:index]
-                self._fragment = primarykey[index+1:].decode('utf-8')
+                self._fragment = primarykey[index+1:].decode(self.encoding)
             else:
                 self._primarykey = primarykey
         else:
             self._primarykey = primarykey
 
     def _InitFromPartType(self, parttype):
-        self._primarykey = urllib.quote((parttype + self._suffix).encode('utf-8'))
+        self._primarykey = urllib.quote((parttype + self._suffix).encode(self.encoding))
 
     def _InitFromFilename(self, filename):
         if self._mujinpath and filename.startswith(self._mujinpath):
@@ -608,6 +608,7 @@ class MujinResourceIdentifier(object):
 
     def __init__(self, uri='', primarykey='', parttype='', filename='', suffix='', mujinpath='', fragmentseparator='', primarykeyseparator=''):
 
+        log.error('simon debug uri = {},  {}, {}, {} , {}, {}, {}, {}'.format(uri, primarykey, parttype, filename, suffix, mujinpath, fragmentseparator, primarykeyseparator))
         if mujinpath and not mujinpath.endswith('/'):
             mujinpath += '/'
 
@@ -626,8 +627,13 @@ class MujinResourceIdentifier(object):
         elif filename:
             self._InitFromFilename(filename)
         else:
-            raise MujinResourceIdentifier("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
-
+            try:
+                raise MujinResourceIdentifier("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
+            except Exception as e:
+                import sys, traceback
+                traceback.print_exc(file=log.error)
+                raise e
+            
     @property
     def uri(self):
         """ Same as GetURIFromPrimaryKey
@@ -675,9 +681,9 @@ class MujinResourceIdentifier(object):
     @property
     def parttype(self):
         if self._primarykey.endswith(self._suffix):
-            return urllib.unquote(self._primarykey[:-len(self._suffix)]).decode('utf-8')
+            return urllib.unquote(self._primarykey[:-len(self._suffix)]).decode(self.encoding)
         else:
-            return urllib.unquote(self._primarykey).decode('utf-8')
+            return urllib.unquote(self._primarykey).decode(self.encoding)
 
     def WithFragmentSeparator(self, separator):      
         mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, separator, self._primarykeyseparator)
