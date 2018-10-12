@@ -608,7 +608,6 @@ class MujinResourceIdentifier(object):
 
     def __init__(self, uri='', primarykey='', parttype='', filename='', suffix='', mujinpath='', fragmentseparator='', primarykeyseparator=''):
 
-        log.error('simon debug uri = {},  {}, {}, {} , {}, {}, {}, {}'.format(uri, primarykey, parttype, filename, suffix, mujinpath, fragmentseparator, primarykeyseparator))
         if mujinpath and not mujinpath.endswith('/'):
             mujinpath += '/'
 
