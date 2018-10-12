@@ -593,11 +593,14 @@ class ControllerClient(object):
     # Task related
     #
 
-    def GetSceneTasks(self, scenepk, fields=None, usewebapi=True, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, tasktype=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params={
+        params = {
             'limit': 0,
-        })
+        }
+        if tasktype:
+            params['tasktype'] = tasktype
+        status, response = self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params=params)
         assert(status == 200)
         return response['objects']
 
