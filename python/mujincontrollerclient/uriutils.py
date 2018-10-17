@@ -443,6 +443,8 @@ def GetFilenameFromPartType(parttype, suffix='.mujin.dae'):
 
     >>> print(GetFilenameFromPartType(u'测试_test', suffix='.tar.gz'))
     测试_test.tar.gz
+    >>> print(GetFilenameFromPartType(u'测试_test', suffix=''))
+    测试_test
     """
     return MujinResourceIdentifier(parttype=parttype, suffix=suffix).filename
 
@@ -504,7 +506,7 @@ def GetPrimaryKeyFromPartType(parttype):
     >>> GetPrimaryKeyFromPartType(u'测试_test')
     '%E6%B5%8B%E8%AF%95_test.mujin.dae'
     """
-    return MujinResourceIdentifier(parttype=parttype).primarykey
+    return MujinResourceIdentifier(parttype=parttype, suffix='.mujin.dae').primarykey
 
 
 # def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
@@ -558,7 +560,7 @@ class MujinResourceIdentifier(object):
     encoding = 'utf-8'
     _fragmentseparator = ''
     _primarykeyseparator = ''
-    _suffix = '.mujin.dae'
+    _suffix = ''
     _scheme = 'mujin'
     _mujinpath = ''
     _primarykey = ''
@@ -570,8 +572,7 @@ class MujinResourceIdentifier(object):
             parsedUri = _ParseURI(uri, True, self._fragmentseparator)
         else:
             parsedUri = _ParseURI(uri, False, self._fragmentseparator)
-        
-            
+
         self._scheme = parsedUri.scheme
         self._fragment = parsedUri.fragment
         filename = ''
@@ -597,6 +598,9 @@ class MujinResourceIdentifier(object):
                 self._primarykey = primarykey
         else:
             self._primarykey = primarykey
+
+        if self._primarykey.endswith('.mujin.dae'):
+            self._suffix = '.mujin.dae'
 
     def _InitFromPartType(self, parttype):
         self._primarykey = urllib.quote((parttype + self._suffix).encode(self.encoding))
@@ -632,7 +636,7 @@ class MujinResourceIdentifier(object):
                 import sys, traceback
                 traceback.print_exc(file=log.error)
                 raise e
-            
+
     @property
     def uri(self):
         """ Same as GetURIFromPrimaryKey
@@ -679,12 +683,15 @@ class MujinResourceIdentifier(object):
 
     @property
     def parttype(self):
-        if self._primarykey.endswith(self._suffix):
+        if self._suffix and self._primarykey.endswith(self._suffix):
             return urllib.unquote(self._primarykey[:-len(self._suffix)]).decode(self.encoding)
+        elif self._primarykey.endswith('.mujin.dae'):
+            self._suffix = ".mujin.dae"
+            return urllib.unquote(self._primarykey[:-len(".mujin.dae")]).decode(self.encoding)
         else:
             return urllib.unquote(self._primarykey).decode(self.encoding)
 
-    def WithFragmentSeparator(self, separator):      
+    def WithFragmentSeparator(self, separator):
         mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, separator, self._primarykeyseparator)
         mri.fragment = self._fragment
         return mri
@@ -722,7 +729,7 @@ class MujinResourceIdentifier(object):
         u'/var/www/test.tar.gz'
         """
         return MujinResourceIdentifier('', '', self.parttype, '', suffix, self._mujinpath, '', '')
-    
+
     def RemoveFragment(self):
         """
         >>> MujinResourceIdentifier(primarykey="test.mujin.dae@body0_motion.mujin.dae", primarykeyseparator='@').RemoveFragment().primarykey
