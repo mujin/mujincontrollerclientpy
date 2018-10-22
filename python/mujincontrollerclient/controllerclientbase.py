@@ -784,71 +784,78 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
-    def UploadFile(self, path, f, timeout=5):
-        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f, timeout=timeout)
-        if response.status_code not in [201, 201, 204]:
-            raise ControllerClientError(response.content.decode('utf-8'))
+    # def UploadFile(self, path, f, timeout=5):
+    #     response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f, timeout=timeout)
+    #     if response.status_code not in [201, 201, 204]:
+    #         raise ControllerClientError(response.content.decode('utf-8'))
+
+    # def ListFiles(self, path='', depth=None, timeout=5):
+    #     """
+    #     List files and their properties using webdav
+    #     :param path: root path, result will include this path and its children (if depth is set to 1 or infinity)
+    #     :param depth: 0, 1, or None (infinity)
+    #     """
+    #     path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
+    #     if depth is None:
+    #         depth = 'infinity'
+    #     response = self._webclient.Request('PROPFIND', path, headers={'Depth': str(depth)}, timeout=timeout)
+    #     if response.status_code not in [207]:
+    #         raise ControllerClientError(response.content.decode('utf-8'))
+
+    #     import xml.etree.cElementTree as xml
+    #     import email.utils
+
+    #     tree = xml.fromstring(response.content)
+
+    #     def prop(e, name, default=None):
+    #         child = e.find('.//{DAV:}' + name)
+    #         return default if child is None else child.text
+
+    #     files = {}
+    #     for e in tree.findall('{DAV:}response'):
+    #         name = prop(e, 'href')
+    #         assert(name.startswith(path))
+    #         # webdav returns quoted utf-8 filenames, so we decode here to unicode
+    #         name = unquote(name[len(path):].strip('/')).decode('utf-8')
+    #         size = int(prop(e, 'getcontentlength', 0))
+    #         isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
+    #         modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
+    #         if modified is not None:
+    #             modified = datetime.datetime(*modified[:6])
+    #         files[name] = {
+    #             'name': name,
+    #             'size': size,
+    #             'isdir': isdir,
+    #             'modified': modified,
+    #         }
+
+    #     return files
 
     def ListFiles(self, path='', depth=None, timeout=5):
-        """
-        List files and their properties using webdav
-        :param path: root path, result will include this path and its children (if depth is set to 1 or infinity)
-        :param depth: 0, 1, or None (infinity)
-        """
-        path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
-        if depth is None:
-            depth = 'infinity'
-        response = self._webclient.Request('PROPFIND', path, headers={'Depth': str(depth)}, timeout=timeout)
-        if response.status_code not in [207]:
-            raise ControllerClientError(response.content.decode('utf-8'))
-
-        import xml.etree.cElementTree as xml
-        import email.utils
-
-        tree = xml.fromstring(response.content)
-
-        def prop(e, name, default=None):
-            child = e.find('.//{DAV:}' + name)
-            return default if child is None else child.text
-
         files = {}
-        for e in tree.findall('{DAV:}response'):
-            name = prop(e, 'href')
-            assert(name.startswith(path))
-            # webdav returns quoted utf-8 filenames, so we decode here to unicode
-            name = unquote(name[len(path):].strip('/')).decode('utf-8')
-            size = int(prop(e, 'getcontentlength', 0))
-            isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
-            modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
-            if modified is not None:
-                modified = datetime.datetime(*modified[:6])
-            files[name] = {
-                'name': name,
-                'size': size,
-                'isdir': isdir,
-                'modified': modified,
-            }
-
+        from os import listdir
+        files = { x: {} for x in listdir('/data/media/u/mujin')}
         return files
 
-    def DeleteFile(self, path, timeout=5):
-        response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
-        if response.status_code not in [204, 404]:
-            raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteDirectory(self, path, timeout=5):
-        self.DeleteFile(path, timeout=timeout)
+    # def DeleteFile(self, path, timeout=5):
+    #     response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
+    #     if response.status_code not in [204, 404]:
+    #         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def MakeDirectory(self, path, timeout=5):
-        response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
-        if response.status_code not in [201, 301, 405]:
-            raise ControllerClientError(response.content.decode('utf-8'))
+    # def DeleteDirectory(self, path, timeout=5):
+    #     self.DeleteFile(path, timeout=timeout)
 
-    def MakeDirectories(self, path, timeout=5):
-        parts = []
-        for part in path.strip('/').split('/'):
-            parts.append(part)
-            self.MakeDirectory('/'.join(parts), timeout=timeout)
+    # def MakeDirectory(self, path, timeout=5):
+    #     response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
+    #     if response.status_code not in [201, 301, 405]:
+    #         raise ControllerClientError(response.content.decode('utf-8'))
+
+    # def MakeDirectories(self, path, timeout=5):
+    #     parts = []
+    #     for part in path.strip('/').split('/'):
+    #         parts.append(part)
+    #         self.MakeDirectory('/'.join(parts), timeout=timeout)
 
     def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
         """runs frequency test on specified joint and returns result
