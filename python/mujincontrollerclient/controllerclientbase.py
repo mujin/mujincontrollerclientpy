@@ -160,7 +160,6 @@ class ControllerClient(object):
         self.controllerurl = urlunparse((scheme, netloc, '', '', '', ''))
         self.controllerusername = controllerusername or self.controllerusername
         self.controllerpassword = controllerpassword or self.controllerpassword
-
         self._userinfo = {
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
@@ -872,7 +871,23 @@ class ControllerClient(object):
         files = { x: {} for x in listdir('/data/media/u/mujin')}
         return files
 
+    def GetFileMetaInfo(self, filename, timeout=5):
+        path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
+            response = self._webclient.Request('HEAD', path, timeout=timeout)
+        return {
+            'isdir': False, # TODO how to check is_dir from headers
+            'modified': datetime.strptime(response.headers['Last-Modified'], '%a, %d %b %Y %I:%M:%S GMT'),
+            'size': int(response.headers['Content-Length']),
+        }
 
+    def DeleteFile(self, path, timeout=5):
+        # chagne this to local operation for now
+        fullpath = os.path.join(self._usermediaroot, path)
+        if os.path.exists(fullpath) and not os.path.isdir(fullpath):
+            os.remove(fullpath)
+        else:
+            raise ControllerClientError(_("Fail to delete file path %s")%path)
+    
     # def DeleteFile(self, path, timeout=5):
     #     response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
     #     if response.status_code not in [204, 404]:
