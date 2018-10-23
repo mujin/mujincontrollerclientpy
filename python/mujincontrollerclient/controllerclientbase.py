@@ -838,7 +838,7 @@ class ControllerClient(object):
 
     def GetFileMetaInfo(self, filename, timeout=5):
         path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
-            response = self._webclient.Request('HEAD', path, timeout=timeout)
+        response = self._webclient.Request('HEAD', path, timeout=timeout)
         return {
             'isdir': False, # TODO how to check is_dir from headers
             'modified': datetime.strptime(response.headers['Last-Modified'], '%a, %d %b %Y %I:%M:%S GMT'),
