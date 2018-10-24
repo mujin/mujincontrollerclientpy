@@ -864,48 +864,16 @@ class ControllerClient(object):
     #         }
 
     #     return files
-
-    def ListFiles(self, path='', depth=None, timeout=5):
-        files = {}
-        from os import listdir
-        files = { x: {} for x in listdir('/data/media/u/mujin')}
-        return files
-
     def GetFileMetaInfo(self, filename, timeout=5):
-        path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
+        path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
+        if response.status_code not in [200]:
+            raise ControllerClientError(response.content.decode('utf-8'))
         return {
             'isdir': False, # TODO how to check is_dir from headers
             'modified': datetime.strptime(response.headers['Last-Modified'], '%a, %d %b %Y %I:%M:%S GMT'),
             'size': int(response.headers['Content-Length']),
         }
-
-    def DeleteFile(self, path, timeout=5):
-        # chagne this to local operation for now
-        fullpath = os.path.join(self._usermediaroot, path)
-        if os.path.exists(fullpath) and not os.path.isdir(fullpath):
-            os.remove(fullpath)
-        else:
-            raise ControllerClientError(_("Fail to delete file path %s")%path)
-    
-    # def DeleteFile(self, path, timeout=5):
-    #     response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
-    #     if response.status_code not in [204, 404]:
-    #         raise ControllerClientError(response.content.decode('utf-8'))
-
-    # def DeleteDirectory(self, path, timeout=5):
-    #     self.DeleteFile(path, timeout=timeout)
-
-    # def MakeDirectory(self, path, timeout=5):
-    #     response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
-    #     if response.status_code not in [201, 301, 405]:
-    #         raise ControllerClientError(response.content.decode('utf-8'))
-
-    # def MakeDirectories(self, path, timeout=5):
-    #     parts = []
-    #     for part in path.strip('/').split('/'):
-    #         parts.append(part)
-    #         self.MakeDirectory('/'.join(parts), timeout=timeout)
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """ restarts controller
