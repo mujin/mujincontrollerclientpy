@@ -276,7 +276,7 @@ def GetURIFromURI(uri, allowfragments, fragmentseparator, keepfragment=False, ne
         mri = MujinResourceIdentifier(uri=uri, fragmentseparator='', primarykeyseparator='@')
     
     if keepfragment:
-        mri = mri.WithFragmentSeparator(newfragmentseparator)
+        mri = mri.GetWithFragmentSeparator(newfragmentseparator)
     else:
         mri = mri.RemoveFragment()
     return mri.uri
@@ -691,17 +691,17 @@ class MujinResourceIdentifier(object):
         else:
             return urllib.unquote(self._primarykey).decode(self.encoding)
 
-    def WithFragmentSeparator(self, separator):
+    def GetWithFragmentSeparator(self, separator):
         mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, separator, self._primarykeyseparator)
         mri.fragment = self._fragment
         return mri
 
-    def WithPrimaryKeySeparator(self, separator):
+    def GetWithPrimaryKeySeparator(self, separator):
         mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, primarykeyseparator)
         mri.fragment = self._fragment
         return mri
 
-    def WithMujinPath(self, mujinpath):
+    def GetWithMujinPath(self, mujinpath):
         """
         >>> MujinResourceIdentifier(uri=u"file:/var/www/test.mujin.dae").filename
         u'/var/www/test.mujin.dae'
@@ -711,21 +711,21 @@ class MujinResourceIdentifier(object):
         u'test.mujin.dae'
         >>> MujinResourceIdentifier(uri=u"file:/var/www/test.mujin.dae", mujinpath='/var/www').absfilepath
         u'/var/www/test.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey="test.mujin.dae").WithMujinPath('/data/u').absfilepath
+        >>> MujinResourceIdentifier(primarykey="test.mujin.dae").GetWithMujinPath('/data/u').absfilepath
         u'/data/u/test.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey="test.mujin.dae@body0_motion.mujin.dae").WithMujinPath('/data/u').absfilepath
+        >>> MujinResourceIdentifier(primarykey="test.mujin.dae@body0_motion.mujin.dae").GetWithMujinPath('/data/u').absfilepath
         u'/data/u/test.mujin.dae@body0_motion.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey="test.mujin.dae@body0_motion.mujin.dae", primarykeyseparator='@').WithMujinPath('/data/u').absfilepath
+        >>> MujinResourceIdentifier(primarykey="test.mujin.dae@body0_motion.mujin.dae", primarykeyseparator='@').GetWithMujinPath('/data/u').absfilepath
         u'/data/u/test.mujin.dae'
-        >>> MujinResourceIdentifier(filename='object.tar.gz', suffix='.tar.gz').WithMujinPath('/data/u').absfilepath
+        >>> MujinResourceIdentifier(filename='object.tar.gz', suffix='.tar.gz').GetWithMujinPath('/data/u').absfilepath
         u'/data/u/object.tar.gz'
         """
         mri = MujinResourceIdentifier('', self.primarykey, '', '',  self._suffix, mujinpath, self._fragmentseparator, self._primarykeyseparator)
         return mri
 
-    def WithSuffix(self, suffix):
+    def GetWithSuffix(self, suffix):
         """
-        >>> MujinResourceIdentifier(uri=u"file:/var/www/test.mujin.dae").WithSuffix(".tar.gz").filename
+        >>> MujinResourceIdentifier(uri=u"file:/var/www/test.mujin.dae").GetWithSuffix(".tar.gz").filename
         u'/var/www/test.tar.gz'
         """
         return MujinResourceIdentifier('', '', self.parttype, '', suffix, self._mujinpath, '', '')
