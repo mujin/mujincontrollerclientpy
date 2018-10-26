@@ -790,19 +790,6 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return response.status_code != 404
 
-    def ConstructFileFullURL(self, filename):
-        """construct full url to file including credentials
-        """
-        scheme, netloc, path, params, query, fragment = urlparse(self.controllerurl)
-        return urlunparse((
-            scheme,
-            '%s:%s@%s' % (self.controllerusername, self.controllerpassword, netloc),
-            '/u/%s/%s' % (self.controllerusername, filename),
-            '',
-            '',
-            '',
-        ))
-
     def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
         """downloads a file given filename
 
@@ -818,16 +805,23 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
-    def GetFileMetaInfo(self, filename, timeout=5):
+    def HeadFile(self, filename, timeout=5):
+        """Perform a HEAD operation on given filename to retrieve metadata.
+
+        :return: a dict containing keys like modified and size
+        """
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
         if response.status_code not in [200]:
             raise ControllerClientError(response.content.decode('utf-8'))
         return {
-            'isdir': False, # TODO how to check is_dir from headers
             'modified': datetime.strptime(response.headers['Last-Modified'], '%a, %d %b %Y %I:%M:%S GMT'),
-            'size': int(response.headers['Content-Length']),
+            'size': long(response.headers['Content-Length']),
         }
+
+    #
+    # User log related
+    #
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """ restarts controller
