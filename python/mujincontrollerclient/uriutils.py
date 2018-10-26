@@ -189,6 +189,9 @@ def GetPrimaryKeyFromURI(uri, allowfragments, fragmentseparator, primarykeysepar
     >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', allowfragments=True, fragmentseparator='#', primarykeyseparator='#')
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
     """
+    if uri is None or len(uri) == 0:
+        return ''
+    
     if allowfragments:
         mri = MujinResourceIdentifier(uri, primarykeyseparator=primarykeyseparator, fragmentseparator=fragmentseparator)
     else:
