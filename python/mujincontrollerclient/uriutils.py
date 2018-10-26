@@ -630,12 +630,7 @@ class MujinResourceIdentifier(object):
         elif filename:
             self._InitFromFilename(filename)
         else:
-            try:
-                raise MujinResourceIdentifier("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
-            except Exception as e:
-                import sys, traceback
-                traceback.print_exc(file=log.error)
-                raise e
+            raise MujinResourceIdentifier("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
 
     @property
     def uri(self):
