@@ -587,9 +587,9 @@ class MujinResourceIdentifier(object):
         elif self._scheme == 'mujin':
             filename = parsedUri.path[1:]
         else:
-            raise MujinResourceIdentifierError("scheme %s isn't supported"%parsedUri.scheme)
+            raise MujinResourceIdentifierError("scheme %s isn't supported from uri %r"%(parsedUri.scheme, uri))
         self._InitFromFilename(filename)
-
+    
     def _InitFromPrimaryKey(self, primarykey):
         if self._primarykeyseparator:
             # try to de-frag
