@@ -251,8 +251,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param fireandforget: whether we should return immediately after sending the command
         :return: return the server response in json format
         """
-        if not 'timestamp' in taskparameters:
-            taskparameters['timestamp'] = int(time.time()*1000.0)
+        if not 'stamp' in taskparameters:
+            taskparameters['stamp'] = time.time()
         log.verbose(u'Executing task with parameters: %r', taskparameters)
         if slaverequestid is None:
             slaverequestid = self._slaverequestid
