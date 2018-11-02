@@ -14,6 +14,7 @@ from urllib import quote, unquote
 import os
 import datetime
 import base64
+import email.utils
 from numpy import fromstring, uint32
 
 try:
@@ -815,7 +816,7 @@ class ControllerClient(object):
         if response.status_code not in [200]:
             raise ControllerClientError(response.content.decode('utf-8'))
         return {
-            'modified': datetime.strptime(response.headers['Last-Modified'], '%a, %d %b %Y %I:%M:%S GMT'),
+            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': long(response.headers['Content-Length']),
         }
 
