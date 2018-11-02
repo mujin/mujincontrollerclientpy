@@ -41,14 +41,14 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
     /测试_test.mujin.dae@body0_motion
     """
     if not isinstance(uri, unicode):
-        log.warn("_ParseURI uri should be unicode, current type is %s. Trying to decode utf-8" % type(uri))
+        log.warn("_ParseURI uri %r should be unicode, current type is %s. Trying to decode utf-8" % (uri, type(uri)))
         uri = uri.decode('utf-8')   # try using decode utf-8 if the input is not unicode
     i = uri.find(':')
     if not uri[:i].lower() == "mujin":
         # if scheme is not mujin specified, use the standard uri parse
         # TODO: figure out who calls this with non-mujin scheme
         # TODO: simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please verify, maybe remove this case
-        log.warn("_ParseURI found non-mujin scheme with uri %s" % uri) # for test usage, found out if there are non-mujin scheme be called.
+        log.warn("_ParseURI found non-mujin scheme with uri %r" % uri) # for test usage, found out if there are non-mujin scheme be called.
         r = urlparse(uri, allowfragments)
         return ParseResult(r.scheme, r.netloc, r.path.decode('utf-8'), r.params, r.query, r.fragment)  # make all uri path, no matter what scheme it is, to be utf-8 unicode.
     else:
@@ -189,6 +189,9 @@ def GetPrimaryKeyFromURI(uri, allowfragments, fragmentseparator, primarykeysepar
     >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', allowfragments=True, fragmentseparator='#', primarykeyseparator='#')
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
     """
+    if uri is None or len(uri) == 0:
+        return ''
+    
     if allowfragments:
         mri = MujinResourceIdentifier(uri, primarykeyseparator=primarykeyseparator, fragmentseparator=fragmentseparator)
     else:
@@ -584,9 +587,9 @@ class MujinResourceIdentifier(object):
         elif self._scheme == 'mujin':
             filename = parsedUri.path[1:]
         else:
-            raise MujinResourceIdentifierError("scheme %s isn't supported"%parsedUri.scheme)
+            raise MujinResourceIdentifierError("scheme %s isn't supported from uri %r"%(parsedUri.scheme, uri))
         self._InitFromFilename(filename)
-
+    
     def _InitFromPrimaryKey(self, primarykey):
         if self._primarykeyseparator:
             # try to de-frag
@@ -630,12 +633,7 @@ class MujinResourceIdentifier(object):
         elif filename:
             self._InitFromFilename(filename)
         else:
-            try:
-                raise MujinResourceIdentifier("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
-            except Exception as e:
-                import sys, traceback
-                traceback.print_exc(file=log.error)
-                raise e
+            raise MujinResourceIdentifierError("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
 
     @property
     def uri(self):
