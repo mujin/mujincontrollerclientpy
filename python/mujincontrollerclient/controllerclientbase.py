@@ -233,6 +233,15 @@ class ControllerClient(object):
                 log.exception('failed to delete file')
         raise ControllerClientError(response.content.decode('utf-8'))
 
+    def ListFiles(self, dirname='', timeout=1):
+        response = self._webclient.Request('GET', '/file/list/', data={'dirname': dirname}, timeout=timeout)
+        if response.status_code in (200, 404):
+            try:
+                return json.loads(response.content)
+            except:
+                log.exception('failed to delete file')
+        raise ControllerClientError(response.content.decode('utf-8'))
+
     #
     # Scene related
     #
