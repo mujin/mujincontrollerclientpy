@@ -207,20 +207,42 @@ class ControllerClient(object):
         assert(status == 200)
 
     #
+    # File related 
+    #
+
+    def UploadFile(self, f, filename=None, timeout=5):
+        """uploads a file managed by file handle f
+        """
+        data = {}
+        if filename:
+            data['filename'] = filename
+        response = self._webclient.Request('POST', '/file/upload/', files={'file': f}, data=data, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return json.loads(response.content)['filename']
+            except:
+                log.exception('failed to upload file')
+        raise ControllerClientError(response.content.decode('utf-8'))
+
+    def DeleteFile(self, filename, timeout=1):
+        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return json.loads(response.content)['filename']
+            except:
+                log.exception('failed to delete file')
+        raise ControllerClientError(response.content.decode('utf-8'))
+
+    #
     # Scene related
     #
 
-    def UploadSceneFile(self, f, filename=None, dirname=None, timeout=5):
+    def UploadSceneFile(self, f, timeout=5):
         """uploads a file managed by file handle f
         
         """
         # note that /fileupload does not have trailing slash for some reason
-        data = {}
-        if filename:
-            data['filename'] = filename
-        if dirname:
-            data['dirname'] = dirname
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, data=data, timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         
