@@ -210,12 +210,17 @@ class ControllerClient(object):
     # Scene related
     #
 
-    def UploadSceneFile(self, f, timeout=5):
+    def UploadSceneFile(self, f, filename=None, dirname=None, timeout=5):
         """uploads a file managed by file handle f
         
         """
         # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
+        data = {}
+        if filename:
+            data['filename'] = filename
+        if dirname:
+            data['dirname'] = dirname
+        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, data=data, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         
