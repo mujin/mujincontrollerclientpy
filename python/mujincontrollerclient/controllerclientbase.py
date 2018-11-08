@@ -234,7 +234,7 @@ class ControllerClient(object):
         raise ControllerClientError(response.content.decode('utf-8'))
 
     def ListFiles(self, dirname='', timeout=1):
-        response = self._webclient.Request('GET', '/file/list/', data={'dirname': dirname}, timeout=timeout)
+        response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
         if response.status_code in (200, 404):
             try:
                 return json.loads(response.content)
@@ -838,6 +838,16 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
+
+    def FlushAndDownloadFile(self, filename, timeout=5):
+        """downloads a file given filename
+
+        :return: a streaming response
+        """
+        response = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
