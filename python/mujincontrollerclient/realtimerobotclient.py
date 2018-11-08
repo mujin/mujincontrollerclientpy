@@ -636,6 +636,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
 
+    def ResetSafetyFault(self, timeout=3, fireandforget=False):
+        taskparameters = {
+            'command': 'ResetSafetyFault',
+        }
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
+
     def SetRobotBridgeControlMode(self, controlMode, timeout=3, fireandforget=False):
         taskparameters = {
             'command': 'SetRobotBridgeControlMode',
