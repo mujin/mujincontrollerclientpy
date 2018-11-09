@@ -907,7 +907,8 @@ class ControllerClient(object):
     #
 
     def QueryScenePKsByBarcodes(self, barcodes, timeout=2):
-        response = self._webclient.Request('POST', '/query/barcodes/', data={'barcodes': ','.join(barcodes)})
+        response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
         return json.loads(response.content)
+    
