@@ -194,6 +194,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, envclearance=envclearance, toolname=toolname, timeout=timeout)
+
+    def MoveToolLinear(self, goaltype, goals, toolname=None, robotspeed=None, robotaccelmult=None, timeout=10, **kwargs):
+        """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
+        :param goaltype: type of the goal, e.g. translationdirection5d
+        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+        :param toolname: name of the manipulator, default is self.toolname
+        """
+        taskparameters = {'command': 'MoveToolLinear',
+                          'goaltype': goaltype,
+                          'goals': goals,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, toolname=toolname, timeout=timeout)
     
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
         """updates objects in the scene with the envstate
@@ -748,15 +761,27 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunDynamicsIdentificationFrictionTest(self, timeout, usewebapi=False, **kwargs):
+    def RunDynamicsIdentificationTest(self, timeout, usewebapi=False, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'RunDynamicsIdentificationFrictionTest'
+        taskparameters['command'] = 'RunDynamicsIdentificationTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+    
+    def GetTimeToRunDynamicsIdentificationTest(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTest'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetTimeToRunDynamicsIdentificationFrictionTest(self, usewebapi=False, timeout=10, **kwargs):
+    def GetInertiaChildJointStartValues(self, usewebapi=False, timeout=10, **kwargs):
         taskparameters = dict()
-        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationFrictionTest'
+        taskparameters['command'] = 'GetInertiaChildJointStartValues'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'CalculateTestRangeFromCollision'
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
