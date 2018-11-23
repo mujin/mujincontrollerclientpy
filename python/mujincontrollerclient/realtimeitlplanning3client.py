@@ -80,6 +80,10 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters = {'command': 'ResumeExecuteTrajectory'}
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
+    def ResumeITLProgram(self, usewebapi=True, timeout=10, fireandforget=False):
+        taskparameters = {'command': 'ResumeITLProgram'}
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
     def ComputeRobotConfigsForCommandVisualization(self, executiongraph, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'ComputeRobotConfigsForCommandVisualization',
