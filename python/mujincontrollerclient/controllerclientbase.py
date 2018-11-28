@@ -957,4 +957,13 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
         return json.loads(response.content)
-    
+
+    #
+    # Query list of scenepks based on referenceobjectpks field
+    #
+
+    def QueryScenePKsByReferenceObjectPk(self, referenceobjectpk, timeout=2):
+        response = self._webclient.Request('GET', '/query/referenceobjectpks/', params={'referenceobjectpk': referenceobjectpk})
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to query scenes based on referenceobjectpk, status code is %d') % response.status_code)
+        return json.loads(response.content)
