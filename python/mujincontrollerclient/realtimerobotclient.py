@@ -789,3 +789,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def CheckBodyCollision(self, bodyname1, bodyname2='', usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'CheckBodyCollision',
+            'bodyname1': bodyname1,
+            'bodyname2': bodyname2,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
