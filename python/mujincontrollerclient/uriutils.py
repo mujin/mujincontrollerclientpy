@@ -16,6 +16,7 @@ import urllib
 import os
 import logging
 from mujincommon import MujinExceptionBase
+from . import _
 
 log = logging.getLogger(__name__)
 
