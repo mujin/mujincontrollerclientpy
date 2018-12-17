@@ -745,7 +745,7 @@ class ControllerClient(object):
         data = {}
         if filename:
             data['filename'] = filename
-        response = self._webclient.Request('POST', '/file/upload/', files={'file': f}, data=data, timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return json.loads(response.content)['filename']
