@@ -250,17 +250,7 @@ class ControllerClient(object):
         """uploads a file managed by file handle f
         
         """
-        # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
-        if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
-        
-        try:
-            content = json.loads(response.content)
-        except ValueError:
-            raise ControllerClientError(response.content.decode('utf-8'))
-        
-        return content['filename']
+        return self.UploadFile(f, timeout=timeout)
 
     def GetScenes(self, fields=None, usewebapi=True, timeout=5):
         """list all available scene on controller
@@ -816,9 +806,41 @@ class ControllerClient(object):
             raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
     #
-    # WebDAV related
+    # File related 
     #
-    
+
+    def UploadFile(self, f, filename=None, timeout=5):
+        """uploads a file managed by file handle f
+        """
+        data = {}
+        if filename:
+            data['filename'] = filename
+        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return json.loads(response.content)['filename']
+            except:
+                log.exception('failed to upload file')
+        raise ControllerClientError(response.content.decode('utf-8'))
+
+    def DeleteFile(self, filename, timeout=1):
+        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return json.loads(response.content)['filename']
+            except:
+                log.exception('failed to delete file')
+        raise ControllerClientError(response.content.decode('utf-8'))
+
+    def ListFiles(self, dirname='', timeout=1):
+        response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
+        if response.status_code in (200, 404):
+            try:
+                return json.loads(response.content)
+            except:
+                log.exception('failed to delete file')
+        raise ControllerClientError(response.content.decode('utf-8'))
+
     def FileExists(self, path, timeout=5):
         """check if a file exists on server
         """
