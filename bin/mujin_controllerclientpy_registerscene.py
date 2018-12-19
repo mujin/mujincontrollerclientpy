@@ -59,7 +59,7 @@ if __name__ == "__main__":
         if response != 'y':
             sys.exit(0)
     
-    self.UploadFile(scenebasename, open(scenefilename).read())
+    self.UploadFile(open(scenefilename, 'r'), filename=scenebasename)
     scenedata = self.CreateScene({'uri':u'mujin:/'+scenebasename, 'overwrite':True})
 
     if options.newname is not None:
