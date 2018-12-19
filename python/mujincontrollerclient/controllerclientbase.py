@@ -951,3 +951,14 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
         return json.loads(response.content)
+
+    #
+    # Query list of scenepks based on barcdoe field
+    #
+
+    def QueryScenePKsByBarcodes(self, barcodes, timeout=2):
+        response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
+        return json.loads(response.content)
+    
