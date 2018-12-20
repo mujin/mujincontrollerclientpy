@@ -930,3 +930,11 @@ class ControllerClient(object):
             raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
         return json.loads(response.content)
     
+    #
+    # Report stats to registration controller
+    #
+
+    def ReportStats(self, data, timeout=5):
+        response = self._webclient.Request('POST', '/stats/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to upload stats, status code is %d') % response.status_code)
