@@ -9,8 +9,7 @@ from logging import getLogger
 log = getLogger(__name__)
 
 # system imports
-from urlparse import urlparse
-from urllib import quote, unquote
+from urllib import parse
 import os
 import time
 import datetime
@@ -253,7 +252,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         if not 'stamp' in taskparameters:
             taskparameters['stamp'] = time.time()
-        log.verbose(u'Executing task with parameters: %r', taskparameters)
+        log.debug(u'Executing task with parameters: %r', taskparameters)
         if slaverequestid is None:
             slaverequestid = self._slaverequestid
 

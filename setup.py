@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2014 MUJIN Inc
 from distutils.core import setup
-try:
-    from mujincommon.setuptools import Distribution
-except ImportError:
-    from distutils.dist import Distribution
+from distutils.dist import Distribution
 
 setup(
     distclass=Distribution,

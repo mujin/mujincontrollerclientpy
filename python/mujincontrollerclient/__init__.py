@@ -7,8 +7,8 @@ try:
 except ImportError:
     import gettext
     _null_translations = gettext.NullTranslations()
-    ugettext = _null_translations.ugettext
-    ungettext = _null_translations.ugettext
+    ugettext = _null_translations.gettext
+    ungettext = _null_translations.gettext
 
 _ = ugettext
 

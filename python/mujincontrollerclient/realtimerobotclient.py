@@ -112,7 +112,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         if devices is not None:
             taskparameters['devices'] = devices
 
-        log.verbose('robotname = %r, robots = %r, devices = %r', robotname, robots, devices)
+        log.debug('robotname = %r, robots = %r, devices = %r', robotname, robots, devices)
         
         if 'robotspeed' not in taskparameters:
             if robotspeed is None:

@@ -181,7 +181,7 @@ class ControllerWebClient(object):
 
         request_type = request_type.upper()
 
-        log.verbose('%s %s', request_type, self._baseurl + path)
+        log.debug('%s %s', request_type, self._baseurl + path)
         response = self.Request(request_type, path, params=url_params, data=data, headers=headers, timeout=timeout)
 
         if request_type == 'HEAD' and response.status_code == 200:
@@ -194,7 +194,7 @@ class ControllerWebClient(object):
 
         # try to convert everything else
         try:
-            content = json.loads(response.content)
+            content = json.loads(response.content.decode('utf-8'))
         except ValueError as e:
             log.warn(u'caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
             self.Logout() # always logout the session when we hit an error
