@@ -739,7 +739,7 @@ class ControllerClient(object):
     # File related 
     #
 
-    def UploadFile(self, f, filename=None, timeout=5):
+    def UploadFile(self, f, filename=None, timeout=10):
         """uploads a file managed by file handle f
         """
         data = {}
@@ -753,7 +753,7 @@ class ControllerClient(object):
                 log.exception('failed to upload file')
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFile(self, filename, timeout=1):
+    def DeleteFile(self, filename, timeout=10):
         response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
         if response.status_code in (200,):
             try:
@@ -762,7 +762,7 @@ class ControllerClient(object):
                 log.exception('failed to delete file')
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def ListFiles(self, dirname='', timeout=1):
+    def ListFiles(self, dirname='', timeout=2):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
         if response.status_code in (200, 404):
             try:
