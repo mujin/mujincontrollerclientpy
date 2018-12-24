@@ -134,11 +134,9 @@ class ControllerWebClient(object):
             content = json.loads(response.content)
         except ValueError, e:
             log.warn(u'caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
-            self.Logout() # always logout the session when we hit an error
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         
         if 'stacktrace' in content or response.status_code >= 400:
-            self.Logout() # always logout the session when we hit an error
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         
         return response.status_code, content
