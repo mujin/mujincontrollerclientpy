@@ -45,7 +45,7 @@ class ControllerWebClient(object):
 
         self._session = requests.Session()
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
-        self._session.cookies.set(csrftoken=self._headers['X-CSRFToken'])
+        self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'])
 
         self.SetLocale(locale)
 

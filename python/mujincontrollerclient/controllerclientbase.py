@@ -204,8 +204,9 @@ class ControllerClient(object):
         """Sends a dummy HEAD request to api endpoint
         """
         assert(usewebapi)
-        status, response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
-        assert(status == 200)
+        response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
     #
     # Scene related
