@@ -192,19 +192,19 @@ class ControllerClient(object):
         self._webclient.Request('POST', '/restartserver/', timeout=1)
         # no reason to check response since it's probably an error (server is restarting after all)
 
-    def IsLoggedIn(self):
-        return self._webclient.IsLoggedIn()
+    def IsLoggedIn(self, timeout=1):
+        return True
 
     def Login(self, timeout=5):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
-        self._webclient.Login(timeout=timeout)
+        self.Ping(timeout=timeout)
 
     def Ping(self, usewebapi=True, timeout=5):
         """Sends a dummy HEAD request to api endpoint
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('HEAD', '', timeout=timeout)
+        status, response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
         assert(status == 200)
 
     #
@@ -749,8 +749,8 @@ class ControllerClient(object):
         if response.status_code in (200,):
             try:
                 return json.loads(response.content)['filename']
-            except:
-                log.exception('failed to upload file')
+            except Exception as e:
+                log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
     def DeleteFile(self, filename, timeout=10):
@@ -758,8 +758,8 @@ class ControllerClient(object):
         if response.status_code in (200,):
             try:
                 return json.loads(response.content)['filename']
-            except:
-                log.exception('failed to delete file')
+            except Exception as e:
+                log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
     def ListFiles(self, dirname='', timeout=2):
@@ -767,8 +767,8 @@ class ControllerClient(object):
         if response.status_code in (200, 404):
             try:
                 return json.loads(response.content)
-            except:
-                log.exception('failed to delete file')
+            except Exception as e:
+                log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
     def FileExists(self, path, timeout=5):
@@ -830,8 +830,8 @@ class ControllerClient(object):
             'jointName': jointName,
             'freqMin': freqMin,
             'freqMax': freqMax,
-            'amplitude': amplitude
-         }
+            'amplitude': amplitude,
+        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
