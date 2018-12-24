@@ -192,7 +192,7 @@ class ControllerClient(object):
         self._webclient.Request('POST', '/restartserver/', timeout=1)
         # no reason to check response since it's probably an error (server is restarting after all)
 
-    def IsLoggedIn(self, timeout=1):
+    def IsLoggedIn(self):
         return True
 
     def Login(self, timeout=5):
