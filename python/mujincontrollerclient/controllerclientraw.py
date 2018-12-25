@@ -41,11 +41,11 @@ class ControllerWebClient(object):
         self._isok = True
 
         # any string can be the csrftoken
-        self._headers['X-CSRFToken'] = 'csrftoken_%s' % username
+        self._headers['X-CSRFToken'] = 'csrftoken'
 
         self._session = requests.Session()
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
-        self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'])
+        self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'], path='/')
 
         self.SetLocale(locale)
 
@@ -73,10 +73,8 @@ class ControllerWebClient(object):
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         url = self._baseurl + path
 
-        if headers is None:
-            headers = {}
-
         # set all the headers prepared for this client
+        headers = dict(headers or {})
         headers.update(self._headers)
 
         # for GET and HEAD requests, have a retry logic in case keep alive connection is being closed by server
