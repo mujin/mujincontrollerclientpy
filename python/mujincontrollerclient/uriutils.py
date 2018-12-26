@@ -553,7 +553,7 @@ def GetPartTypeFromFilename(filename, mujinpath="", suffix=".mujin.dae"):
 
 class MujinResourceIdentifierError(MujinExceptionBase):
     def __unicode__(self):
-        return _('Mujin Resource Identifier Error: %s') % self.msg
+        return 'Mujin Resource Identifier Error: %s' % self.msg
 
 
 class MujinResourceIdentifier(object):
@@ -633,7 +633,7 @@ class MujinResourceIdentifier(object):
             try:
                 raise MujinResourceIdentifier("Lack of parameters. initialization must include one of uri, primarykey, parttype or filename")
             except Exception as e:
-                import sys, traceback
+                import traceback
                 traceback.print_exc(file=log.error)
                 raise e
 
@@ -642,7 +642,6 @@ class MujinResourceIdentifier(object):
         """ Same as GetURIFromPrimaryKey
         """
         path = urllib.unquote(self._primarykey).decode(self.encoding)
-        unicodefragment = urllib.unquote(self.fragment).decode(self.encoding)
         return _UnparseURI((self._scheme, '', path, '', '', self._fragment), self._fragmentseparator)
 
 
@@ -697,7 +696,7 @@ class MujinResourceIdentifier(object):
         return mri
 
     def WithPrimaryKeySeparator(self, separator):
-        mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, primarykeyseparator)
+        mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, self._primarykeyseparator)
         mri.fragment = self._fragment
         return mri
 
