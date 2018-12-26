@@ -695,7 +695,7 @@ class MujinResourceIdentifier(object):
         return mri
 
     def GetWithPrimaryKeySeparator(self, separator):
-        mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, self._primarykeyseparator)
+        mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, separator)
         mri.fragment = self._fragment
         return mri
 
