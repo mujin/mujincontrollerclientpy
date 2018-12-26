@@ -641,7 +641,6 @@ class MujinResourceIdentifier(object):
         """ Same as GetURIFromPrimaryKey
         """
         path = urllib.unquote(self._primarykey).decode(self.encoding)
-        unicodefragment = urllib.unquote(self.fragment).decode(self.encoding)
         return _UnparseURI((self._scheme, '', path, '', '', self._fragment), self._fragmentseparator)
 
 
@@ -696,7 +695,7 @@ class MujinResourceIdentifier(object):
         return mri
 
     def GetWithPrimaryKeySeparator(self, separator):
-        mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, primarykeyseparator)
+        mri = MujinResourceIdentifier('', self._primarykey, '', '', self._suffix, self._mujinpath, self._fragmentseparator, self._primarykeyseparator)
         mri.fragment = self._fragment
         return mri
 
