@@ -939,7 +939,24 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to query scenes based on referenceobjectpk, status code is %d') % response.status_code)
         return json.loads(response.content)
-    
+
+    #
+    # Query list of scenes with filter on pk, barcode and name
+    #
+
+    def QueryScenes(self, pk='', barcode='', name='', limit=20, page=1, orderby=''):
+        """
+        :param pk: single pk or pks with comma as delimiter. support partial matching
+        :parm name: name of scene. support partial matching
+        :param barcode: single barcode. support partial matching
+        :return: {meta, objects}, meta contains information for pagination, objects contains all matching scenes
+        """
+        response = self._webclient.Request('GET', '/query/scene/', params={'pk': pk, 'barcode': barcode, 'orderby': orderby,
+                                                                           'name':name, 'limit': limit, 'page': page})
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to query scenes, status code is %d') % response.status_code)
+        return json.loads(response.content)
+
     #
     # Report stats to registration controller
     #
