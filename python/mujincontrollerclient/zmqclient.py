@@ -10,24 +10,25 @@ from . import TimeoutError
 import logging
 log = logging.getLogger(__name__)
 
+
 class ZmqSocketPool(object):
 
-    _url = None # url that sockets should connect to
-    _ctx = None # the context to use
-    _ctxown = None # the context owned exclusively
-    _timeout = None # timeout waiting for either send on receive while a socket is in the polling state
-    _limit = None # limit on number of socket alive at any time, None means unlimited
+    _url = None  # url that sockets should connect to
+    _ctx = None  # the context to use
+    _ctxown = None  # the context owned exclusively
+    _timeout = None  # timeout waiting for either send on receive while a socket is in the polling state
+    _limit = None  # limit on number of socket alive at any time, None means unlimited
 
-    _isok = False # whether it is time to terminate
-    _poller = None # znq poller that tracks sockets in self._pollingsockets
-    _sockets = None # all sockets alive, a dictionary mapping from socket to True
-    _pollingsockets = None # sockets that are in the polling state, waiting for send or receive, a dictionary mapping from socket to timestamp when added to the poller
-    _availablesockets = None # list of sockets that are ready for use immediately
+    _isok = False  # whether it is time to terminate
+    _poller = None  # znq poller that tracks sockets in self._pollingsockets
+    _sockets = None  # all sockets alive, a dictionary mapping from socket to True
+    _pollingsockets = None  # sockets that are in the polling state, waiting for send or receive, a dictionary mapping from socket to timestamp when added to the poller
+    _availablesockets = None  # list of sockets that are ready for use immediately
 
-    _acquirecount = 0 # number of times a socket is acuired
-    _releasecount = 0 # number of times a socket is released
-    _opencount = 0 # number of times we opened a new socket
-    _closecount = 0 # number of times we closed a socket
+    _acquirecount = 0  # number of times a socket is acuired
+    _releasecount = 0  # number of times a socket is released
+    _opencount = 0  # number of times we opened a new socket
+    _closecount = 0  # number of times we closed a socket
 
     def __init__(self, url, ctx=None, timeout=10.0, limit=None):
         """creates a socket pool, the pool can lease out socket for send and recv.
@@ -59,7 +60,7 @@ class ZmqSocketPool(object):
 
     def __del__(self):
         self.Destroy()
-        
+
     def Destroy(self):
         self.SetDestroy()
 
@@ -75,8 +76,8 @@ class ZmqSocketPool(object):
             self._CloseSocket(sockets.pop())
         assert(self._opencount == self._closecount)
 
-        log.verbose('sockets: opened = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
-        
+        # log.debug('sockets: opened = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
+
         if self._ctxown is not None:
             try:
                 self._ctxown.destroy()
@@ -102,7 +103,7 @@ class ZmqSocketPool(object):
         self._sockets[socket] = True
         self._opencount += 1
 
-        log.verbose('opened a socket, url = %s opened = %d, closed = %d', self._url, self._opencount, self._closecount)
+        # log.debug('opened a socket, url = %s opened = %d, closed = %d', self._url, self._opencount, self._closecount)
         return socket
 
     def _CloseSocket(self, socket):
@@ -112,18 +113,18 @@ class ZmqSocketPool(object):
         try:
             # make sure we do not linger when closing socket
             socket.close(linger=0)
-        except:
-            log.exception('caught exception when closing socket')
+        except Exception as e:
+            log.exception('caught exception when closing socket: %s', e)
 
     def _StartPollingSocket(self, socket):
         assert(socket not in self._pollingsockets)
         self._pollingsockets[socket] = time.time()
-        self._poller.register(socket, zmq.POLLIN|zmq.POLLOUT)
+        self._poller.register(socket, zmq.POLLIN | zmq.POLLOUT)
 
     def _StopPollingSocket(self, socket):
         assert(socket in self._pollingsockets)
         self._poller.unregister(socket)
-        del self._pollingsockets[socket]            
+        del self._pollingsockets[socket]
 
     def _Poll(self, timeout=0):
         """spin once and does internal polling of sockets
@@ -133,14 +134,14 @@ class ZmqSocketPool(object):
         # poll for receives, non blocking if timeout is 0
         for socket, event in self._poller.poll(timeout):
             if (event & zmq.POLLIN) == zmq.POLLIN:
-                log.verbose('a socket is ready for receive, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
+                # log.debug('a socket is ready for receive, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
 
                 # at least one message can be received without blocking
                 try:
                     socket.recv(zmq.NOBLOCK)
-                except:
+                except Exception as e:
                     # when error occur, throw the socket away
-                    log.exception('caught exception when recv')
+                    log.exception('caught exception when recv: %s', e)
                     self._StopPollingSocket(socket)
                     self._CloseSocket(socket)
                     continue
@@ -151,7 +152,7 @@ class ZmqSocketPool(object):
         # poll again for send, non blocking if timeout is 0, some previously in recv state socket may now be available for sending
         for socket, event in self._poller.poll(timeout):
             if (event & zmq.POLLOUT) == zmq.POLLOUT:
-                log.verbose('a socket is ready for send, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
+                # log.debug('a socket is ready for send, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
 
                 # at least one message can be sent to socket without blocking
                 self._StopPollingSocket(socket)
@@ -211,6 +212,7 @@ class ZmqSocketPool(object):
             else:
                 self._CloseSocket(socket)
 
+
 class ZmqClient(object):
 
     _hostname = None
@@ -219,7 +221,7 @@ class ZmqClient(object):
     _pool = None
     _socket = None
     _isok = False
-    
+
     def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None):
         """creates a new zmq client, uses zmq req socket over tcp
 
@@ -239,10 +241,10 @@ class ZmqClient(object):
         self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit)
         self._socket = None
         self._isok = True
-    
+
     def __del__(self):
         self.Destroy()
-    
+
     def Destroy(self):
         self.SetDestroy()
 
@@ -285,7 +287,7 @@ class ZmqClient(object):
         if self._socket is not None:
             self._pool.ReleaseSocket(self._socket)
             self._socket = None
-    
+
     def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True):
         """sends command via established zmq socket
 
@@ -295,10 +297,10 @@ class ZmqClient(object):
         :param fireandforget: if True, will send command and immediately return without trying to receive, blockwait will be set to False
         :param sendjson: if True (default), will send data as json
         :param recvjson: if True (default), will parse received data as json
-        
+
         :return: returns the response from the zmq server in json format if blockwait is True
         """
-        log.verbose(u'Sending command via ZMQ: %s', command)
+        # log.debug('Sending command via ZMQ: %s', command)
 
         if fireandforget:
             blockwait = False
@@ -320,7 +322,7 @@ class ZmqClient(object):
                 elapsedtime = time.time() - starttime
                 if timeout is not None and elapsedtime > timeout:
                     raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._url, elapsedtime))
-                
+
                 # poll to see if we can send, if not, loop
                 if self._socket.poll(50, zmq.POLLOUT) == 0:
                     continue
@@ -353,7 +355,6 @@ class ZmqClient(object):
         # TODO: raise UserInterrupt
         return None
 
-
     def ReceiveCommand(self, timeout=10.0, recvjson=True):
         """receive response to a previous SendCommand call, SendCommand must be called with blockwait=False and fireandforget=False
 
@@ -374,16 +375,16 @@ class ZmqClient(object):
                 elapsedtime = time.time() - starttime
                 if timeout is not None and elapsedtime > timeout:
                     raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
-                
+
                 # poll to see if something has been received, if received nothing, loop
                 startpolltime = time.time()
                 waitingevents = self._socket.poll(50, zmq.POLLIN)
                 endpolltime = time.time()
-                if endpolltime - startpolltime > 0.2: # due to python delays sometimes this can be 0.11s
-                    log.critical('polling time took %fs!', endpolltime-startpolltime)
+                if endpolltime - startpolltime > 0.2:  # due to python delays sometimes this can be 0.11s
+                    log.critical('polling time took %fs!', endpolltime - startpolltime)
                 if waitingevents == 0:
                     continue
-                
+
                 if recvjson:
                     return self._socket.recv_json(zmq.NOBLOCK)
                 else:

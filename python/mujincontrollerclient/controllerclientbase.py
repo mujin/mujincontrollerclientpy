@@ -4,29 +4,23 @@
 Mujin controller client
 """
 
-# logging
-from logging import getLogger
-log = getLogger(__name__)
-
 # system imports
-from urlparse import urlparse, urlunparse
-from urllib import quote, unquote
 import os
 import datetime
 import base64
 import email.utils
-from numpy import fromstring, uint32
-
-try:
-    import ujson as json
-except ImportError:
-    import json
 
 # mujin imports
 from . import ControllerClientError
 from . import controllerclientraw
 from . import ugettext as _
+from . import json
+from . import urlparse
+from . import uriutils
 
+# logging
+from logging import getLogger
+log = getLogger(__name__)
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
 # because '#' in URL parsing is a special role
@@ -42,20 +36,7 @@ def GetFilenameFromURI(uri, mujinpath):
       GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
       returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
     """
-    index = uri.find(id_separator)
-    if index >= 0:
-        res = urlparse(uri[:index])
-    else:
-        res = urlparse(uri)
-    if res.scheme != 'mujin':
-        raise ControllerClientError(_('Only mujin: sceheme supported of %s') % uri)
-    if len(res.path) == 0 or res.path[0] != '/':
-        raise ControllerClientError(_('path is not absolute on URI %s') % uri)
-    if os.path.exists(res.path):
-        # it's already an absolute path, so return as is. making sure user can read from this path is up to the filesystem permissions
-        return res, res.path
-    else:
-        return res, os.path.join(mujinpath, res.path[1:])
+    return uriutils.GetFilenameFromURI(uri, mujinpath)
 
 
 def GetURIFromPrimaryKey(pk):
@@ -67,19 +48,7 @@ def GetURIFromPrimaryKey(pk):
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
-    pkunicode = GetUnicodeFromPrimaryKey(pk)
-    # check if separator is present
-    index = pkunicode.find(id_separator)
-    if index >= 0:
-        basefilename = pkunicode[0:index]
-        if len(os.path.splitext(basefilename)[1]) == 0:
-            # no extension present in basefilename, so default to mujin.dae
-            basefilename += u'.mujin.dae'
-        return u'mujin:/' + basefilename + pkunicode[index:]
-    if len(os.path.splitext(pkunicode)[1]) == 0:
-        # no extension present in basefilename, so default to mujin.dae
-        pkunicode += u'.mujin.dae'
-    return u'mujin:/' + pkunicode
+    return uriutils.GetURIFromPrimaryKey(pk, primarykeyseparator='@', fragmentseparator='@')
 
 
 def GetUnicodeFromPrimaryKey(pk):
@@ -91,10 +60,7 @@ def GetUnicodeFromPrimaryKey(pk):
       GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
     """
-    if not isinstance(pk, unicode):
-        return unicode(unquote(str(pk)), 'utf-8')
-    else:
-        return pk
+    return uriutils.GetFilenameFromPrimaryKey(pk, primarykeyseparator='@')
 
 
 def GetPrimaryKeyFromURI(uri):
@@ -104,12 +70,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    res = urlparse(unicode(uri))
-    if len(res.scheme) > 0 and res.scheme != 'mujin':
-        log.warn(_('Only mujin: sceheme supported of %s') % uri)
-    path = res.path[1:]
-
-    return quote(path.encode('utf-8'), '')
+    return uriutils.GetPrimaryKeyFromURI(uri, allowfragments=True, fragmentseparator='@', primarykeyseparator='@')
 
 
 def FormatHTTPDate(dt):
@@ -126,14 +87,14 @@ class ControllerClient(object):
     """mujin controller client base
     """
     _webclient = None
-    _userinfo = None # a dict storing user info, like locale
+    _userinfo = None  # a dict storing user info, like locale
 
-    controllerurl = '' # url to controller
-    controllerusername = '' # username to login with
-    controllerpassword = '' # password to login with
+    controllerurl = ''  # url to controller
+    controllerusername = ''  # username to login with
+    controllerpassword = ''  # password to login with
 
-    controllerIp = '' # hostname of the controller web server
-    controllerPort = 80 # port of the controller web server
+    controllerIp = ''  # hostname of the controller web server
+    controllerPort = 8  # port of the controller web server
 
     def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword=''):
         """logs into the mujin controller
@@ -143,7 +104,7 @@ class ControllerClient(object):
         """
 
         # parse controllerurl
-        scheme, netloc, path, params, query, fragment = urlparse(controllerurl)
+        scheme, netloc, path, params, query, fragment = urlparse.urlparse(controllerurl)
 
         # parse any credential in the url
         if '@' in netloc:
@@ -158,7 +119,7 @@ class ControllerClient(object):
             self.controllerIp = hostname
             self.controllerPort = int(port)
 
-        self.controllerurl = urlunparse((scheme, netloc, '', '', '', ''))
+        self.controllerurl = urlparse.urlunparse((scheme, netloc, '', '', '', ''))
         self.controllerusername = controllerusername or self.controllerusername
         self.controllerpassword = controllerpassword or self.controllerpassword
 
@@ -167,7 +128,7 @@ class ControllerClient(object):
             'locale': os.environ.get('LANG', ''),
         }
         self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword)
-        
+
     def __del__(self):
         self.Destroy()
 
@@ -177,11 +138,11 @@ class ControllerClient(object):
         if self._webclient is not None:
             self._webclient.Destroy()
             self._webclient = None
-    
+
     def SetDestroy(self):
         if self._webclient is not None:
             self._webclient.SetDestroy()
-    
+
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
         self._webclient.SetLocale(locale)
@@ -214,7 +175,7 @@ class ControllerClient(object):
 
     def UploadSceneFile(self, f, timeout=5):
         """uploads a file managed by file handle f
-        
+
         """
         return self.UploadFile(f, timeout=timeout)
 
@@ -306,7 +267,7 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
         assert(status == 200)
         return response['objects']
-    
+
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
@@ -314,7 +275,7 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
         assert(status == 200)
         return response
-    
+
     def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
@@ -345,12 +306,12 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, fields=fields, timeout=timeout)
         assert(status == 202)
-        
+
     def DeleteObjectIKParam(self, objectpk, ikparampk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
         assert(status == 204)
-        
+
     #
     # GraspSet related
     #
@@ -439,7 +400,7 @@ class ControllerClient(object):
         """upload binary file content of a cad file to be set as the mesh for the geometry
         """
         assert(usewebapi)
-        assert(formathint == 'stl') # for now, only support stl
+        assert(formathint == 'stl')  # for now, only support stl
 
         headers = {'Content-Type': 'application/sla'}
         url_params = {'unit': unit}
@@ -468,13 +429,13 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)
         assert(status == 200)
         return response['tools']
-    
+
     def GetRobotTool(self, robotpk, toolpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'robot/%s/tool/%s/' % (robotpk, toolpk), fields=fields, timeout=timeout)
         assert(status == 200)
         return response
-    
+
     def CreateRobotTool(self, robotpk, tooldata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
@@ -497,7 +458,7 @@ class ControllerClient(object):
     #
     # InstObject Tools related
     #
-    
+
     def GetInstRobotTools(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
@@ -509,13 +470,13 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/%s' % (scenepk, instobjectpk, toolpk), fields=fields, timeout=timeout)
         assert(status == 200)
         return response
-    
+
     def CreateInstRobotTool(self, scenepk, instobjectpk, tooldata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('POST', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
         assert(status == 201)
         return response
-    
+
     def SetInstRobotTool(self, scenepk, instobjectpk, toolpk, tooldata, fields=None, usewebapi=True, timeout=5):
         """sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
@@ -523,12 +484,12 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
         assert(status == 202)
-    
+
     def DeleteInstRobotTool(self, scenepk, instobjectpk, toolpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), timeout=timeout)
         assert(status == 204)
-    
+
     #
     # Attached sensors related
     #
@@ -586,8 +547,6 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
         assert(status == 204)
-
-
 
     #
     # Result related
@@ -649,15 +608,15 @@ class ControllerClient(object):
         """ cancels all jobs
         """
         # cancel on the zmq configure socket first
-        
+
         if usewebapi:
             status, response = self._webclient.APICall('DELETE', u'job/', timeout=timeout)
             assert(status == 204)
-        
+
     #
     # Geometry related
     #
-    
+
     def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
@@ -665,12 +624,13 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
+        import numpy
         for encodedGeometry in response['geometries']:
             geometry = {}
-            positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
+            positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
             positions.resize(len(positions) / 3, 3)
             geometry['positions'] = positions
-            indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
+            indices = numpy.fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=numpy.uint32)
             indices.resize(len(indices) / 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)
@@ -710,7 +670,7 @@ class ControllerClient(object):
                         sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
                     else:
                         sensormapping[camerafullname] = None
-                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name',None))
+                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name', None))
         return sensormapping
 
     def SetSceneSensorMapping(self, sensormapping, scenepk=None, usewebapi=True, timeout=5):
@@ -742,7 +702,7 @@ class ControllerClient(object):
             raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
     #
-    # File related 
+    # File related
     #
 
     def UploadFile(self, f, filename=None, timeout=10):
@@ -821,7 +781,7 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
-            'size': long(response.headers['Content-Length']),
+            'size': int(response.headers['Content-Length']),
         }
 
     #
@@ -852,7 +812,7 @@ class ControllerClient(object):
         taskparameters.update(kwargs)
         log.warn('sending taskparameters=%r', taskparameters)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
+
     def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs maximum length sequence test on specified joint and returns result
         """
@@ -863,7 +823,7 @@ class ControllerClient(object):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-        
+
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
         """
@@ -872,14 +832,14 @@ class ControllerClient(object):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
+
     def GetMotorControlParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameters as name-value dict
         """
         taskparameters = {
             'command': 'GetMotorControlParameter',
-            'jointName' : jointName,
-            'parameterName' : parameterName
+            'jointName': jointName,
+            'parameterName': parameterName
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
@@ -935,7 +895,7 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
         return json.loads(response.content)
-    
+
     #
     # Report stats to registration controller
     #
