@@ -61,7 +61,7 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
         log.warn('_ParseURI uri %r should be unicode, current type is %s. Trying to decode utf-8', uri, type(uri))
         uri = uri.decode('utf-8')   # try using decode utf-8 if the input is not unicode
     i = uri.find(':')
-    if not uri[:i].lower() == 'mujin':
+    if uri[:i].lower() != 'mujin':
         # if scheme is not mujin specified, use the standard uri parse
         # TODO: figure out who calls this with non-mujin scheme
         # TODO: simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please verify, maybe remove this case
@@ -80,20 +80,20 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
             # for now mujin uri doesn't have definition of hostname in uri
             log.warn('uri %s includs hostname which is not defined', uri)
             raise MujinResourceIdentifierError(_('mujin scheme has no hostname defined %s') % uri)
-        else:
-            if allowfragments:
-                # split by the last appeared fragmentseparator
-                separatorindex = uri.rfind(fragmentseparator)
-                if separatorindex >= 0:
-                    path = uri[:separatorindex]
-                    fragment = uri[separatorindex + 1:]
-                else:
-                    path = uri
-                    fragment = ''
+
+        if allowfragments:
+            # split by the last appeared fragmentseparator
+            separatorindex = uri.rfind(fragmentseparator)
+            if separatorindex >= 0:
+                path = uri[:separatorindex]
+                fragment = uri[separatorindex + 1:]
             else:
                 path = uri
                 fragment = ''
-            parseresult = urlparse.ParseResult(scheme, '', path, params='', query='', fragment=fragment)
+        else:
+            path = uri
+            fragment = ''
+        parseresult = urlparse.ParseResult(scheme, '', path, params='', query='', fragment=fragment)
     return parseresult
 
 
