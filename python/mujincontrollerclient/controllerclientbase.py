@@ -218,13 +218,16 @@ class ControllerClient(object):
         """
         return self.UploadFile(f, timeout=timeout)
 
-    def GetScenes(self, fields=None, usewebapi=True, timeout=5):
+    def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         """list all available scene on controller
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
-        })
+        url_params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        url_params.update(kwargs)
+        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params=url_params)
         assert(status == 200)
         return response['objects']
 
@@ -553,10 +556,11 @@ class ControllerClient(object):
     # Task related
     #
 
-    def GetSceneTasks(self, scenepk, fields=None, usewebapi=True, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params={
-            'limit': 0,
+            'offset': offset,
+            'limit': limit,
         })
         assert(status == 200)
         return response['objects']
@@ -625,10 +629,11 @@ class ControllerClient(object):
     # Job related
     #
 
-    def GetJobs(self, fields=None, usewebapi=True, timeout=5):
+    def GetJobs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
+            'offset': offset,
+            'limit': limit,
         })
         assert(status == 200)
         return response['objects']
