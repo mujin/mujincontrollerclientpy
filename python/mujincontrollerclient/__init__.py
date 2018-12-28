@@ -38,13 +38,10 @@ class ClientExceptionBase(Exception):
     """client base exception
     """
     def __init__(self, msg=u''):
-        self.msg = unicode(msg)
-
-    def __unicode__(self):
-        return u'%s: %s' % (self.__class__.__name__, self.msg)
+        self.msg = str(msg)
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return str(self)
 
     def __repr__(self):
         return '<%s(%r)>' % (self.__class__.__name__, self.msg)
@@ -61,14 +58,14 @@ class APIServerError(Exception):
     responsestacktrace = None # the traceback from the error. should be unicode
     inputcommand = None # the command sent to the server
     def __init__(self, responseerror_message, responsestacktrace=None, responseerrorcode=None, inputcommand=None):
-        if isinstance(responseerror_message, unicode):
+        if isinstance(responseerror_message, str):
             self.responseerror_message = responseerror_message
         elif responseerror_message is not None:
-            self.responseerror_message = unicode(responseerror_message, 'utf-8')
-        if isinstance(responsestacktrace, unicode):
+            self.responseerror_message = str(responseerror_message)
+        if isinstance(responsestacktrace, str):
             self.responsestacktrace = responsestacktrace
         elif responsestacktrace is not None:
-            self.responsestacktrace = unicode(responsestacktrace, 'utf-8')
+            self.responsestacktrace = str(responsestacktrace)
 
         self.responseerrorcode = responseerrorcode
         self.inputcommand = inputcommand
@@ -91,7 +88,7 @@ def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
     responseerrorcode = None
     responsestacktrace = None
     try:
-        content = json.loads(responsecontent)
+        content = json.loads(str(responsecontent))
         responsestacktrace = content.get('stacktrace',None)
         responseerror_message = content.get('error_message', None)
         responseerrorcode = content.get('error_code',None)
