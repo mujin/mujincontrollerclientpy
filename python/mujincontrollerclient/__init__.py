@@ -43,6 +43,7 @@ class ClientExceptionBase(Exception):
     def __repr__(self):
         return '<%s(%r)>' % (self.__class__.__name__, self.msg)
 
+
 @six.python_2_unicode_compatible
 class APIServerError(ClientExceptionBase):
     responseerror_message = None  # the error. should be unicode
