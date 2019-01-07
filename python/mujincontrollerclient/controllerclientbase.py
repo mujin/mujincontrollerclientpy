@@ -94,7 +94,7 @@ class ControllerClient(object):
     controllerpassword = ''  # password to login with
 
     controllerIp = ''  # hostname of the controller web server
-    controllerPort = 8  # port of the controller web server
+    controllerPort = 80  # port of the controller web server
 
     def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword=''):
         """logs into the mujin controller
