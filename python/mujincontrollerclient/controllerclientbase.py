@@ -193,19 +193,20 @@ class ControllerClient(object):
         # no reason to check response since it's probably an error (server is restarting after all)
 
     def IsLoggedIn(self):
-        return self._webclient.IsLoggedIn()
+        return True
 
     def Login(self, timeout=5):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
-        self._webclient.Login(timeout=timeout)
+        self.Ping(timeout=timeout)
 
     def Ping(self, usewebapi=True, timeout=5):
         """Sends a dummy HEAD request to api endpoint
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('HEAD', '', timeout=timeout)
-        assert(status == 200)
+        response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
     #
     # Scene related
@@ -217,13 +218,16 @@ class ControllerClient(object):
         """
         return self.UploadFile(f, timeout=timeout)
 
-    def GetScenes(self, fields=None, usewebapi=True, timeout=5):
+    def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         """list all available scene on controller
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
-        })
+        url_params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        url_params.update(kwargs)
+        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params=url_params)
         assert(status == 200)
         return response['objects']
 
@@ -552,10 +556,11 @@ class ControllerClient(object):
     # Task related
     #
 
-    def GetSceneTasks(self, scenepk, fields=None, usewebapi=True, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params={
-            'limit': 0,
+            'offset': offset,
+            'limit': limit,
         })
         assert(status == 200)
         return response['objects']
@@ -624,10 +629,11 @@ class ControllerClient(object):
     # Job related
     #
 
-    def GetJobs(self, fields=None, usewebapi=True, timeout=5):
+    def GetJobs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
+            'offset': offset,
+            'limit': limit,
         })
         assert(status == 200)
         return response['objects']
@@ -739,7 +745,7 @@ class ControllerClient(object):
     # File related 
     #
 
-    def UploadFile(self, f, filename=None, timeout=5):
+    def UploadFile(self, f, filename=None, timeout=10):
         """uploads a file managed by file handle f
         """
         data = {}
@@ -749,26 +755,26 @@ class ControllerClient(object):
         if response.status_code in (200,):
             try:
                 return json.loads(response.content)['filename']
-            except:
-                log.exception('failed to upload file')
+            except Exception as e:
+                log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFile(self, filename, timeout=1):
+    def DeleteFile(self, filename, timeout=10):
         response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return json.loads(response.content)['filename']
-            except:
-                log.exception('failed to delete file')
+            except Exception as e:
+                log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def ListFiles(self, dirname='', timeout=1):
+    def ListFiles(self, dirname='', timeout=2):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
         if response.status_code in (200, 404):
             try:
                 return json.loads(response.content)
-            except:
-                log.exception('failed to delete file')
+            except Exception as e:
+                log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
     def FileExists(self, path, timeout=5):
@@ -830,8 +836,8 @@ class ControllerClient(object):
             'jointName': jointName,
             'freqMin': freqMin,
             'freqMax': freqMax,
-            'amplitude': amplitude
-         }
+            'amplitude': amplitude,
+        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
