@@ -17,29 +17,9 @@ import requests.auth
 
 from . import json
 from . import APIServerError
-from . import ugettext as _
 
 import logging
 log = logging.getLogger(__name__)
-
-
-def _GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
-    inputcommand = {
-        'request_type': request_type,
-        'url': url,
-        'status_code': status_code,
-    }
-    message = _('Unknown error')
-    errorcode = None
-    stacktrace = None
-    try:
-        content = json.loads(responsecontent)
-        stacktrace = content.get('stacktrace', None)
-        message = content.get('error_message', None)
-        errorcode = content.get('error_code', None)
-    except ValueError:
-        message = responsecontent
-    return APIServerError(message=message, stacktrace=stacktrace, errorcode=errorcode, inputcommand=inputcommand)
 
 
 class ControllerWebClient(object):
@@ -104,22 +84,22 @@ class ControllerWebClient(object):
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
     # python port of the javascript API Call function
-    def APICall(self, request_type, api_url='', url_params=None, fields=None, data=None, headers=None, timeout=5):
-        path = '/api/v1/' + api_url.lstrip('/')
+    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, timeout=5):
+        path = '/api/v1/' + path.lstrip('/')
         if not path.endswith('/'):
             path += '/'
 
-        if url_params is None:
-            url_params = {}
+        if params is None:
+            params = {}
 
-        url_params['format'] = 'json'
+        params['format'] = 'json'
 
         if fields is not None:
-            url_params['fields'] = fields
+            params['fields'] = fields
 
-        # implicit order by pk
-        if 'order_by' not in url_params:
-            url_params['order_by'] = 'pk'
+        # implicit order by pk, is this necessary?
+        # if 'order_by' not in params:
+        #     params['order_by'] = 'pk'
 
         if data is None:
             data = {}
@@ -132,27 +112,38 @@ class ControllerWebClient(object):
             headers['Content-Type'] = 'application/json'
             data = json.dumps(data)
 
-        request_type = request_type.upper()
+        if 'Accept' not in headers:
+            headers['Accept'] = 'application/json'
 
-        # log.debug('%s %s', request_type, self._baseurl + path)
-        response = self.Request(request_type, path, params=url_params, data=data, headers=headers, timeout=timeout)
+        method = method.upper()
 
-        if request_type == 'HEAD' and response.status_code == 200:
-            # just return without doing anything for head
-            return response.status_code, response.content
+        # log.debug('%s %s', method, self._baseurl + path)
+        response = self.Request(method, path, params=params, data=data, headers=headers, timeout=timeout)
 
-        if request_type == 'DELETE' and response.status_code == 204:
-            # just return without doing anything for deletes
-            return response.status_code, response.content
+        # try to parse response
+        content = None
+        if len(response.content.strip()) > 0:
+            try:
+                content = json.loads(response.content)
+            except ValueError as e:
+                log.exception('caught exception parsing json response: %s: %s', e, response.content.decode('utf-8', 'replace'))
 
-        # try to convert everything else
-        try:
-            content = json.loads(response.content)
-        except ValueError as e:
-            log.warn('caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
-            raise _GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+        # first check error
+        if content is not None and 'error_message' in content:
+            raise APIServerError(content['error_message'], stacktrace=content.get('stacktrace', None), errorcode=content.get('error_code', None))
+        if response.status_code >= 400:
+            raise APIServerError(response.content)
 
-        if 'stacktrace' in content or response.status_code >= 400:
-            raise _GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+        # check expected status code
+        expectedStatusCode = {
+            'GET': 200,
+            'HEAD': 200,
+            'POST': 201,
+            'DELETE': 204,
+            'PUT': 202,
+        }.get(method, 200)
+        if response.status_code != expectedStatusCode:
+            log.error('response status code is %d, expecting %d: %s', response.status_code, expectedStatusCode)
+            raise APIServerError(response.content)
 
-        return response.status_code, content
+        return content

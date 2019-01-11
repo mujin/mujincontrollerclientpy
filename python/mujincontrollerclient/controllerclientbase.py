@@ -184,52 +184,42 @@ class ControllerClient(object):
         """list all available scene on controller
         """
         assert(usewebapi)
-        url_params = {
+        params = {
             'offset': offset,
             'limit': limit,
         }
-        url_params.update(kwargs)
-        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params=url_params)
-        assert(status == 200)
-        return response['objects']
+        params.update(kwargs)
+        return self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params)['objects']
 
     def GetScene(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested scene
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
 
     def GetObject(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested object
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
 
     def SetObject(self, pk, objectdata, fields=None, usewebapi=True, timeout=5):
         """do partial update on object resource
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/' % pk, data=objectdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'object/%s/' % pk, data=objectdata, fields=fields, timeout=timeout)
 
     def GetRobot(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested robot
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
 
     def SetRobot(self, pk, robotdata, fields=None, usewebapi=True, timeout=5):
         """do partial update on robot resource
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'robot/%s/' % pk, data=robotdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'robot/%s/' % pk, data=robotdata, fields=fields, timeout=timeout)
 
     #
     # Scene related
@@ -237,19 +227,15 @@ class ControllerClient(object):
 
     def CreateScene(self, scenedata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'scene/', data=scenedata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'scene/', data=scenedata, fields=fields, timeout=timeout)
 
     def SetScene(self, scenepk, scenedata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'scene/%s/' % scenepk, data=scenedata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'scene/%s/' % scenepk, data=scenedata, fields=fields, timeout=timeout)
 
     def DeleteScene(self, scenepk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'scene/%s/' % scenepk, timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'scene/%s/' % scenepk, timeout=timeout)
 
     #
     # InstObject related
@@ -257,38 +243,30 @@ class ControllerClient(object):
 
     def CreateSceneInstObject(self, scenepk, instobjectdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'scene/%s/instobject/' % scenepk, data=instobjectdata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'scene/%s/instobject/' % scenepk, data=instobjectdata, fields=fields, timeout=timeout)
 
     def GetSceneInstObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response['objects']
+        return self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('GET', u'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
 
     def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), data=instobjectdata, fields=fields, timeout=timeout)
 
     def DeleteSceneInstObject(self, scenepk, instobjectpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/' % (scenepk, instobjectpk), timeout=timeout)
 
     #
     # IKParam related
@@ -296,22 +274,18 @@ class ControllerClient(object):
 
     def CreateObjectIKParam(self, objectpk, ikparamdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'object/%s/ikparam/' % objectpk, data=ikparamdata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'object/%s/ikparam/' % objectpk, data=ikparamdata, fields=fields, timeout=timeout)
 
     def SetObjectIKParam(self, objectpk, ikparampk, ikparamdata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, fields=fields, timeout=timeout)
 
     def DeleteObjectIKParam(self, objectpk, ikparampk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
 
     #
     # GraspSet related
@@ -319,22 +293,18 @@ class ControllerClient(object):
 
     def CreateObjectGraspSet(self, objectpk, graspsetdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'object/%s/graspset/' % objectpk, data=graspsetdata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'object/%s/graspset/' % objectpk, data=graspsetdata, fields=fields, timeout=timeout)
 
     def SetObjectGraspSet(self, objectpk, graspsetpk, graspsetdata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, fields=fields, timeout=timeout)
 
     def DeleteObjectGraspSet(self, objectpk, graspsetpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
 
     #
     # Link related
@@ -342,22 +312,18 @@ class ControllerClient(object):
 
     def CreateObjectLink(self, objectpk, linkdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'object/%s/link/' % objectpk, data=linkdata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'object/%s/link/' % objectpk, data=linkdata, fields=fields, timeout=timeout)
 
     def SetObjectLink(self, objectpk, linkpk, linkdata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
 
     def DeleteObjectLink(self, objectpk, linkpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
 
     #
     # Attachment related
@@ -365,19 +331,15 @@ class ControllerClient(object):
 
     def CreateObjectAttachment(self, objectpk, attachmentdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'object/%s/attachment/' % objectpk, data=attachmentdata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'object/%s/attachment/' % objectpk, data=attachmentdata, fields=fields, timeout=timeout)
 
     def SetObjectAttachment(self, objectpk, attachmentpk, attachmentdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), data=attachmentdata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), data=attachmentdata, fields=fields, timeout=timeout)
 
     def DeleteObjectAttachment(self, objectpk, attachmentpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), timeout=timeout)
 
     #
     # Geometry related
@@ -385,17 +347,14 @@ class ControllerClient(object):
 
     def CreateObjectGeometry(self, objectpk, geometrydata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'object/%s/geometry/' % objectpk, data=geometrydata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'object/%s/geometry/' % objectpk, data=geometrydata, fields=fields, timeout=timeout)
 
     def SetObjectGeometry(self, objectpk, geometrypk, geometrydata, fields=None, usewebapi=True, timeout=5):
         """sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
 
     def SetObjectGeometryMesh(self, objectpk, geometrypk, data, formathint='stl', unit='mm', usewebapi=True, timeout=5):
         """upload binary file content of a cad file to be set as the mesh for the geometry
@@ -404,57 +363,46 @@ class ControllerClient(object):
         assert(formathint == 'stl')  # for now, only support stl
 
         headers = {'Content-Type': 'application/sla'}
-        url_params = {'unit': unit}
-        status, response = self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), url_params=url_params, data=data, headers=headers, timeout=timeout)
-        assert(status == 202)
+        params = {'unit': unit}
+        return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, data=data, headers=headers, timeout=timeout)
 
     def DeleteObjectGeometry(self, objectpk, geometrypk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
 
     def GetObjectGeometries(self, objectpk, mesh=False, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        url_params = {}
+        params = {}
         if mesh:
-            url_params['mesh'] = '1'
-        status, response = self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, url_params=url_params, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response['geometries']
+            params['mesh'] = '1'
+        return self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, params=params, fields=fields, timeout=timeout)
 
     #
     # Object Tools related
     #
+
     def GetRobotTools(self, robotpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response['tools']
+        return self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)
 
     def GetRobotTool(self, robotpk, toolpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'robot/%s/tool/%s/' % (robotpk, toolpk), fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('GET', u'robot/%s/tool/%s/' % (robotpk, toolpk), fields=fields, timeout=timeout)
 
     def CreateRobotTool(self, robotpk, tooldata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
 
     def SetRobotTool(self, robotpk, toolpk, tooldata, fields=None, usewebapi=True, timeout=5):
         """sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'robot/%s/tool/%s/' % (robotpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
 
     def DeleteRobotTool(self, robotpk, toolpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'robot/%s/tool/%s/' % (robotpk, toolpk), timeout=timeout)
 
     #
     # InstObject Tools related
@@ -462,34 +410,26 @@ class ControllerClient(object):
 
     def GetInstRobotTools(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response['tools']
+        return self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
 
     def GetInstRobotTool(self, scenepk, instobjectpk, toolpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/%s' % (scenepk, instobjectpk, toolpk), fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/%s' % (scenepk, instobjectpk, toolpk), fields=fields, timeout=timeout)
 
     def CreateInstRobotTool(self, scenepk, instobjectpk, tooldata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
 
     def SetInstRobotTool(self, scenepk, instobjectpk, toolpk, tooldata, fields=None, usewebapi=True, timeout=5):
         """sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), data=tooldata, fields=fields, timeout=timeout)
 
     def DeleteInstRobotTool(self, scenepk, instobjectpk, toolpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'scene/%s/instobject/%s/tool/%s/' % (scenepk, instobjectpk, toolpk), timeout=timeout)
 
     #
     # Attached sensors related
@@ -497,22 +437,18 @@ class ControllerClient(object):
 
     def CreateRobotAttachedSensor(self, robotpk, attachedsensordata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('POST', u'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
-        assert(status == 201)
-        return response
+        return self._webclient.APICall('POST', u'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
 
     def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, fields=None, usewebapi=True, timeout=5):
         """sets the attachedsensor values via a WebAPI PUT call
         :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
 
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
-        assert(status == 204)
+        return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
 
     #
     # Geometry related
@@ -523,8 +459,7 @@ class ControllerClient(object):
         """
         import numpy
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
-        assert(status == 200)
+        response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
         geometries = []
         for encodedGeometry in response['geometries']:
             geometry = {}
@@ -543,9 +478,7 @@ class ControllerClient(object):
 
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
-        assert(status == 200)
-        return response['objects']
+        return self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)['objects']
 
     #
     # Sensor mappings related
@@ -557,15 +490,12 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)
-        assert(status == 200)
-        instobjects = response['objects']
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)['objects']
         sensormapping = {}
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0:
-                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])
-                assert (status == 200)
-                for attachedsensor in response['attachedsensors']:
+                attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])['attachedsensors']
+                for attachedsensor in attachedsensors:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
                     if 'hardware_id' in attachedsensor['sensordata']:
                         sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
@@ -581,23 +511,20 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        status, response = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, url_params={'limit': 0}, fields='attachedsensors,object_pk,name', timeout=timeout)
-        assert(status == 200)
-        instobjects = response['objects']
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, fields='attachedsensors,object_pk,name', timeout=timeout)['objects']
         cameracontainernames = set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
         sensormapping = dict(sensormapping)
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
                 cameracontainerpk = instobject['object_pk']
-                status, response = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)
-                assert (status == 200)
-                for attachedsensor in response['attachedsensors']:
+                attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)['attachedsensors']
+                for attachedsensor in attachedsensors:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
                     cameraid = attachedsensor['sensordata'].get('hardware_id', None)
                     sensorpk = attachedsensor['pk']
                     if camerafullname in sensormapping.keys():
                         if cameraid != sensormapping[camerafullname]:
-                            status, response = self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
+                            self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
                         del sensormapping[camerafullname]
         if sensormapping:
             raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
