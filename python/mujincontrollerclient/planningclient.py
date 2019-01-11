@@ -9,11 +9,9 @@ from logging import getLogger
 log = getLogger(__name__)
 
 # system imports
-from urlparse import urlparse
-from urllib import quote, unquote
 import os
 import time
-import datetime
+import ujson as json
 
 try:
     import zmq
@@ -184,17 +182,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         # TODO(cleanup2)
         assert(usewebapi)
-        if slaverequestid is None:
-            slaverequestid = self._slaverequestid
-        data = {
-            'scenepk': scenepk,
-            'target_pk': taskpk,
-            'resource_type': 'task',
-            'slaverequestid': slaverequestid,
-        }
-        status, response = self._webclient.APICall('POST', u'job/', data=data, timeout=timeout)
-        assert(status == 200)
-        return response
+        raise NotImplementedError
 
     def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=None):
         '''executes task with a particular task type without creating a new task
@@ -203,14 +191,20 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         '''
         # TODO(cleanup2)
         # execute task
-        status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
-            'tasktype': tasktype,
-            'taskparameters': taskparameters,
+        command = {
+            'fnname': 'RunCommand',
+            'taskparams': {
+                'tasktype': self.tasktype,
+                'sceneparams': self._sceneparams,
+                'taskparameters': taskparameters,
+            },
+            'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
             'timeout': timeout,
-        }, timeout=timeout)
-        assert(status==200)
-        return response
+        }
+
+        response = self._webclient.Request('POST', '/job/', data=json.dumps(command), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        return json.loads(response.content)
 
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
         """executes command via web api
