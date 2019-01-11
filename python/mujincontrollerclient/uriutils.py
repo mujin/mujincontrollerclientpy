@@ -18,22 +18,16 @@ try:
     from urllib.parse import quote, unquote
 except ImportError:
     from urllib import quote, unquote
+
 import os
 import six
 
-from . import ClientExceptionBase
+from . import URIError
 from . import urlparse
 from . import _
 
 import logging
 log = logging.getLogger(__name__)
-
-
-@six.python_2_unicode_compatible
-class MujinResourceIdentifierError(ClientExceptionBase):
-
-    def __str__(self):
-        return _('Mujin Resource Identifier Error: %s') % self.msg
 
 
 def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
@@ -79,7 +73,7 @@ def _ParseURI(uri, allowfragments=True, fragmentseparator='@'):
             # usually we need to split hostname from url
             # for now mujin uri doesn't have definition of hostname in uri
             log.warn('uri %s includs hostname which is not defined', uri)
-            raise MujinResourceIdentifierError(_('mujin scheme has no hostname defined %s') % uri)
+            raise URIError(_('mujin scheme has no hostname defined %s') % uri)
 
         if allowfragments:
             # split by the last appeared fragmentseparator
@@ -369,7 +363,7 @@ class MujinResourceIdentifier(object):
         elif filename:
             self._InitFromFilename(filename)
         else:
-            raise MujinResourceIdentifierError(_('Lack of parameters. initialization must include one of uri, primarykey, parttype or filename'))
+            raise URIError(_('Lack of parameters. initialization must include one of uri, primarykey, parttype or filename'))
 
     def _InitFromURI(self, uri):
         if self._fragmentseparator:
@@ -383,12 +377,12 @@ class MujinResourceIdentifier(object):
         if self._scheme == 'file':
             commonPrefix = os.path.commonprefix([self._mujinpath, parsedUri.path])
             if commonPrefix != self._mujinpath:
-                raise MujinResourceIdentifierError(_('scheme is file, but file absolute path is different from given mujinpath'))
+                raise URIError(_('scheme is file, but file absolute path is different from given mujinpath'))
             filename = parsedUri.path[len(self._mujinpath):]
         elif self._scheme == 'mujin':
             filename = parsedUri.path[1:]
         else:
-            raise MujinResourceIdentifierError(_('scheme %s isn\'t supported from uri %r') % (parsedUri.scheme, uri))
+            raise URIError(_('scheme %s isn\'t supported from uri %r') % (parsedUri.scheme, uri))
         self._InitFromFilename(filename)
 
     def _InitFromPrimaryKey(self, primarykey):

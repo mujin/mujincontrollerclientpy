@@ -4,7 +4,6 @@
 
 # mujin imports
 from . import realtimerobotclient
-from . import ugettext as _
 
 # logging
 import logging

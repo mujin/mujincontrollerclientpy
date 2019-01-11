@@ -13,15 +13,35 @@ import time
 
 
 # mujin imports
-from . import GetAPIServerErrorFromZMQ
+from . import APIServerError
 from . import controllerclientbase, zmqclient
-from . import ugettext as _
 from . import zmq
 from . import json
 
 # logging
 import logging
 log = logging.getLogger(__name__)
+
+
+def _GetAPIServerErrorFromZMQ(response):
+    """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
+    """
+    if response is None:
+        return None
+
+    if 'error' in response:
+        if isinstance(response['error'], dict):
+            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
+
+        else:
+            return APIServerError(response['error'])
+
+    elif 'exception' in response:
+        return APIServerError(response['exception'])
+
+    elif 'status' in response and response['status'] != 'succeeded':
+        # something happened so raise exception
+        return APIServerError(u'Resulting status is %s' % response['status'])
 
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
@@ -124,9 +144,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         # TODO(cleanup2)
         # cancel on the zmq configure
         if self._configsocket is not None:
-            self._SendConfigViaZMQ({'command':'cancel'}, self._slaverequestid, timeout=timeout, fireandforget=False)
-        
-    
+            self._SendConfigViaZMQ({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
+
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
         while self._isok and self._isokheartbeat:
             log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
@@ -221,7 +240,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             # for fire and forget commands, no response will be available
             return None
 
-        error = GetAPIServerErrorFromZMQ(response)
+        error = _GetAPIServerErrorFromZMQ(response)
         if error is not None:
             log.warn('GetAPIServerErrorFromZMQ returned error for %r', response)
             raise error
@@ -274,7 +293,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             # for fire and forget commands, no response will be available
             return None
 
-        error = GetAPIServerErrorFromZMQ(response)
+        error = _GetAPIServerErrorFromZMQ(response)
         if error is not None:
             raise error
         return response['output']

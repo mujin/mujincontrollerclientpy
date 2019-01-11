@@ -712,23 +712,23 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {
             'command': 'RunMotorControlTuningStepTest',
             'jointName': jointName,
-            'amplitude': amplitude
+            'amplitude': amplitude,
         }
         taskparameters.update(kwargs)
         log.warn('sending taskparameters=%r', taskparameters)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
+
     def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs maximum length sequence test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningMaximulLengthSequence',
             'jointName': jointName,
-            'amplitude': amplitude
+            'amplitude': amplitude,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-        
+
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
         """
@@ -737,14 +737,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
+
     def GetMotorControlParameter(self, jointName, parameterName, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameters as name-value dict
         """
         taskparameters = {
             'command': 'GetMotorControlParameter',
-            'jointName' : jointName,
-            'parameterName' : parameterName
+            'jointName': jointName,
+            'parameterName': parameterName,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
@@ -753,7 +753,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Gets cached motor control parameters as name-value dict
         """
         taskparameters = {
-            'command': 'GetMotorControlParameters'
+            'command': 'GetMotorControlParameters',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)

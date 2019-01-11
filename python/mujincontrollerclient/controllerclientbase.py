@@ -11,7 +11,6 @@ import base64
 import email.utils
 
 # mujin imports
-from . import json
 from . import ControllerClientError
 from . import controllerclientraw
 from . import ugettext as _
@@ -527,7 +526,6 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
-        import numpy
         for encodedGeometry in response['geometries']:
             geometry = {}
             positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)

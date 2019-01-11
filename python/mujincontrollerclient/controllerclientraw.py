@@ -16,10 +16,30 @@ import requests
 import requests.auth
 
 from . import json
-from . import GetAPIServerErrorFromWeb
+from . import APIServerError
+from . import ugettext as _
 
 import logging
 log = logging.getLogger(__name__)
+
+
+def _GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
+    inputcommand = {
+        'request_type': request_type,
+        'url': url,
+        'status_code': status_code,
+    }
+    message = _('Unknown error')
+    errorcode = None
+    stacktrace = None
+    try:
+        content = json.loads(responsecontent)
+        stacktrace = content.get('stacktrace', None)
+        message = content.get('error_message', None)
+        errorcode = content.get('error_code', None)
+    except ValueError:
+        message = responsecontent
+    return APIServerError(message=message, stacktrace=stacktrace, errorcode=errorcode, inputcommand=inputcommand)
 
 
 class ControllerWebClient(object):
@@ -130,9 +150,9 @@ class ControllerWebClient(object):
             content = json.loads(response.content)
         except ValueError as e:
             log.warn('caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
-            raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+            raise _GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
 
         if 'stacktrace' in content or response.status_code >= 400:
-            raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
+            raise _GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
 
         return response.status_code, content
