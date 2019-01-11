@@ -74,7 +74,7 @@ def GetPrimaryKeyFromURI(uri):
     return uriutils.GetPrimaryKeyFromURI(uri, allowfragments=True, fragmentseparator='@', primarykeyseparator='@')
 
 
-def FormatHTTPDate(dt):
+def _FormatHTTPDate(dt):
     """Return a string representation of a date according to RFC 1123 (HTTP/1.1).
 
     The supplied date must be in UTC.
@@ -580,7 +580,7 @@ class ControllerClient(object):
         """
         headers = {}
         if ifmodifiedsince:
-            headers['If-Modified-Since'] = FormatHTTPDate(ifmodifiedsince)
+            headers['If-Modified-Since'] = _FormatHTTPDate(ifmodifiedsince)
         response = self._webclient.Request('GET', u'/u/%s/%s' % (self.controllerusername, filename), headers=headers, stream=True, timeout=timeout)
         if ifmodifiedsince and response.status_code == 304:
             return response
