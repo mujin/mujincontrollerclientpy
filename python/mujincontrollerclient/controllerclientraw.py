@@ -15,19 +15,21 @@ import os
 import requests
 import requests.auth
 
-from . import GetAPIServerErrorFromWeb
 from . import json
+from . import GetAPIServerErrorFromWeb
 
 import logging
 log = logging.getLogger(__name__)
 
+
 class ControllerWebClient(object):
-    _baseurl = None # base url of the controller
-    _username = None # username to login with
-    _password = None # password to login with
-    _headers = None # prepared headers for all requests
-    _isok = False # flag to stop
-    _session = None # requests session object
+
+    _baseurl = None  # base url of the controller
+    _username = None  # username to login with
+    _password = None  # password to login with
+    _headers = None  # prepared headers for all requests
+    _isok = False  # flag to stop
+    _session = None  # requests session object
 
     def __init__(self, baseurl, username, password, locale=None):
         self._baseurl = baseurl
@@ -61,7 +63,7 @@ class ControllerWebClient(object):
         # en_US.UTF-8 => en-us
         # en_US => en-us
         # en => en
-        language = 'en' # default to en
+        language = 'en'  # default to en
         if locale is not None and len(locale) > 0:
             language = locale.split('.', 1)[0].replace('_', '-').lower()
         self._headers['Accept-Language'] = language
@@ -112,7 +114,7 @@ class ControllerWebClient(object):
 
         request_type = request_type.upper()
 
-        log.verbose('%s %s', request_type, self._baseurl + path)
+        # log.debug('%s %s', request_type, self._baseurl + path)
         response = self.Request(request_type, path, params=url_params, data=data, headers=headers, timeout=timeout)
 
         if request_type == 'HEAD' and response.status_code == 200:
@@ -127,10 +129,10 @@ class ControllerWebClient(object):
         try:
             content = json.loads(response.content)
         except ValueError as e:
-            log.warn(u'caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
+            log.warn('caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
-        
+
         if 'stacktrace' in content or response.status_code >= 400:
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
-        
+
         return response.status_code, content

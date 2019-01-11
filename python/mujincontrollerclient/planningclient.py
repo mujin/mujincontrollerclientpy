@@ -29,15 +29,15 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
     _sceneparams = None
-    scenepk = None # the scenepk this controller is configured for
+    scenepk = None  # the scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
-    _ctxown = None # zmq context owned by this class
-    _isok = False # if False, client is about to be destroyed
+    _ctxown = None  # zmq context owned by this class
+    _isok = False  # if False, client is about to be destroyed
     _heartbeatthread = None  # thread for monitoring controller heartbeat
     _isokheartbeat = False  # if False, then stop heartbeat monitor
     _taskstate = None  # latest task status from heartbeat message
-    _commandsocket = None # zmq client to the command port
-    _configsocket = None # zmq client to the config port
+    _commandsocket = None  # zmq client to the command port
+    _configsocket = None  # zmq client to the config port
 
     def __init__(self, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, usewebapi=True, ctx=None, slaverequestid=None, **kwargs):
         """logs into the mujin controller and initializes the task's zmq connection
@@ -55,7 +55,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         # task
         self.tasktype = tasktype
         self._usewebapi = usewebapi
-        
+
         # connects to task's zmq server
         self._commandsocket = None
         self._configsocket = None
@@ -75,9 +75,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                 self._isokheartbeat = True
                 self._heartbeatthread = threading.Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
                 self._heartbeatthread.start()
-                
+
         self.SetScenePrimaryKey(scenepk)
-        
+
     def __del__(self):
         self.Destroy()
 
@@ -97,12 +97,12 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if self._ctxown is not None:
             try:
                 self._ctxown.destroy()
-            except:
+            except Exception:
                 pass
             self._ctxown = None
 
         super(PlanningControllerClient, self).Destroy()
-    
+
     def SetDestroy(self):
         self._isok = False
         self._isokheartbeat = False
@@ -117,7 +117,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
     def GetCommandSocketRaw(self):
         return self._commandsocket
-    
+
     def DeleteJobs(self, usewebapi=True, timeout=5):
         """ cancels all jobs
         """
@@ -147,9 +147,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                             lastheartbeatts = time.time()
                         else:
                             self._taskstate = None
-                    except zmq.ZMQError, e:
-                        log.error('failed to receive from publisher')
-                        log.error(e)
+                    except zmq.ZMQError as e:
+                        log.exception('failed to receive from publisher: %s', e)
             if self._isokheartbeat:
                 log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
 
@@ -217,7 +216,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'slaverequestid': slaverequestid,
         }
         response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
-        
+
         if fireandforget:
             # for fire and forget commands, no response will be available
             return None
@@ -229,7 +228,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if response is None:
             log.warn(u'got no response from task %r', taskparameters)
             return None
-        
+
         return response['output']
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
@@ -239,9 +238,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param fireandforget: whether we should return immediately after sending the command
         :return: return the server response in json format
         """
-        if not 'stamp' in taskparameters:
+        if 'stamp' not in taskparameters:
             taskparameters['stamp'] = time.time()
-        log.verbose(u'Executing task with parameters: %r', taskparameters)
+        # log.debug('Executing task with parameters: %r', taskparameters)
         if slaverequestid is None:
             slaverequestid = self._slaverequestid
 
@@ -262,7 +261,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def SendConfig(self, command, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
-        log.verbose(u'Send config: %r', command)
+        # log.debug('Send config: %r', command)
         if slaverequestid is None:
             slaverequestid = self._slaverequestid
 
@@ -287,7 +286,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def SetViewerFromParameters(self, viewerparameters, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         viewerparameters.update(kwargs)
         return self.Configure({'viewerparameters': viewerparameters}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, ispan=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraZoomOut',
@@ -297,7 +296,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, usewebapi=False, timeout=10, fireandforget=True, ispan=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraZoomIn',
@@ -307,7 +306,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraLeft',
@@ -317,17 +316,17 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraRight',
             'pandelta': float(pandelta),
-            'panangle':float(panangle),
+            'panangle': float(panangle),
             'ispan': bool(ispan),
         }
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def MoveCameraUp(self, ispan=True, angledelta=3.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraUp',
@@ -337,7 +336,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def MoveCameraDown(self, ispan=True, angledelta=3.0, pandelta=0.04, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraDown',
@@ -347,7 +346,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         """sets the camera transform
         :param transform: 4x4 matrix

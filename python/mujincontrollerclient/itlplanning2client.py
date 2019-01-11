@@ -2,10 +2,8 @@
 # Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 
-
 # mujin imports
 from . import realtimerobotclient
-from . import ugettext as _
 
 # logging
 import logging
@@ -15,9 +13,9 @@ log = logging.getLogger(__name__)
 class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
     """mujin controller client for itlplanning2 task
     """
-    
+
     def __init__(self, **kwargs):
-        
+
         """logs into the mujin controller, initializes itlplanning2 task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -66,7 +64,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #                       }
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
+
     def ReloadModule(self, timeout=10, **kwargs):
         return self.ExecuteCommand({'command': 'ReloadModule'}, timeout=timeout, **kwargs)
 
@@ -85,7 +83,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
         computes the position from the command
         """
         taskparameters = {
-            'command':'ComputeCommandPosition',
+            'command': 'ComputeCommandPosition',
             'movecommand': movecommand,
         }
         if jointvalues is not None:
@@ -145,8 +143,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #                       }
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, timeout=timeout)
-
-
+    #
     # def ExecuteProgram(self, itlprogram, programname, execute=True, timeout=None, usewebapi=True,  **kwargs):
     #     """
     #     converts the current program
@@ -156,19 +153,18 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #                        'programname' : programname,
     #                        'execute' : execute
     #                      }
-        
+    #
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-
-
+    #
     # def ExecuteSequentialPrograms(self, programinfo, timeout=None, **kwargs):
     #     pass
-    
+
     def GetITLState(self, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-    
+
     # def GetJointValues(self, timeout=10,  usewebapi=False, **kwargs):
     #     """gets the current robot joint values
     #     :return: current joint values in a json dictionary with
@@ -178,7 +174,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #                       }
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-    
+
     # def UpdateObjects(self, envstate, targetname=None, state=None, unit="m", timeout=10, **kwargs):
     #     """updates objects in the scene with the envstate
     #     :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0]}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
@@ -197,7 +193,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #     if state is not None:
     #         taskparameters['state'] = json.dumps(state)
     #     return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
     # def GetTransform(self, targetname, unit='mm', timeout=10, **kwargs):
     #     """gets the transform of an object
     #     :param targetname: name of the object
@@ -210,7 +206,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #                       }
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
     # def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
     #     """sets the transform of an object
     #     :param targetname: name of the object
@@ -233,12 +229,12 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #         taskparameters['quaternion'] = [1, 0, 0, 0]
     #         log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
     #     return self.ExecuteCommand(taskparameters, timeout=timeout)
-    
+
     # def Pause(self, timeout=10, usewebapi=False, **kwargs):
     #     taskparameters = {'command': 'Pause'}
     #     taskparameters.update(kwargs)
     #     return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-    
+
     # def Resume(self, timeout=10, usewebapi=False, **kwargs):
     #     taskparameters = {'command': 'Resume'}
     #     taskparameters.update(kwargs)
@@ -273,7 +269,7 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #         assert(status == 200)
     #         # the jobpk allows us to track the job
     #         jobpk = response['jobpk']
-    #         return jobpk # for tracking the job
+    #         return jobpk  # for tracking the job
     #     else:
     #         return putresponse[1]['pk']
 
@@ -285,9 +281,9 @@ class ITLPlanning2ControllerClient(realtimerobotclient.RealtimeRobotControllerCl
     #         status, response = self._webclient.APICall('GET', u'planningresult/%s/program' % resourcepk, url_params={'type': programtype}, timeout=5)
     #         if status == 200:
     #             if len(response > 0):
-    #                 return True # does not guarantee the trajectory duration > 0
+    #                 return True  # does not guarantee the trajectory duration > 0
     #     except APIServerError:
-    #         return False # does not exist
+    #         return False  # does not exist
 
     def PlotGraph(self, programname, updatestamp, ikparams=None, highlight=-1, maniptrajectories=None, deltatime=None, usewebapi=False, timeout=10, fireandforget=True):
         taskparameters = {

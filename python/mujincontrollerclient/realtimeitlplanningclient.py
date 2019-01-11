@@ -4,7 +4,6 @@
 
 # mujin imports
 from . import realtimerobotclient
-from . import ugettext as _
 
 # logging
 import logging
@@ -14,9 +13,9 @@ log = logging.getLogger(__name__)
 class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
     """mujin controller client for realtimeitlplanning task
     """
-    
+
     def __init__(self, **kwargs):
-        
+
         """logs into the mujin controller, initializes realtimeitlplanning task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -35,7 +34,7 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         :param robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(RealtimeITLPlanningControllerClient, self).__init__(tasktype='realtimeitlplanning', **kwargs)
-    
+
     def SetJointValues(self, jointvalues, robotname=None, timeout=10, usewebapi=True, **kwargs):
         taskparameters = {
             'command': 'SetJointValues',
@@ -43,7 +42,7 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
+
     def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetITLState'}
         taskparameters.update(kwargs)
@@ -134,7 +133,7 @@ class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotContr
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def PlotProgramWaypoints(self, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
         taskparameters = {
             'command': 'PlotProgramWaypoints',
