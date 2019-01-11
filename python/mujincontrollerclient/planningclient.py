@@ -125,12 +125,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def DeleteJobs(self, usewebapi=True, timeout=5):
         """ cancels all jobs
         """
-        if usewebapi:
-            super(PlanningControllerClient, self).DeleteJobs(usewebapi, timeout)
-        else:
-            # cancel on the zmq configure
-            if self._configsocket is not None:
-                self._SendConfigViaZMQ({'command':'cancel'}, self._slaverequestid, timeout=timeout, fireandforget=False)
+        # TODO(cleanup2)
+        # cancel on the zmq configure
+        if self._configsocket is not None:
+            self._SendConfigViaZMQ({'command':'cancel'}, self._slaverequestid, timeout=timeout, fireandforget=False)
         
     
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
