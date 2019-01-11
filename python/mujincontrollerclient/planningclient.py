@@ -182,6 +182,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
         """
+        # TODO(cleanup2)
         assert(usewebapi)
         if slaverequestid is None:
             slaverequestid = self._slaverequestid
@@ -200,6 +201,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
+        # TODO(cleanup2)
         # execute task
         status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
             'tasktype': tasktype,
@@ -226,8 +228,6 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
         }
-        if self.tasktype == 'binpicking':
-            command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
         response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
         
         if fireandforget:
