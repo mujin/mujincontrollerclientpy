@@ -15,15 +15,11 @@ import os
 import requests
 import requests.auth
 
+from . import GetAPIServerErrorFromWeb
+from . import json
+
 import logging
 log = logging.getLogger(__name__)
-
-try:
-    import ujson as json
-except ImportError:
-    import json
-
-from . import GetAPIServerErrorFromWeb
 
 class ControllerWebClient(object):
     _baseurl = None # base url of the controller
@@ -130,7 +126,7 @@ class ControllerWebClient(object):
         # try to convert everything else
         try:
             content = json.loads(response.content)
-        except ValueError, e:
+        except ValueError as e:
             log.warn(u'caught exception during json decode for content (%r): %s', response.content.decode('utf-8'), e)
             raise GetAPIServerErrorFromWeb(request_type, self._baseurl + path, response.status_code, response.content)
         

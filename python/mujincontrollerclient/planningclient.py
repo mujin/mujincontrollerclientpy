@@ -4,28 +4,24 @@
 Planning client
 """
 
-# logging
-from logging import getLogger
-log = getLogger(__name__)
+import threading
+import weakref
 
 # system imports
 import os
 import time
-import ujson as json
 
-try:
-    import zmq
-except ImportError:
-    # cannot use zmq
-    pass
-
-from threading import Thread
-import weakref
 
 # mujin imports
-from . import ControllerClientError, GetAPIServerErrorFromZMQ
+from . import GetAPIServerErrorFromZMQ
 from . import controllerclientbase, zmqclient
 from . import ugettext as _
+from . import zmq
+from . import json
+
+# logging
+import logging
+log = logging.getLogger(__name__)
 
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
@@ -77,7 +73,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             self.taskheartbeattimeout = taskheartbeattimeout
             if self.taskheartbeatport is not None:
                 self._isokheartbeat = True
-                self._heartbeatthread = Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
+                self._heartbeatthread = threading.Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
                 self._heartbeatthread.start()
                 
         self.SetScenePrimaryKey(scenepk)

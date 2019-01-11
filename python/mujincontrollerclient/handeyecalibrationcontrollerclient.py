@@ -2,15 +2,14 @@
 # Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 
+# mujin imports
+from . import planningclient
+from . import ugettext as _
+
 # logging
 import logging
 log = logging.getLogger(__name__)
 
-# system imports
-
-# mujin imports
-from . import planningclient
-from . import ugettext as _
 
 class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient):
     """mujin controller client for hand-eye calibration task

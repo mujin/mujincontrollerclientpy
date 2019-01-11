@@ -4,10 +4,6 @@
 Mujin controller client
 """
 
-# logging
-from logging import getLogger
-log = getLogger(__name__)
-
 # system imports
 from urlparse import urlparse, urlunparse
 from urllib import quote, unquote
@@ -15,17 +11,16 @@ import os
 import datetime
 import base64
 import email.utils
-from numpy import fromstring, uint32
-
-try:
-    import ujson as json
-except ImportError:
-    import json
 
 # mujin imports
+from . import json
 from . import ControllerClientError
 from . import controllerclientraw
 from . import ugettext as _
+
+# logging
+import logging
+log = logging.getLogger(__name__)
 
 
 # the outside world uses this specifier to signify a '#' specifier. This is needed
@@ -559,16 +554,17 @@ class ControllerClient(object):
     def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
         """ return a list of geometries (a dictionary with key: positions, indices)) of given object
         """
+        import numpy
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
         assert(status == 200)
         geometries = []
         for encodedGeometry in response['geometries']:
             geometry = {}
-            positions = fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
+            positions = numpy.fromstring(base64.b64decode(encodedGeometry['positions_base64']), dtype=float)
             positions.resize(len(positions) / 3, 3)
             geometry['positions'] = positions
-            indices = fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=uint32)
+            indices = numpy.fromstring(base64.b64decode(encodedGeometry['indices_base64']), dtype=numpy.uint32)
             indices.resize(len(indices) / 3, 3)
             geometry['indices'] = indices
             geometries.append(geometry)

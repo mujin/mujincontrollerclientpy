@@ -2,14 +2,14 @@
 # Copyright (C) 2017 MUJIN Inc.
 # Mujin controller client for bin picking task
 
+# mujin imports
+from . import realtimerobotclient
+from . import ugettext as _
+
 # logging
 import logging
 log = logging.getLogger(__name__)
 
-# mujin imports
-from . import ControllerClientError, APIServerError
-from . import realtimerobotclient
-from . import ugettext as _
 
 class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
     """mujin controller client for realtimeitlplanning3 task

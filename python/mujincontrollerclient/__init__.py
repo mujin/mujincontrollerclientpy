@@ -7,32 +7,17 @@ try:
 except ImportError:
     import gettext
     _null_translations = gettext.NullTranslations()
-    ugettext = _null_translations.ugettext
-    ungettext = _null_translations.ugettext
+    ugettext = _null_translations.ugettext if hasattr(_null_translations, 'ugettext') else _null_translations.gettext
+    ungettext = _null_translations.ungettext if hasattr(_null_translations, 'ungettext') else _null_translations.ngettext
 
 _ = ugettext
 
-import json
+try:
+    import ujson as json
+except ImportError:
+    import json
 
-from logging import addLevelName, NOTSET, getLoggerClass
-
-VERBOSE = 5
-
-class MujinLogger(getLoggerClass()):
-    def __init__(self, name, level=NOTSET):
-        super(MujinLogger, self).__init__(name, level)
-
-        addLevelName(VERBOSE, "VERBOSE")
-    
-    def verbose(self, msg, *args, **kwargs):
-        if self.isEnabledFor(VERBOSE):
-            self._log(VERBOSE, msg, args, **kwargs)
-
-#     def __eq__(self, r):
-#         return self.msg == r.msg
-#     
-#     def __ne__(self, r):
-#         return self.msg != r.msg
+import zmq  # noqa: F401 # TODO: stub zmq
 
 class ClientExceptionBase(Exception):
     """client base exception
@@ -121,34 +106,13 @@ def GetAPIServerErrorFromZMQ(response):
     
     return None
 
-class FluidPlanningError(Exception):
+
+class TimeoutError(ClientExceptionBase):
     pass
 
-class TimeoutError(Exception):
-    pass
-
-class AuthenticationError(Exception):
+class AuthenticationError(ClientExceptionBase):
     pass
 
 class ControllerClientError(ClientExceptionBase):
     def __unicode__(self):
         return _('Controller Client Error:\n%s')%self.msg
-
-class BinPickingError(ClientExceptionBase):
-    def __unicode__(self):
-        return _('Bin Picking Client Error:\n%s')%self.msg
-
-class HandEyeCalibrationError(ClientExceptionBase):
-    def __unicode__(self):
-        return _('Hand-eye Calibration Client Error:\n%s')%self.msg
-
-from traceback import format_exc
-
-
-def GetExceptionStack():
-    """returns the unicode of format_exc
-    """
-    s = format_exc()
-    if isinstance(s, unicode):
-        return s
-    return unicode(s, 'utf-8')
