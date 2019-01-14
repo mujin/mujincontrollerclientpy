@@ -1,6 +1,7 @@
 language: python
 python:
 - "2.7"
+- "3.6"
 install:
 - pip install flake8==3.6.0 pyzmq==17.1.2 pytest==4.0.1
 - pip install .
