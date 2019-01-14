@@ -22,10 +22,10 @@ try:
     import mujincommon.i18n
     ugettext, ungettext = mujincommon.i18n.GetDomain('mujincontrollerclientpy').GetTranslationFunctions()
 except ImportError:
-    import gettext
-    _null_translations = gettext.NullTranslations()
-    ugettext = _null_translations.ugettext if hasattr(_null_translations, 'ugettext') else _null_translations.gettext
-    ungettext = _null_translations.ungettext if hasattr(_null_translations, 'ungettext') else _null_translations.ngettext
+    def ugettext(message):
+        return message
+    def ungettext(singular, plural, n):
+        return singular if n == 1 else plural
 
 _ = ugettext
 
