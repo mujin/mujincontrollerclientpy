@@ -165,7 +165,7 @@ def _UnparseURI(parts, fragmentSeparator):
     output:
         unicode
     """
-    scheme, netloc, path, params, query, fragment = parts  # change every parts into unicode.
+    scheme = parts.scheme
     if scheme != SCHEME_MUJIN:
         # TODO: also verify who calls this with non-mujin scheme
         if scheme != SCHEME_FILE:
@@ -173,13 +173,15 @@ def _UnparseURI(parts, fragmentSeparator):
         # for rfc urlparse, make sure fragment_separator is  #
         if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
             raise URIError(_('fragment separator %r not supported for current scheme: %r') % (fragmentSeparator, parts))
-        return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))  # urlunparse will return unicode if any of the parts is unicode
+        return urlparse.urlunparse(parts)  # urlunparse will return unicode if any of the parts is unicode
 
-    assert(len(netloc) == 0)
-    assert(len(params) == 0)
-    assert(len(query) == 0)
+    assert(len(parts.netloc) == 0)
+    assert(len(parts.params) == 0)
+    assert(len(parts.query) == 0)
+    path = parts.path
     if path and not path.startswith(u'/'):
-        path = '/' + path
+        path = u'/' + path
+    fragment = parts.fragment
     if fragment:
         assert(fragmentSeparator in (FRAGMENT_SEPARATOR_AT, FRAGMENT_SEPARATOR_SHARP))
         path = path + fragmentSeparator + fragment
@@ -422,6 +424,10 @@ class MujinResourceIdentifier(object):
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
 
+        # guess suffix based on primary key
+        if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
+            self._suffix = u'.mujin.dae'
+
     def _InitFromURI(self, uri):
         parts = _ParseURI(uri, fragmentSeparator=self._fragmentSeparator)
 
@@ -444,9 +450,6 @@ class MujinResourceIdentifier(object):
         if self._primaryKeySeparator and self._primaryKeySeparator in primaryKey:
             self._primaryKey, fragment = primaryKey.rsplit(self._primaryKeySeparator, 1)
             self._fragment = _EnsureUnicode(fragment)
-
-        if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
-            self._suffix = u'.mujin.dae'
 
     def _InitFromPartType(self, partType):
         self._primaryKey = _Quote(partType + self._suffix)
@@ -518,12 +521,10 @@ class MujinResourceIdentifier(object):
     def uri(self):
         """ Same as GetURIFromPrimaryKey
         """
-        assert(isinstance(self._primaryKey, six.binary_type))
-        path = _Unquote(self._primaryKey)
         return _UnparseURI(urlparse.ParseResult(
             scheme=self._scheme,
             netloc=EMPTY_STRING_UNICODE,
-            path=path,
+            path=_Unquote(self._primaryKey),
             params=EMPTY_STRING_UNICODE,
             query=EMPTY_STRING_UNICODE,
             fragment=self._fragment,
@@ -537,11 +538,9 @@ class MujinResourceIdentifier(object):
 
     @property
     def partType(self):
-        if self._suffix and self._primaryKey.endswith(_EnsureUTF8(self._suffix)):
-            return _Unquote(self._primaryKey[:-len(_EnsureUTF8(self._suffix))])
-        elif self._primaryKey.endswith(b'.mujin.dae'):
-            self._suffix = u'.mujin.dae'
-            return _Unquote(self._primaryKey[:-len(b'.mujin.dae')])
+        suffix = _EnsureUTF8(self._suffix)
+        if suffix and self._primaryKey.endswith(suffix):
+            return _Unquote(self._primaryKey[:-len(suffix)])
         else:
             return _Unquote(self._primaryKey)
 
