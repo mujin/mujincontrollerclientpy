@@ -24,6 +24,7 @@ try:
 except ImportError:
     def ugettext(message):
         return message
+
     def ungettext(singular, plural, n):
         return singular if n == 1 else plural
 
