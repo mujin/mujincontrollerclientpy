@@ -5,6 +5,7 @@ import requests_mock
 
 from mujincontrollerclient.controllerclientbase import ControllerClient
 
+
 @pytest.mark.parametrize('url, username, password', [
     ('http://controller', 'mujin', 'mujin'),
     ('http://controller:8080', 'mujin', 'mujin'),
@@ -18,6 +19,7 @@ def test_PingAndLogin(url, username, password):
         controllerclient.Ping()
         controllerclient.Login()
         assert controllerclient.IsLoggedIn()
+
 
 def test_RestartController():
     with requests_mock.Mocker() as mock:
