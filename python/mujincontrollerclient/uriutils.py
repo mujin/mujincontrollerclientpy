@@ -139,18 +139,11 @@ def _ParseURI(uri, fragmentSeparator):
         # for now mujin uri doesn't have definition of hostname in uri
         raise URIError(_('mujin scheme has no hostname defined %s') % uri)
 
-    if fragmentSeparator:
+    path = rest
+    fragment = EMPTY_STRING_UNICODE
+    if fragmentSeparator and fragmentSeparator in rest:
         # split by the last appeared fragmentSeparator
-        separatorindex = rest.rfind(fragmentSeparator)
-        if separatorindex >= 0:
-            path = rest[:separatorindex]
-            fragment = rest[separatorindex + 1:]
-        else:
-            path = rest
-            fragment = EMPTY_STRING_UNICODE
-    else:
-        path = rest
-        fragment = EMPTY_STRING_UNICODE
+        path, fragment = rest.rsplit(fragmentSeparator, 1)
 
     return urlparse.ParseResult(
         scheme=scheme,
@@ -170,10 +163,7 @@ def _UnparseURI(parts, fragmentSeparator):
     input:
         parts: a six parts tuple include scheme, netloc, url/path, params, query and fragment
     output:
-        a utf-8 decode uri string
-
-    >>> print(_UnparseURI(('mujin', '', u'测试_test.mujin.dae', '', '', 'body0_motion'), fragmentSeparator=FRAGMENT_SEPARATOR_AT))
-    mujin:/\u6d4b\u8bd5_test.mujin.dae@body0_motion
+        unicode
     """
     scheme, netloc, path, params, query, fragment = parts  # change every parts into unicode.
     if scheme != SCHEME_MUJIN:
@@ -340,9 +330,9 @@ def GetFilenameFromPartType(partType, **kwargs):
     output:
         filename: a utf-8 decoded unicode
 
-    >>> print(GetFilenameFromPartType(u'测试_test', suffix='.tar.gz'))
+    >>> print(GetFilenameFromPartType(u'测试_test', suffix=u'.tar.gz'))
     测试_test.tar.gz
-    >>> print(GetFilenameFromPartType(u'测试_test', suffix=''))
+    >>> print(GetFilenameFromPartType(u'测试_test'))
     测试_test
     """
     return MujinResourceIdentifier(partType=partType, **kwargs).filename
@@ -437,11 +427,11 @@ class MujinResourceIdentifier(object):
 
         self._scheme = parts.scheme
         self._fragment = parts.fragment
-        filename = ''
+
+        filename = EMPTY_STRING_UNICODE
         if self._scheme == 'file':
-            commonPrefix = os.path.commonprefix([self._mujinPath, parts.path])
-            if commonPrefix != self._mujinPath:
-                raise URIError(_('scheme is file, but file absolute path is different from given mujinPath'))
+            if os.path.commonprefix([self._mujinPath, parts.path]) != self._mujinPath:
+                raise URIError(_('scheme is file, but file absolute path is different from given mujinPath: %s') % uri)
             filename = parts.path[len(self._mujinPath):]
         elif self._scheme == 'mujin':
             filename = parts.path[1:]
@@ -450,18 +440,12 @@ class MujinResourceIdentifier(object):
         self._InitFromFilename(filename)
 
     def _InitFromPrimaryKey(self, primaryKey):
-        if self._primaryKeySeparator:
-            # try to de-frag
-            index = primaryKey.rfind(self._primaryKeySeparator)
-            if index >= 0:
-                self._primaryKey = primaryKey[:index]
-                self._fragment = _EnsureUnicode(primaryKey[index + 1:])
-            else:
-                self._primaryKey = primaryKey
-        else:
-            self._primaryKey = primaryKey
+        self._primaryKey = primaryKey
+        if self._primaryKeySeparator and self._primaryKeySeparator in primaryKey:
+            self._primaryKey, fragment = primaryKey.rsplit(self._primaryKeySeparator, 1)
+            self._fragment = _EnsureUnicode(fragment)
 
-        if self._primaryKey.endswith(b'.mujin.dae'):
+        if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
             self._suffix = u'.mujin.dae'
 
     def _InitFromPartType(self, partType):
@@ -536,7 +520,14 @@ class MujinResourceIdentifier(object):
         """
         assert(isinstance(self._primaryKey, six.binary_type))
         path = _Unquote(self._primaryKey)
-        return _UnparseURI((self._scheme, '', path, '', '', self._fragment), fragmentSeparator=self._fragmentSeparator)
+        return _UnparseURI(urlparse.ParseResult(
+            scheme=self._scheme,
+            netloc=EMPTY_STRING_UNICODE,
+            path=path,
+            params=EMPTY_STRING_UNICODE,
+            query=EMPTY_STRING_UNICODE,
+            fragment=self._fragment,
+        ), fragmentSeparator=self._fragmentSeparator)
 
     @property
     def filename(self):
@@ -588,20 +579,20 @@ class MujinResourceIdentifier(object):
         u'test.mujin.dae'
         >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae', mujinPath='/var/www').filename
         u'/var/www/test.mujin.dae'
-        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae').WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae').WithMujinPath(u'/data/u').filename
         u'/data/u/test.mujin.dae'
-        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae').WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae').WithMujinPath(u'/data/u').filename
         u'/data/u/test.mujin.dae@body0_motion.mujin.dae'
-        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT).WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT).WithMujinPath(u'/data/u').filename
         u'/data/u/test.mujin.dae'
-        >>> MujinResourceIdentifier(filename='object.tar.gz', suffix='.tar.gz').WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(filename='object.tar.gz', suffix=u'.tar.gz').WithMujinPath(u'/data/u').filename
         u'/data/u/object.tar.gz'
         """
         return self.Clone(mujinPath=mujinPath)
 
     def WithSuffix(self, suffix):
         """
-        >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae').GetWithSuffix('.tar.gz').filename
+        >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae').WithSuffix(u'.tar.gz').filename
         u'/var/www/test.tar.gz'
         """
         return self.Clone(suffix=suffix)
