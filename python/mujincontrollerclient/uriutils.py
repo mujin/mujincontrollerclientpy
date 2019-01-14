@@ -74,30 +74,30 @@ SCHEME_MUJIN = u'mujin'
 SCHEME_FILE = u'file'
 
 
-def _Unquote(primarykey):
-    assert(isinstance(primarykey, six.binary_type))
+def _Unquote(primaryKey):
+    assert(isinstance(primaryKey, six.binary_type))
     if six.PY3:
         # python3 unquote seems to be expecting unicode input
-        return _EnsureUnicode(unquote(primarykey.decode('ascii')))
+        return _EnsureUnicode(unquote(primaryKey.decode('ascii')))
     else:
-        return _EnsureUnicode(unquote(primarykey))
+        return _EnsureUnicode(unquote(primaryKey))
 
 
-def _Quote(primarykey):
-    assert(isinstance(primarykey, six.text_type))
+def _Quote(primaryKey):
+    assert(isinstance(primaryKey, six.text_type))
     if six.PY3:
         # python3 quote seems to deal with unicode input
-        return _EnsureUTF8(quote(primarykey))
+        return _EnsureUTF8(quote(primaryKey))
     else:
-        return _EnsureUTF8(quote(_EnsureUTF8(primarykey)))
+        return _EnsureUTF8(quote(_EnsureUTF8(primaryKey)))
 
 
-def _ParseURI(uri, fragmentseparator):
+def _ParseURI(uri, fragmentSeparator):
     u""" Mujin uri is unicode and special characters like  #, ? and @ will be part of the path
 
     input:
         uri: a unicode str
-        fragmentseparator: the separator to find the framgent
+        fragmentSeparator: the separator to find the framgent
     output:
         ParseResult object which has the utf-8 decoded path part.
 
@@ -105,11 +105,11 @@ def _ParseURI(uri, fragmentseparator):
     mujinuri only have scheme which is mujin:/ , other scheme will use standard python library to parse.
     mujinuri will not have  # as fragment part because we use @ as separator to separate lie abc.mujin.dae@body0_motion
 
-    >>> print(_ParseURI(u'mujin:/测试_test.mujin.dae', fragmentseparator=FRAGMENT_SEPARATOR_AT).path)
+    >>> print(_ParseURI(u'mujin:/测试_test.mujin.dae', fragmentSeparator=FRAGMENT_SEPARATOR_AT).path)
     /测试_test.mujin.dae
-    >>> _ParseURI(u'mujin:/测试_test.mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_EMPTy).fragment
+    >>> _ParseURI(u'mujin:/测试_test.mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_EMPTy).fragment
     ''
-    >>> print(_ParseURI(u'mujin:/测试_test.mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_SHARP).path)
+    >>> print(_ParseURI(u'mujin:/测试_test.mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP).path)
     /测试_test.mujin.dae@body0_motion
     """
     uri = _EnsureUnicode(uri)
@@ -121,9 +121,9 @@ def _ParseURI(uri, fragmentseparator):
         if scheme != SCHEME_FILE:
             raise URIError(_('scheme not supported %r: %s') % (scheme, uri))
         # for rfc urlparse, make sure fragment_separator is #
-        # if fragmentseparator != FRAGMENT_SEPARATOR_SHARP:
-        #     raise URIError(_('fragment separator %r not supported for current scheme: %s') % (fragmentseparator, uri))
-        r = urlparse.urlparse(uri, allow_fragments=bool(fragmentseparator))
+        # if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
+        #     raise URIError(_('fragment separator %r not supported for current scheme: %s') % (fragmentSeparator, uri))
+        r = urlparse.urlparse(uri, allow_fragments=bool(fragmentSeparator))
         return urlparse.ParseResult(
             scheme=_EnsureUnicode(r.scheme),
             netloc=_EnsureUnicode(r.netloc),
@@ -139,9 +139,9 @@ def _ParseURI(uri, fragmentseparator):
         # for now mujin uri doesn't have definition of hostname in uri
         raise URIError(_('mujin scheme has no hostname defined %s') % uri)
 
-    if fragmentseparator:
-        # split by the last appeared fragmentseparator
-        separatorindex = rest.rfind(fragmentseparator)
+    if fragmentSeparator:
+        # split by the last appeared fragmentSeparator
+        separatorindex = rest.rfind(fragmentSeparator)
         if separatorindex >= 0:
             path = rest[:separatorindex]
             fragment = rest[separatorindex + 1:]
@@ -162,27 +162,27 @@ def _ParseURI(uri, fragmentseparator):
     )
 
 
-def _UnparseURI(uriparts, fragmentseparator):
+def _UnparseURI(parts, fragmentSeparator):
     u""" compose a uri. This function will call urlunparse if scheme is not mujin.
 
-    uriparts is a ParseResult or a tuple which has six parts (scheme, netloc, path, params, query, fragment)
+    parts is a ParseResult or a tuple which has six parts (scheme, netloc, path, params, query, fragment)
 
     input:
-        uriparts: a six parts tuple include scheme, netloc, url/path, params, query and fragment
+        parts: a six parts tuple include scheme, netloc, url/path, params, query and fragment
     output:
         a utf-8 decode uri string
 
-    >>> print(_UnparseURI(('mujin', '', u'测试_test.mujin.dae', '', '', 'body0_motion'), fragmentseparator=FRAGMENT_SEPARATOR_AT))
+    >>> print(_UnparseURI(('mujin', '', u'测试_test.mujin.dae', '', '', 'body0_motion'), fragmentSeparator=FRAGMENT_SEPARATOR_AT))
     mujin:/\u6d4b\u8bd5_test.mujin.dae@body0_motion
     """
-    scheme, netloc, path, params, query, fragment = uriparts  # change every parts into unicode.
+    scheme, netloc, path, params, query, fragment = parts  # change every parts into unicode.
     if scheme != SCHEME_MUJIN:
         # TODO: also verify who calls this with non-mujin scheme
         if scheme != SCHEME_FILE:
-            raise URIError(_('scheme not supported %r: %r') % (scheme, uriparts))
+            raise URIError(_('scheme not supported %r: %r') % (scheme, parts))
         # for rfc urlparse, make sure fragment_separator is  #
-        if fragmentseparator != FRAGMENT_SEPARATOR_SHARP:
-            raise URIError(_('fragment separator %r not supported for current scheme: %r') % (fragmentseparator, uriparts))
+        if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
+            raise URIError(_('fragment separator %r not supported for current scheme: %r') % (fragmentSeparator, parts))
         return urlparse.urlunparse((scheme, netloc, path, params, query, fragment))  # urlunparse will return unicode if any of the parts is unicode
 
     assert(len(netloc) == 0)
@@ -191,8 +191,8 @@ def _UnparseURI(uriparts, fragmentseparator):
     if path and not path.startswith(u'/'):
         path = '/' + path
     if fragment:
-        assert(fragmentseparator in (FRAGMENT_SEPARATOR_AT, FRAGMENT_SEPARATOR_SHARP))
-        path = path + fragmentseparator + fragment
+        assert(fragmentSeparator in (FRAGMENT_SEPARATOR_AT, FRAGMENT_SEPARATOR_SHARP))
+        path = path + fragmentSeparator + fragment
     return scheme + u':' + path
 
 
@@ -209,13 +209,13 @@ def GetSchemeFromURI(uri, **kwargs):
 
 def GetFragmentFromURI(uri, **kwargs):
     u""" Return the fragment of URI
-    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae', fragmentseparator=FRAGMENT_SEPARATOR_AT)
+    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae', fragmentSeparator=FRAGMENT_SEPARATOR_AT)
     ''
-    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_AT)
+    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT)
     u'body0_motion'
-    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae#body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_AT)
+    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae#body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT)
     ''
-    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae#body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_SHARP)
+    >>> GetFragmentFromURI(u'mujin:/测试_test.mujin.dae#body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP)
     u'body0_motion'
     """
     return MujinResourceIdentifier(uri=uri, **kwargs).fragment
@@ -226,27 +226,27 @@ def GetPrimaryKeyFromURI(uri, **kwargs):
     input:
         uri: a mujin scheme uri which is utf-8 decoded unicode.
     output:
-        primarykey is utf-8 encoded and quoted.
+        primaryKey is utf-8 encoded and quoted.
 
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_AT, primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT)
+    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion'
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_AT, primarykeyseparator=PRIMARY_KEY_SEPARATOR_SHARP)
+    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_SHARP)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae#body0_motion'
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_SHARP, primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT)
+    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_SHARP, primarykeyseparator=PRIMARY_KEY_SEPARATOR_SHARP)
+    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_SHARP)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
     """
     if uri is None or len(uri) == 0:
         return EMPTY_STRING_UTF8
 
-    return MujinResourceIdentifier(uri=uri, **kwargs).primarykey
+    return MujinResourceIdentifier(uri=uri, **kwargs).primaryKey
 
 
 def GetPrimaryKeyFromFilename(filename, **kwargs):
-    """  extract primarykey from filename .
+    """  extract primaryKey from filename .
     input:
-        filename: a utf-8 decoded unicode without quote. need to remove mujinpath if it's given.
+        filename: a utf-8 decoded unicode without quote. need to remove mujinPath if it's given.
 
     >>> GetPrimaryKeyFromFilename('/data/detection/测试_test.mujin.dae', '/data/detection')
     '%E6%B5%8B%E8%AF%95_test.mujin.dae'
@@ -255,41 +255,41 @@ def GetPrimaryKeyFromFilename(filename, **kwargs):
     >>> GetPrimaryKeyFromFilename('/abcdefg/test.mujin.dae', '/abc')
     '/abcdefg/test.mujin.dae'
     """
-    return MujinResourceIdentifier(filename=filename, **kwargs).primarykey
+    return MujinResourceIdentifier(filename=filename, **kwargs).primaryKey
 
 
-def GetURIFromURI(uri, newfragmentseparator, **kwargs):
+def GetURIFromURI(uri, newFragmentSeparator, **kwargs):
     """ Compose a new uri from old one
     input:
         uri: a utf-8 decoded unicode uri string.
-        fragmentseparator: the separator used in old uri
-        newfragmentseparator:  the new fragment separator used in new uri.
+        fragmentSeparator: the separator used in old uri
+        newFragmentSeparator:  the new fragment separator used in new uri.
     output:
         uri: a utf-8 decoded unicode uri string.
 
-    >>> GetURIFromURI(u'mujin:/test.mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_AT, newfragmentseparator=FRAGMENT_SEPARATOR_SHARP)
+    >>> GetURIFromURI(u'mujin:/test.mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, newFragmentSeparator=FRAGMENT_SEPARATOR_SHARP)
     u'mujin:/test.mujin.dae#body0_motion'
-    >>> GetURIFromURI(u'mujin:/test.mujin.dae@body0_motion', fragmentseparator=FRAGMENT_SEPARATOR_AT, newfragmentseparator=FRAGMENT_SEPARATOR_EMPTY)
+    >>> GetURIFromURI(u'mujin:/test.mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, newFragmentSeparator=FRAGMENT_SEPARATOR_EMPTY)
     u'mujin:/test.mujin.dae'
     """
     mri = MujinResourceIdentifier(uri=uri, **kwargs)
-    if newfragmentseparator:
-        mri = mri.WithFragmentSeparator(newfragmentseparator)
+    if newFragmentSeparator:
+        mri = mri.WithFragmentSeparator(newFragmentSeparator)
     else:
         mri = mri.WithoutFragment()
     return mri.uri
 
 
-def GetURIFromPrimaryKey(pk, **kwargs):
+def GetURIFromPrimaryKey(primaryKey, **kwargs):
     """Given the encoded primary key (utf-8 encoded and quoted), returns the unicode URL.
     input:
 
-    >>> print(GetURIFromPrimaryKey('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT, fragmentseparator=FRAGMENT_SEPARATOR_SHARP))
+    >>> print(GetURIFromPrimaryKey('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT, fragmentSeparator=FRAGMENT_SEPARATOR_SHARP))
     mujin:/测试_test..mujin.dae#body0_motion
-    >>> print(GetURIFromPrimaryKey('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT, fragmentseparator=FRAGMENT_SEPARATOR_AT))
+    >>> print(GetURIFromPrimaryKey('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT, fragmentSeparator=FRAGMENT_SEPARATOR_AT))
     mujin:/测试_test..mujin.dae@body0_motion
     """
-    return MujinResourceIdentifier(primarykey=pk, **kwargs).uri
+    return MujinResourceIdentifier(primaryKey=primaryKey, **kwargs).uri
 
 
 def GetURIFromFilename(filename, **kwargs):
@@ -303,10 +303,10 @@ def GetURIFromFilename(filename, **kwargs):
     return MujinResourceIdentifier(filename=filename, **kwargs).uri
 
 
-def GetFilenameFromPrimaryKey(pk, **kwargs):
+def GetFilenameFromPrimaryKey(primaryKey, **kwargs):
     u""" return filename from primary key
     input:
-        pk: utf-8 encoded str.
+        primaryKey: utf-8 encoded str.
 
     output:
         filename: utf-8 decoded unicode
@@ -314,7 +314,7 @@ def GetFilenameFromPrimaryKey(pk, **kwargs):
     >>> print(GetFilenameFromPrimaryKey('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', FRAGMENT_SEPARATOR_AT))
     测试_test..mujin.dae
     """
-    return MujinResourceIdentifier(primarykey=pk, **kwargs).filename
+    return MujinResourceIdentifier(primaryKey=primaryKey, **kwargs).filename
 
 
 def GetFilenameFromURI(uri, **kwargs):
@@ -332,11 +332,11 @@ def GetFilenameFromURI(uri, **kwargs):
     return MujinResourceIdentifier(uri=uri, **kwargs).filename
 
 
-def GetFilenameFromPartType(parttype, **kwargs):
-    u""" Unquote parttype to get filename, if withsuffix is True, add the .mujin.dae suffix
+def GetFilenameFromPartType(partType, **kwargs):
+    u""" Unquote partType to get filename, if withsuffix is True, add the .mujin.dae suffix
 
     input:
-        parttype: a utf-8 decoded unicode
+        partType: a utf-8 decoded unicode
     output:
         filename: a utf-8 decoded unicode
 
@@ -345,35 +345,35 @@ def GetFilenameFromPartType(parttype, **kwargs):
     >>> print(GetFilenameFromPartType(u'测试_test', suffix=''))
     测试_test
     """
-    return MujinResourceIdentifier(parttype=parttype, **kwargs).filename
+    return MujinResourceIdentifier(partType=partType, **kwargs).filename
 
 
-def GetPartTypeFromPrimaryKey(pk, **kwargs):
+def GetPartTypeFromPrimaryKey(primaryKey, **kwargs):
     u""" return a unicode partype
     input:
-        pk: a utf-8 encoded str(quoted).
+        primaryKey: a utf-8 encoded str(quoted).
     output:
-        parttype: a utf-8 decoded unicode
+        partType: a utf-8 decoded unicode
 
     >>> print(GetPartTypeFromPrimaryKey('%E6%B5%8B%E8%AF%95_test.mujin.dae'))
     测试_test
     """
-    return MujinResourceIdentifier(primarykey=pk, **kwargs).parttype
+    return MujinResourceIdentifier(primaryKey=primaryKey, **kwargs).partType
 
 
-def GetPrimaryKeyFromPartType(parttype, **kwargs):
+def GetPrimaryKeyFromPartType(partType, **kwargs):
     u"""
 
     input:
-        parttype: a utf-8 decoded unicode
+        partType: a utf-8 decoded unicode
 
     output:
-        pk: a utf-8 encoded str (quoted).
+        primaryKey: a utf-8 encoded str (quoted).
 
     >>> GetPrimaryKeyFromPartType(u'测试_test')
     '%E6%B5%8B%E8%AF%95_test.mujin.dae'
     """
-    return MujinResourceIdentifier(parttype=parttype, **kwargs).primarykey
+    return MujinResourceIdentifier(partType=partType, **kwargs).primaryKey
 
 
 def GetPartTypeFromFilename(filename, **kwargs):
@@ -381,84 +381,96 @@ def GetPartTypeFromFilename(filename, **kwargs):
     input:
         filename: a utf-8 decoded unicode
     output:
-        pk: a utf-8 encoded str (quoted)
+        primaryKey: a utf-8 encoded str (quoted)
 
-    >>> print(GetPartTypeFromFilename(u'/data/detection/测试_test.mujin.dae', mujinpath=u'/data/detection', suffix=u'.mujin.dae'))
+    >>> print(GetPartTypeFromFilename(u'/data/detection/测试_test.mujin.dae', mujinPath=u'/data/detection', suffix=u'.mujin.dae'))
     测试_test
-    >>> print(GetPartTypeFromFilename(u'/data/detection/测试_test.mujin.dae', mujinpath=u'/data/dete', suffix=u'.mujin.dae'))
+    >>> print(GetPartTypeFromFilename(u'/data/detection/测试_test.mujin.dae', mujinPath=u'/data/dete', suffix=u'.mujin.dae'))
     /data/detection/测试_test
     """
-    return MujinResourceIdentifier(filename=filename, **kwargs).parttype
+    return MujinResourceIdentifier(filename=filename, **kwargs).partType
 
 
 class MujinResourceIdentifier(object):
-    _fragmentseparator = FRAGMENT_SEPARATOR_EMPTY
-    _primarykeyseparator = PRIMARY_KEY_SEPARATOR_EMPTY
+    _fragmentSeparator = FRAGMENT_SEPARATOR_EMPTY
+    _primaryKeySeparator = PRIMARY_KEY_SEPARATOR_EMPTY
     _suffix = EMPTY_STRING_UNICODE
     _scheme = SCHEME_MUJIN
-    _mujinpath = EMPTY_STRING_UNICODE
-    _primarykey = EMPTY_STRING_UTF8
+    _mujinPath = EMPTY_STRING_UNICODE
+    _primaryKey = EMPTY_STRING_UTF8
     _fragment = EMPTY_STRING_UNICODE
 
-    def __init__(self, scheme=SCHEME_MUJIN, fragment=EMPTY_STRING_UNICODE, uri=EMPTY_STRING_UNICODE, primarykey=EMPTY_STRING_UTF8, parttype=EMPTY_STRING_UNICODE, filename=EMPTY_STRING_UNICODE, suffix=EMPTY_STRING_UNICODE, mujinpath=EMPTY_STRING_UNICODE, fragmentseparator=FRAGMENT_SEPARATOR_EMPTY, primarykeyseparator=PRIMARY_KEY_SEPARATOR_EMPTY):
+    def __init__(self, scheme=SCHEME_MUJIN, fragment=EMPTY_STRING_UNICODE, uri=EMPTY_STRING_UNICODE, primaryKey=EMPTY_STRING_UTF8, partType=EMPTY_STRING_UNICODE, filename=EMPTY_STRING_UNICODE, suffix=EMPTY_STRING_UNICODE, mujinPath=EMPTY_STRING_UNICODE, fragmentSeparator=FRAGMENT_SEPARATOR_EMPTY, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_EMPTY):
 
-        self.mujinpath = mujinpath
+        self.mujinPath = mujinPath
         self.scheme = scheme
         self.fragment = fragment
         self.suffix = suffix
-        self.fragmentseparator = fragmentseparator
-        self.primarykeyseparator = primarykeyseparator
+        self.fragmentSeparator = fragmentSeparator
+        self.primaryKeySeparator = primaryKeySeparator
 
-        if primarykey:
-            self._InitFromPrimaryKey(_EnsureUTF8(primarykey))
+        if primaryKey:
+            assert(not uri)
+            assert(not partType)
+            assert(not filename)
+            self._InitFromPrimaryKey(_EnsureUTF8(primaryKey))
         elif uri:
+            assert(not primaryKey)
+            assert(not partType)
+            assert(not filename)
             self._InitFromURI(_EnsureUnicode(uri))
-        elif parttype:
-            self._InitFromPartType(_EnsureUnicode(parttype))
+        elif partType:
+            assert(not primaryKey)
+            assert(not uri)
+            assert(not filename)
+            self._InitFromPartType(_EnsureUnicode(partType))
         elif filename:
+            assert(not primaryKey)
+            assert(not uri)
+            assert(not partType)
             self._InitFromFilename(_EnsureUnicode(filename))
         else:
-            raise URIError(_('Lack of parameters. initialization must include one of uri, primarykey, parttype or filename'))
+            raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
 
     def _InitFromURI(self, uri):
-        parsedUri = _ParseURI(uri, fragmentseparator=self._fragmentseparator)
+        parts = _ParseURI(uri, fragmentSeparator=self._fragmentSeparator)
 
-        self._scheme = parsedUri.scheme
-        self._fragment = parsedUri.fragment
+        self._scheme = parts.scheme
+        self._fragment = parts.fragment
         filename = ''
         if self._scheme == 'file':
-            commonPrefix = os.path.commonprefix([self._mujinpath, parsedUri.path])
-            if commonPrefix != self._mujinpath:
-                raise URIError(_('scheme is file, but file absolute path is different from given mujinpath'))
-            filename = parsedUri.path[len(self._mujinpath):]
+            commonPrefix = os.path.commonprefix([self._mujinPath, parts.path])
+            if commonPrefix != self._mujinPath:
+                raise URIError(_('scheme is file, but file absolute path is different from given mujinPath'))
+            filename = parts.path[len(self._mujinPath):]
         elif self._scheme == 'mujin':
-            filename = parsedUri.path[1:]
+            filename = parts.path[1:]
         else:
-            raise URIError(_('scheme %s isn\'t supported from uri %r') % (parsedUri.scheme, uri))
+            raise URIError(_('scheme %s isn\'t supported from uri %r') % (parts.scheme, uri))
         self._InitFromFilename(filename)
 
-    def _InitFromPrimaryKey(self, primarykey):
-        if self._primarykeyseparator:
+    def _InitFromPrimaryKey(self, primaryKey):
+        if self._primaryKeySeparator:
             # try to de-frag
-            index = primarykey.rfind(self._primarykeyseparator)
+            index = primaryKey.rfind(self._primaryKeySeparator)
             if index >= 0:
-                self._primarykey = primarykey[:index]
-                self._fragment = _EnsureUnicode(primarykey[index + 1:])
+                self._primaryKey = primaryKey[:index]
+                self._fragment = _EnsureUnicode(primaryKey[index + 1:])
             else:
-                self._primarykey = primarykey
+                self._primaryKey = primaryKey
         else:
-            self._primarykey = primarykey
+            self._primaryKey = primaryKey
 
-        if self._primarykey.endswith(b'.mujin.dae'):
+        if self._primaryKey.endswith(b'.mujin.dae'):
             self._suffix = u'.mujin.dae'
 
-    def _InitFromPartType(self, parttype):
-        self._primarykey = _Quote(parttype + self._suffix)
+    def _InitFromPartType(self, partType):
+        self._primaryKey = _Quote(partType + self._suffix)
 
     def _InitFromFilename(self, filename):
-        if self._mujinpath and filename.startswith(self._mujinpath):
-            filename = filename[len(self._mujinpath):]
-        self._primarykey = _Quote(filename)
+        if self._mujinPath and filename.startswith(self._mujinPath):
+            filename = filename[len(self._mujinPath):]
+        self._primaryKey = _Quote(filename)
 
     @property
     def scheme(self):
@@ -485,72 +497,72 @@ class MujinResourceIdentifier(object):
         self._suffix = _EnsureUnicode(value)
 
     @property
-    def mujinpath(self):
-        return self._mujinpath
+    def mujinPath(self):
+        return self._mujinPath
 
-    @mujinpath.setter
-    def mujinpath(self, value):
+    @mujinPath.setter
+    def mujinPath(self, value):
         value = _EnsureUnicode(value)
         if value and not value.endswith(u'/'):
             value += u'/'
-        self._mujinpath = value
+        self._mujinPath = value
 
     @property
-    def primarykeyseparator(self):
-        return self._primarykeyseparator
+    def primaryKeySeparator(self):
+        return self._primaryKeySeparator
 
-    @primarykeyseparator.setter
-    def primarykeyseparator(self, value):
-        self._primarykeyseparator = _EnsureUTF8(value)
-
-    @property
-    def fragmentseparator(self):
-        return self._fragmentseparator
-
-    @fragmentseparator.setter
-    def fragmentseparator(self, value):
-        self._fragmentseparator = _EnsureUnicode(value)
+    @primaryKeySeparator.setter
+    def primaryKeySeparator(self, value):
+        self._primaryKeySeparator = _EnsureUTF8(value)
 
     @property
-    def primarykey(self):
-        if self._fragment and self._primarykeyseparator:
-            return self._primarykey + self._primarykeyseparator + _EnsureUTF8(self._fragment)
+    def fragmentSeparator(self):
+        return self._fragmentSeparator
+
+    @fragmentSeparator.setter
+    def fragmentSeparator(self, value):
+        self._fragmentSeparator = _EnsureUnicode(value)
+
+    @property
+    def primaryKey(self):
+        if self._fragment and self._primaryKeySeparator:
+            return self._primaryKey + self._primaryKeySeparator + _EnsureUTF8(self._fragment)
         else:
-            return self._primarykey
+            return self._primaryKey
 
     @property
     def uri(self):
         """ Same as GetURIFromPrimaryKey
         """
-        assert(isinstance(self._primarykey, six.binary_type))
-        path = _Unquote(self._primarykey)
-        return _UnparseURI((self._scheme, '', path, '', '', self._fragment), fragmentseparator=self._fragmentseparator)
+        assert(isinstance(self._primaryKey, six.binary_type))
+        path = _Unquote(self._primaryKey)
+        return _UnparseURI((self._scheme, '', path, '', '', self._fragment), fragmentSeparator=self._fragmentSeparator)
 
     @property
     def filename(self):
-        if not self._mujinpath:
-            return self.parttype + self._suffix
-        return os.path.join(self._mujinpath, self.parttype + self._suffix)
+        if not self._mujinPath:
+            return self.partType + self._suffix
+        return os.path.join(self._mujinPath, self.partType + self._suffix)
 
     @property
-    def parttype(self):
-        if self._suffix and self._primarykey.endswith(_EnsureUTF8(self._suffix)):
-            return _Unquote(self._primarykey[:-len(_EnsureUTF8(self._suffix))])
-        elif self._primarykey.endswith(b'.mujin.dae'):
+    def partType(self):
+        if self._suffix and self._primaryKey.endswith(_EnsureUTF8(self._suffix)):
+            return _Unquote(self._primaryKey[:-len(_EnsureUTF8(self._suffix))])
+        elif self._primaryKey.endswith(b'.mujin.dae'):
             self._suffix = u'.mujin.dae'
-            return _Unquote(self._primarykey[:-len(b'.mujin.dae')])
+            return _Unquote(self._primaryKey[:-len(b'.mujin.dae')])
         else:
-            return _Unquote(self._primarykey)
+            return _Unquote(self._primaryKey)
 
     @property
     def kwargs(self):
         return {
-            'fragmentseparator': self._fragmentseparator,
-            'primarykeyseparator': self._primarykeyseparator,
+            'fragmentSeparator': self._fragmentSeparator,
+            'primaryKeySeparator': self._primaryKeySeparator,
             'suffix': self._suffix,
             'scheme': self._scheme,
-            'mujinpath': self._mujinpath,
-            'primarykey': self._primarykey,
+            'mujinPath': self._mujinPath,
+            'primaryKey': self._primaryKey,
             'fragment': self._fragment,
         }
 
@@ -560,32 +572,32 @@ class MujinResourceIdentifier(object):
             setattr(mri, key, value)
         return mri
 
-    def WithFragmentSeparator(self, fragmentseparator):
-        return self.Clone(fragmentseparator=fragmentseparator)
+    def WithFragmentSeparator(self, fragmentSeparator):
+        return self.Clone(fragmentSeparator=fragmentSeparator)
 
-    def WithPrimaryKeySeparator(self, primarykeyseparator):
-        return self.Clone(primarykeyseparator=primarykeyseparator)
+    def WithPrimaryKeySeparator(self, primaryKeySeparator):
+        return self.Clone(primaryKeySeparator=primaryKeySeparator)
 
-    def WithMujinPath(self, mujinpath):
+    def WithMujinPath(self, mujinPath):
         """
         >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae').filename
         u'/var/www/test.mujin.dae'
         >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae').filename
         u'/var/www/test.mujin.dae'
-        >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae', mujinpath='/var/www').filename
+        >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae', mujinPath='/var/www').filename
         u'test.mujin.dae'
-        >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae', mujinpath='/var/www').filename
+        >>> MujinResourceIdentifier(uri=u'file:/var/www/test.mujin.dae', mujinPath='/var/www').filename
         u'/var/www/test.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey='test.mujin.dae').WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae').WithMujinPath('/data/u').filename
         u'/data/u/test.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey='test.mujin.dae@body0_motion.mujin.dae').WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae').WithMujinPath('/data/u').filename
         u'/data/u/test.mujin.dae@body0_motion.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey='test.mujin.dae@body0_motion.mujin.dae', primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT).WithMujinPath('/data/u').filename
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT).WithMujinPath('/data/u').filename
         u'/data/u/test.mujin.dae'
         >>> MujinResourceIdentifier(filename='object.tar.gz', suffix='.tar.gz').WithMujinPath('/data/u').filename
         u'/data/u/object.tar.gz'
         """
-        return self.Clone(mujinpath=mujinpath)
+        return self.Clone(mujinPath=mujinPath)
 
     def WithSuffix(self, suffix):
         """
@@ -599,11 +611,11 @@ class MujinResourceIdentifier(object):
 
     def WithoutFragment(self):
         """
-        >>> MujinResourceIdentifier(primarykey='test.mujin.dae@body0_motion.mujin.dae', primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT).WithoutFragment().primarykey
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT).WithoutFragment().primaryKey
         'test.mujin.dae'
-        >>> MujinResourceIdentifier(primarykey='test.mujin.dae@body0_motion.mujin.dae', primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT).WithoutFragment().fragment
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT).WithoutFragment().fragment
         ''
-        >>> MujinResourceIdentifier(primarykey='test.mujin.dae@body0_motion.mujin.dae', primarykeyseparator=PRIMARY_KEY_SEPARATOR_AT).WithoutFragment().uri
+        >>> MujinResourceIdentifier(primaryKey='test.mujin.dae@body0_motion.mujin.dae', primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT).WithoutFragment().uri
         u'mujin:/test.mujin.dae'
         """
         return self.WithFragment()
