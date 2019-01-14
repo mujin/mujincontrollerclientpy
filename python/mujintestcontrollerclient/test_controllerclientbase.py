@@ -29,5 +29,5 @@ def test_RestartController():
 
 def test_GetScenes():
     with requests_mock.Mocker() as mock:
-        mock.get('http://controller/api/v1/scene/?format=json&limit=0&offset=0', json={'objects': []})
+        mock.get('http://controller/api/v1/scene/', json={'objects': []})
         ControllerClient('http://controller', 'mujin', 'mujin').GetScenes() == []
