@@ -19,7 +19,7 @@ def test_GetSchemeFromURI(uri, expected):
     (u'mujin:/测试_test.mujin.dae#body0_motion', uriutils.FRAGMENT_SEPARATOR_AT, u''),
 ])
 def test_GetFragmentFromURI(uri, fragmentSeparator, expected):
-    uriutils.GetFragmentFromURI(uri, fragmentSeparator=fragmentSeparator) == expected
+    assert uriutils.GetFragmentFromURI(uri, fragmentSeparator=fragmentSeparator) == expected
 
 
 @pytest.mark.parametrize('uri, fragmentSeparator, primaryKeySeparator, expected', [
