@@ -121,18 +121,19 @@ class ControllerWebClient(object):
         response = self.Request(method, path, params=params, data=data, headers=headers, timeout=timeout)
 
         # try to parse response
+        raw = response.content.decode('utf-8', 'replace').strip()
         content = None
-        if len(response.content.strip()) > 0:
+        if len(raw) > 0:
             try:
-                content = json.loads(response.content)
+                content = json.loads(raw)
             except ValueError as e:
-                log.exception('caught exception parsing json response: %s: %s', e, response.content.decode('utf-8', 'replace'))
+                log.exception('caught exception parsing json response: %s: %s', e, raw)
 
         # first check error
         if content is not None and 'error_message' in content:
             raise APIServerError(content['error_message'], stacktrace=content.get('stacktrace', None), errorcode=content.get('error_code', None))
         if response.status_code >= 400:
-            raise APIServerError(response.content)
+            raise APIServerError(raw)
 
         # check expected status code
         expectedStatusCode = {
@@ -144,6 +145,6 @@ class ControllerWebClient(object):
         }.get(method, 200)
         if response.status_code != expectedStatusCode:
             log.error('response status code is %d, expecting %d: %s', response.status_code, expectedStatusCode)
-            raise APIServerError(response.content)
+            raise APIServerError(raw)
 
         return content
