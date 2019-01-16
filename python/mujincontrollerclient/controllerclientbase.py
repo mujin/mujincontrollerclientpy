@@ -14,6 +14,7 @@ from urllib import quote, unquote
 import os
 import datetime
 import base64
+import email.utils
 from numpy import fromstring, uint32
 
 try:
@@ -192,19 +193,20 @@ class ControllerClient(object):
         # no reason to check response since it's probably an error (server is restarting after all)
 
     def IsLoggedIn(self):
-        return self._webclient.IsLoggedIn()
+        return True
 
     def Login(self, timeout=5):
         """Force webclient to login if it is not currently logged in. Useful for checking that the credential works.
         """
-        self._webclient.Login(timeout=timeout)
+        self.Ping(timeout=timeout)
 
     def Ping(self, usewebapi=True, timeout=5):
         """Sends a dummy HEAD request to api endpoint
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('HEAD', '', timeout=timeout)
-        assert(status == 200)
+        response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
     #
     # Scene related
@@ -214,25 +216,18 @@ class ControllerClient(object):
         """uploads a file managed by file handle f
         
         """
-        # note that /fileupload does not have trailing slash for some reason
-        response = self._webclient.Request('POST', '/fileupload', files={'files[]': f}, timeout=timeout)
-        if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
-        
-        try:
-            content = json.loads(response.content)
-        except ValueError:
-            raise ControllerClientError(response.content.decode('utf-8'))
-        
-        return content['filename']
+        return self.UploadFile(f, timeout=timeout)
 
-    def GetScenes(self, fields=None, usewebapi=True, timeout=5):
+    def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         """list all available scene on controller
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
-        })
+        url_params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        url_params.update(kwargs)
+        status, response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, url_params=url_params)
         assert(status == 200)
         return response['objects']
 
@@ -569,10 +564,11 @@ class ControllerClient(object):
     # Task related
     #
 
-    def GetSceneTasks(self, scenepk, fields=None, usewebapi=True, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params={
-            'limit': 0,
+            'offset': offset,
+            'limit': limit,
         })
         assert(status == 200)
         return response['objects']
@@ -641,10 +637,11 @@ class ControllerClient(object):
     # Job related
     #
 
-    def GetJobs(self, fields=None, usewebapi=True, timeout=5):
+    def GetJobs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, url_params={
-            'limit': 0,
+            'offset': offset,
+            'limit': limit,
         })
         assert(status == 200)
         return response['objects']
@@ -753,9 +750,41 @@ class ControllerClient(object):
             raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
     #
-    # WebDAV related
+    # File related 
     #
-    
+
+    def UploadFile(self, f, filename=None, timeout=10):
+        """uploads a file managed by file handle f
+        """
+        data = {}
+        if filename:
+            data['filename'] = filename
+        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return json.loads(response.content)['filename']
+            except Exception as e:
+                log.exception('failed to upload file: %s', e)
+        raise ControllerClientError(response.content.decode('utf-8'))
+
+    def DeleteFile(self, filename, timeout=10):
+        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return json.loads(response.content)['filename']
+            except Exception as e:
+                log.exception('failed to delete file: %s', e)
+        raise ControllerClientError(response.content.decode('utf-8'))
+
+    def ListFiles(self, dirname='', timeout=2):
+        response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
+        if response.status_code in (200, 404):
+            try:
+                return json.loads(response.content)
+            except Exception as e:
+                log.exception('failed to delete file: %s', e)
+        raise ControllerClientError(response.content.decode('utf-8'))
+
     def FileExists(self, path, timeout=5):
         """check if a file exists on server
         """
@@ -763,19 +792,6 @@ class ControllerClient(object):
         if response.status_code not in [200, 301, 404]:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response.status_code != 404
-
-    def ConstructFileFullURL(self, filename):
-        """construct full url to file including credentials
-        """
-        scheme, netloc, path, params, query, fragment = urlparse(self.controllerurl)
-        return urlunparse((
-            scheme,
-            '%s:%s@%s' % (self.controllerusername, self.controllerpassword, netloc),
-            '/u/%s/%s' % (self.controllerusername, filename),
-            '',
-            '',
-            '',
-        ))
 
     def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
         """downloads a file given filename
@@ -792,71 +808,33 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
-    def UploadFile(self, path, f, timeout=5):
-        response = self._webclient.Request('PUT', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), data=f, timeout=timeout)
-        if response.status_code not in [201, 201, 204]:
-            raise ControllerClientError(response.content.decode('utf-8'))
+    def FlushAndDownloadFile(self, filename, timeout=5):
+        """downloads a file given filename
 
-    def ListFiles(self, path='', depth=None, timeout=5):
+        :return: a streaming response
         """
-        List files and their properties using webdav
-        :param path: root path, result will include this path and its children (if depth is set to 1 or infinity)
-        :param depth: 0, 1, or None (infinity)
+        response = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
+
+    def HeadFile(self, filename, timeout=5):
+        """Perform a HEAD operation on given filename to retrieve metadata.
+
+        :return: a dict containing keys like modified and size
         """
-        path = u'/u/%s/%s' % (self.controllerusername, path.rstrip('/'))
-        if depth is None:
-            depth = 'infinity'
-        response = self._webclient.Request('PROPFIND', path, headers={'Depth': str(depth)}, timeout=timeout)
-        if response.status_code not in [207]:
+        path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
+        response = self._webclient.Request('HEAD', path, timeout=timeout)
+        if response.status_code not in [200]:
             raise ControllerClientError(response.content.decode('utf-8'))
+        return {
+            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
+            'size': long(response.headers['Content-Length']),
+        }
 
-        import xml.etree.cElementTree as xml
-        import email.utils
-
-        tree = xml.fromstring(response.content)
-
-        def prop(e, name, default=None):
-            child = e.find('.//{DAV:}' + name)
-            return default if child is None else child.text
-
-        files = {}
-        for e in tree.findall('{DAV:}response'):
-            name = prop(e, 'href')
-            assert(name.startswith(path))
-            # webdav returns quoted utf-8 filenames, so we decode here to unicode
-            name = unquote(name[len(path):].strip('/')).decode('utf-8')
-            size = int(prop(e, 'getcontentlength', 0))
-            isdir = prop(e, 'getcontenttype', '') == 'httpd/unix-directory'
-            modified = email.utils.parsedate(prop(e, 'getlastmodified', ''))
-            if modified is not None:
-                modified = datetime.datetime(*modified[:6])
-            files[name] = {
-                'name': name,
-                'size': size,
-                'isdir': isdir,
-                'modified': modified,
-            }
-
-        return files
-
-    def DeleteFile(self, path, timeout=5):
-        response = self._webclient.Request('DELETE', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
-        if response.status_code not in [204, 404]:
-            raise ControllerClientError(response.content.decode('utf-8'))
-
-    def DeleteDirectory(self, path, timeout=5):
-        self.DeleteFile(path, timeout=timeout)
-
-    def MakeDirectory(self, path, timeout=5):
-        response = self._webclient.Request('MKCOL', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
-        if response.status_code not in [201, 301, 405]:
-            raise ControllerClientError(response.content.decode('utf-8'))
-
-    def MakeDirectories(self, path, timeout=5):
-        parts = []
-        for part in path.strip('/').split('/'):
-            parts.append(part)
-            self.MakeDirectory('/'.join(parts), timeout=timeout)
+    #
+    # Log related
+    #
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
         """ restarts controller
@@ -874,3 +852,22 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
         return json.loads(response.content)
+
+    #
+    # Query list of scenepks based on barcdoe field
+    #
+
+    def QueryScenePKsByBarcodes(self, barcodes, timeout=2):
+        response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
+        return json.loads(response.content)
+    
+    #
+    # Report stats to registration controller
+    #
+
+    def ReportStats(self, data, timeout=5):
+        response = self._webclient.Request('POST', '/stats/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to upload stats, status code is %d') % response.status_code)
