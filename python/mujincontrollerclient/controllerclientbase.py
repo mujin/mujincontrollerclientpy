@@ -588,7 +588,7 @@ class ControllerClient(object):
     # Task related
     #
 
-    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         params = {
             'offset': offset,
