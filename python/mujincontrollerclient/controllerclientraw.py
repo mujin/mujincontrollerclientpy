@@ -23,7 +23,7 @@ try:
 except ImportError:
     import json
 
-from . import GetAPIServerErrorFromWeb
+from . import GetAPIServerErrorFromWeb, ControllerClientError
 
 class ControllerWebClient(object):
     _baseurl = None # base url of the controller
