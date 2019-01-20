@@ -3,8 +3,6 @@
 
 import copy
 import json
-
-from . import json
 from . import planningclient
 
 import logging
