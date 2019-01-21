@@ -2,21 +2,20 @@
 # Copyright (C) 2017 MUJIN Inc.
 # Mujin controller client for bin picking task
 
+# mujin imports
+from . import realtimerobotclient
+
 # logging
 import logging
 log = logging.getLogger(__name__)
 
-# mujin imports
-from . import ControllerClientError, APIServerError
-from . import realtimerobotclient
-from . import ugettext as _
 
 class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
     """mujin controller client for realtimeitlplanning3 task
     """
-    
+
     def __init__(self, **kwargs):
-        
+
         """logs into the mujin controller, initializes realtimeitlplanning3 task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller13
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -35,6 +34,14 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         :param robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(RealtimeITLPlanning3ControllerClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
+
+    def SetJointValues(self, jointvalues, robotname=None, timeout=10, usewebapi=True, **kwargs):
+        taskparameters = {
+            'command': 'SetJointValues',
+            'jointvalues': jointvalues,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def GetITLState(self, robotname=None, robots=None, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetITLState'}
@@ -97,7 +104,7 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def PlotProgramWaypoints(self, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
         taskparameters = {
             'command': 'PlotProgramWaypoints',
