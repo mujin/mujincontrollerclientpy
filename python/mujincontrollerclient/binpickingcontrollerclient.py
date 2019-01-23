@@ -195,7 +195,31 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    
+    def InitializePartsAlignXYPlane(self, timeout=10, **kwargs):
+        """
+        :param targetpk: the name of the part to drop into container, e.g. bolt0.mujin.dae
+        :param numtargets: the number of targets to create
+        :param containername: where to put the parts, default to sourcecontainername in userconfig
+        :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
+        :param startPosition: list of [x, y, z] in mm
+        :param separation: int. interval between generated targets in mm
+        :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
+        """
+        taskparameters = {
+            'command': 'InitializePartsAlignXYPlane',
+        }
+        taskparameters.update(kwargs)
+        if 'containername' not in taskparameters:
+            taskparameters['containername'] = self.regionname
+        if 'startPosition' in taskparameters and taskparameters['startPosition'] is not None \
+           and len(taskparameters['startPosition']) == 3:
+            coords = {}
+            for index, coord in enumerate(taskparameters['startPosition']):
+                coords['{}coord'.format(chr(ord('x')+index))] = coord
+            taskparameters.update(coords)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+
     def InitializePartsWithPhysics(self, timeout=10, **kwargs):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.
         :param targeturi: the target uri to initialize the scene with
