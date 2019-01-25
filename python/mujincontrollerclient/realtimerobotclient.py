@@ -769,3 +769,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    #
+    # air pressure sensor related
+    #
+
+    def MeasureAirPressure(self, timeout=180, usewebapi=False, **kwargs):
+        """Measures air pressure for all possible air channel combinations
+        """
+        taskparameters = {
+            'command': 'MeasureAirPressure'
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
