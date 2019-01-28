@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2015 MUJIN Inc
 
-# logging
 import time
-import zmq
 
+from . import zmq
 from . import TimeoutError
 
 import logging
