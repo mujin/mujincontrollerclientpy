@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 import sys
 import os
-import json
 import argparse
 import six
 
-from mujincontrollerclient import controllerclientbase, urlparse
+from mujincontrollerclient import controllerclientbase, urlparse, json
 
 import logging
 log = logging.getLogger(__name__)
