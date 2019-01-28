@@ -446,7 +446,6 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
 
-
     #
     # Task related
     #
