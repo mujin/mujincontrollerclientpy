@@ -23,11 +23,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-# the outside world uses this specifier to signify a '#' specifier. This is needed
-# because '#' in URL parsing is a special role
-id_separator = u'@'
-
-
 def GetFilenameFromURI(uri, mujinpath):
     """returns the filesystem path that the URI points to.
     :param uri: points to mujin:/ resource
