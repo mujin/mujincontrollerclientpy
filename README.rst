@@ -1,6 +1,8 @@
 MUJIN Controller Python Client Library
 --------------------------------------
 
+[![Build Status](https://travis-ci.org/mujin/mujincontrollerclientpy.svg?branch=master)](https://travis-ci.org/mujin/mujincontrollerclientpy)
+
 TODO: python api documentation
 
 This is an open-source client library communicating with the MUJIN Controller WebAPI.
