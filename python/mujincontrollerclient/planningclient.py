@@ -8,9 +8,10 @@ import threading
 import weakref
 
 # system imports
+import threading
+import weakref
 import os
 import time
-
 
 # mujin imports
 from . import APIServerError

@@ -765,7 +765,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'command': 'SetMotorControlParameter',
             'jointName': jointName,
             'parameterName': parameterName,
-            'parameterValue': parameterValue
+            'parameterValue': parameterValue,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)

@@ -6,5 +6,5 @@ install:
 - pip install flake8==3.6.0 pyzmq==17.1.2 pytest==4.0.1 requests_mock==1.5.2
 - pip install .
 script:
-- flake8 --show-source --ignore=E501 python bin
+- flake8 --isolated --show-source --ignore=E501 python bin
 - pytest

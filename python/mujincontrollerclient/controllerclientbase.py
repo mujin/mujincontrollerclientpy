@@ -37,7 +37,8 @@ def GetFilenameFromURI(uri, mujinpath):
       GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
       returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
     """
-    return uriutils.GetFilenameFromURI(uri, mujinpath)
+    mri = uriutils.MujinResourceIdentifier(uri=uri, mujinPath=mujinpath, fragmentSeparator=uriutils.FRAGMENT_SEPARATOR_AT)
+    return mri.parseResult, mri.filename
 
 
 def GetURIFromPrimaryKey(pk):
@@ -49,7 +50,7 @@ def GetURIFromPrimaryKey(pk):
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
-    return uriutils.GetURIFromPrimaryKey(pk, primarykeyseparator='@', fragmentseparator='@')
+    return uriutils.GetURIFromPrimaryKey(pk, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT, fragmentSeparator=uriutils.FRAGMENT_SEPARATOR_AT)
 
 
 def GetUnicodeFromPrimaryKey(pk):
@@ -61,7 +62,7 @@ def GetUnicodeFromPrimaryKey(pk):
       GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
     """
-    return uriutils.GetFilenameFromPrimaryKey(pk, primarykeyseparator='@')
+    return uriutils.GetFilenameFromPrimaryKey(pk, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
 
 def GetPrimaryKeyFromURI(uri):
@@ -71,7 +72,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, allowfragments=True, fragmentseparator='@', primarykeyseparator='@')
+    return uriutils.GetPrimaryKeyFromURI(uri, fragmentSeparator=uriutils.FRAGMENT_SEPARATOR_AT, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
 
 def _FormatHTTPDate(dt):
@@ -449,6 +450,89 @@ class ControllerClient(object):
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
+
+
+    #
+    # Task related
+    #
+
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params={
+            'offset': offset,
+            'limit': limit,
+        })['objects']
+
+    def GetSceneTask(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
+
+    def CreateSceneTask(self, scenepk, taskdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'scene/%s/task/' % scenepk, data=taskdata, fields=fields, timeout=timeout)
+
+    def SetSceneTask(self, scenepk, taskpk, taskdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('PUT', u'scene/%s/task/%s/' % (scenepk, taskpk), data=taskdata, fields=fields, timeout=timeout)
+
+    def DeleteSceneTask(self, scenepk, taskpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
+
+    #
+    # Result related
+    #
+
+    def GetResult(self, resultpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'planningresult/%s/' % resultpk, fields=fields, timeout=timeout)
+
+    def GetBinpickingResult(self, resultpk, fields=None, usewebapi=True, timeout=5):
+        assert(UserWarning)
+        return self._webclient.APICall('GET', u'binpickingresult/%s' % resultpk, fields=fields, timeout=timeout)
+
+    def GetResultProgram(self, resultpk, programtype=None, format='dat', usewebapi=True, timeout=5):
+        assert(usewebapi)
+        params = {'format': format}
+        if programtype is not None and len(programtype) > 0:
+            params['type'] = programtype
+        # custom http call because APICall currently only supports json
+        response = self._webclient.Request('GET', u'/api/v1/planningresult/%s/program/' % resultpk, params=params, timeout=timeout)
+        assert(response.status_code == 200)
+        return response.content
+
+    def SetResult(self, resultpk, resultdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('PUT', u'planningresult/%s/' % resultpk, data=resultdata, fields=fields, timeout=timeout)
+
+    def DeleteResult(self, resultpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'planningresult/%s/' % resultpk, timeout=timeout)
+
+    #
+    # Job related
+    #
+
+    def GetJobs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
+            'offset': offset,
+            'limit': limit,
+        })['objects']
+
+    def DeleteJob(self, jobpk, usewebapi=True, timeout=5):
+        """ cancels the job with the corresponding jobk
+        """
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'job/%s/' % jobpk, timeout=timeout)
+
+    def DeleteJobs(self, usewebapi=True, timeout=5):
+        """ cancels all jobs
+        """
+        # cancel on the zmq configure socket first
+
+        if usewebapi:
+            self._webclient.APICall('DELETE', u'job/', timeout=timeout)
 
     #
     # Geometry related

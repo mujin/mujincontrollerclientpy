@@ -144,7 +144,7 @@ class ControllerWebClient(object):
             'PUT': 202,
         }.get(method, 200)
         if response.status_code != expectedStatusCode:
-            log.error('response status code is %d, expecting %d: %s', response.status_code, expectedStatusCode)
+            log.error('response status code is %d, expecting %d: %s', response.status_code, expectedStatusCode, raw)
             raise APIServerError(raw)
 
         return content
