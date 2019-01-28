@@ -450,6 +450,89 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
 
+
+    #
+    # Task related
+    #
+
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params={
+            'offset': offset,
+            'limit': limit,
+        })['objects']
+
+    def GetSceneTask(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'scene/%s/task/%s/' % (scenepk, taskpk), fields=fields, timeout=timeout)
+
+    def CreateSceneTask(self, scenepk, taskdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'scene/%s/task/' % scenepk, data=taskdata, fields=fields, timeout=timeout)
+
+    def SetSceneTask(self, scenepk, taskpk, taskdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('PUT', u'scene/%s/task/%s/' % (scenepk, taskpk), data=taskdata, fields=fields, timeout=timeout)
+
+    def DeleteSceneTask(self, scenepk, taskpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
+
+    #
+    # Result related
+    #
+
+    def GetResult(self, resultpk, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'planningresult/%s/' % resultpk, fields=fields, timeout=timeout)
+
+    def GetBinpickingResult(self, resultpk, fields=None, usewebapi=True, timeout=5):
+        assert(UserWarning)
+        return self._webclient.APICall('GET', u'binpickingresult/%s' % resultpk, fields=fields, timeout=timeout)
+
+    def GetResultProgram(self, resultpk, programtype=None, format='dat', usewebapi=True, timeout=5):
+        assert(usewebapi)
+        params = {'format': format}
+        if programtype is not None and len(programtype) > 0:
+            params['type'] = programtype
+        # custom http call because APICall currently only supports json
+        response = self._webclient.Request('GET', u'/api/v1/planningresult/%s/program/' % resultpk, params=params, timeout=timeout)
+        assert(response.status_code == 200)
+        return response.content
+
+    def SetResult(self, resultpk, resultdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('PUT', u'planningresult/%s/' % resultpk, data=resultdata, fields=fields, timeout=timeout)
+
+    def DeleteResult(self, resultpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'planningresult/%s/' % resultpk, timeout=timeout)
+
+    #
+    # Job related
+    #
+
+    def GetJobs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
+            'offset': offset,
+            'limit': limit,
+        })['objects']
+
+    def DeleteJob(self, jobpk, usewebapi=True, timeout=5):
+        """ cancels the job with the corresponding jobk
+        """
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'job/%s/' % jobpk, timeout=timeout)
+
+    def DeleteJobs(self, usewebapi=True, timeout=5):
+        """ cancels all jobs
+        """
+        # cancel on the zmq configure socket first
+
+        if usewebapi:
+            self._webclient.APICall('DELETE', u'job/', timeout=timeout)
+
     #
     # Geometry related
     #
