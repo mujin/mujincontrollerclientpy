@@ -1,7 +1,8 @@
 MUJIN Controller Python Client Library
 --------------------------------------
 
-[![Build Status](https://travis-ci.org/mujin/mujincontrollerclientpy.svg?branch=master)](https://travis-ci.org/mujin/mujincontrollerclientpy)
+.. image:: https://travis-ci.org/mujin/mujincontrollerclientpy.svg?branch=master
+    :target: https://travis-ci.org/mujin/mujincontrollerclientpy
 
 TODO: python api documentation
 
