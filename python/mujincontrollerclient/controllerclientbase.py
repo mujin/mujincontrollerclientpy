@@ -37,7 +37,8 @@ def GetFilenameFromURI(uri, mujinpath):
       GetFilenameFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae',u'/var/www/media/u/testuser')
       returns: (ParseResult(scheme=u'mujin', netloc='', path=u'/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae', params='', query='', fragment=''), u'/var/www/media/u/testuser/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
     """
-    return uriutils.GetFilenameFromURI(uri, mujinpath)
+    mri = uriutils.MujinResourceIdentifier(uri=uri, mujinPath=mujinpath)
+    return mri.parseResult, mri.filename
 
 
 def GetURIFromPrimaryKey(pk):
@@ -49,7 +50,7 @@ def GetURIFromPrimaryKey(pk):
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae'
     """
-    return uriutils.GetURIFromPrimaryKey(pk, primarykeyseparator='@', fragmentseparator='@')
+    return uriutils.GetURIFromPrimaryKey(pk, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT, fragmentSeparator=uriutils.FRAGMENT_SEPARATOR_AT)
 
 
 def GetUnicodeFromPrimaryKey(pk):
@@ -61,7 +62,7 @@ def GetUnicodeFromPrimaryKey(pk):
       GetUnicodeFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
       returns: u'\u691c\u8a3c\u52d5\u4f5c1_121122'
     """
-    return uriutils.GetFilenameFromPrimaryKey(pk, primarykeyseparator='@')
+    return uriutils.GetFilenameFromPrimaryKey(pk, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
 
 def GetPrimaryKeyFromURI(uri):
@@ -71,7 +72,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, allowfragments=True, fragmentseparator='@', primarykeyseparator='@')
+    return uriutils.GetPrimaryKeyFromURI(uri, fragmentSeparator=uriutils.FRAGMENT_SEPARATOR_AT, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
 
 def _FormatHTTPDate(dt):

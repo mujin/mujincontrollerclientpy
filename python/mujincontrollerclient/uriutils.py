@@ -521,14 +521,18 @@ class MujinResourceIdentifier(object):
     def uri(self):
         """ Same as GetURIFromPrimaryKey
         """
-        return _UnparseURI(urlparse.ParseResult(
+        return _UnparseURI(self.parseResult, fragmentSeparator=self._fragmentSeparator)
+
+    @property
+    def parseResult(self):
+        return urlparse.ParseResult(
             scheme=self._scheme,
             netloc=EMPTY_STRING_UNICODE,
             path=_Unquote(self._primaryKey),
             params=EMPTY_STRING_UNICODE,
             query=EMPTY_STRING_UNICODE,
             fragment=self._fragment,
-        ), fragmentSeparator=self._fragmentSeparator)
+        )
 
     @property
     def filename(self):
