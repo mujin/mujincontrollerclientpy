@@ -199,7 +199,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
         :param startPosition: list of [x, y, z] in mm
         :param separation: int. interval between generated targets in mm
-        :param deleteprevious: if True, will delete all the previous targets in the scene. By default this is True.
         """
         taskparameters = {
             'command': 'InitializePartsAlignXYPlane',
