@@ -14,6 +14,7 @@
 import os
 import requests
 import requests.auth
+import requests.adapters
 
 from . import json
 from . import APIServerError
@@ -38,13 +39,22 @@ class ControllerWebClient(object):
         self._headers = {}
         self._isok = True
 
+        # create session
+        self._session = requests.Session()
+
+        # use basic auth
+        self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
+
+        # set csrftoken
         # any string can be the csrftoken
         self._headers['X-CSRFToken'] = 'csrftoken'
-
-        self._session = requests.Session()
-        self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
         self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'], path='/')
 
+        # add retry to deal with closed keep alive connections
+        self._session.mount('https://', requests.adapters.HTTPAdapter(max_retries=3))
+        self._session.mount('http://', requests.adapters.HTTPAdapter(max_retries=3))
+
+        # set locale headers
         self.SetLocale(locale)
 
     def __del__(self):
@@ -75,12 +85,6 @@ class ControllerWebClient(object):
         headers = dict(headers or {})
         headers.update(self._headers)
 
-        # for GET and HEAD requests, have a retry logic in case keep alive connection is being closed by server
-        if method in ('GET', 'HEAD'):
-            try:
-                return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
-            except requests.ConnectionError as e:
-                log.warn('caught connection error, maybe server is racing to close keep alive connection, try again: %s', e)
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
     # python port of the javascript API Call function
