@@ -4,9 +4,6 @@
 Planning client
 """
 
-import threading
-import weakref
-
 # system imports
 import threading
 import weakref
