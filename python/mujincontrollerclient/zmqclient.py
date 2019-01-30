@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2015 MUJIN Inc
 
-import time
-
 from . import zmq
 from . import TimeoutError, GetMonotonicTime
 
