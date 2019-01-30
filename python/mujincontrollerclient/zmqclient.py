@@ -220,8 +220,7 @@ class ZmqClient(object):
     _pool = None
     _socket = None
     _isok = False
-    _callerthread = None # last caller thread
-
+    _callerthread = None  # last caller thread
 
     def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None):
         """creates a new zmq client, uses zmq req socket over tcp
