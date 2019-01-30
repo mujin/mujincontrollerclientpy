@@ -15,6 +15,18 @@ except ImportError:
 
 import zmq  # noqa: F401 # TODO: stub zmq
 
+# use GetMonotonicTime if possible
+try:
+    from mujincommon import GetMonotonicTime
+except ImportError:
+    import time
+    if hasattr(time, 'monotonic'):
+        def GetMonotonicTime():
+            return time.monotonic()
+    else:
+        def GetMonotonicTime():
+            return time.time()
+
 import logging
 log = logging.getLogger(__name__)
 

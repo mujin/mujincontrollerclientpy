@@ -4,7 +4,7 @@
 import time
 
 from . import zmq
-from . import TimeoutError
+from . import TimeoutError, GetMonotonicTime
 
 import logging
 log = logging.getLogger(__name__)
@@ -117,7 +117,7 @@ class ZmqSocketPool(object):
 
     def _StartPollingSocket(self, socket):
         assert(socket not in self._pollingsockets)
-        self._pollingsockets[socket] = time.time()
+        self._pollingsockets[socket] = GetMonotonicTime()
         self._poller.register(socket, zmq.POLLIN | zmq.POLLOUT)
 
     def _StopPollingSocket(self, socket):
@@ -128,7 +128,7 @@ class ZmqSocketPool(object):
     def _Poll(self, timeout=0):
         """spin once and does internal polling of sockets
         """
-        now = time.time()
+        now = GetMonotonicTime()
 
         # poll for receives, non blocking if timeout is 0
         for socket, event in self._poller.poll(timeout):
@@ -175,7 +175,7 @@ class ZmqSocketPool(object):
         # first we try a non blocking poll
         self._Poll(timeout=0)
 
-        starttime = time.time()
+        starttime = GetMonotonicTime()
         while self._isok:
 
             # if a socket is available, use it
@@ -191,7 +191,7 @@ class ZmqSocketPool(object):
                 return socket
 
             # check for timeout
-            elapsedtime = time.time() - starttime
+            elapsedtime = GetMonotonicTime() - starttime
             if timeout is not None and elapsedtime > timeout:
                 raise TimeoutError(u'Timed out waiting for a socket to %s to become available after %f seconds' % (self._url, elapsedtime))
 
@@ -315,10 +315,10 @@ class ZmqClient(object):
         releasesocket = True
         try:
             # send phase
-            starttime = time.time()
+            starttime = GetMonotonicTime()
             while self._isok:
                 # timeout checking
-                elapsedtime = time.time() - starttime
+                elapsedtime = GetMonotonicTime() - starttime
                 if timeout is not None and elapsedtime > timeout:
                     raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._url, elapsedtime))
 
@@ -368,17 +368,17 @@ class ZmqClient(object):
 
         try:
             # receive phase
-            starttime = time.time()
+            starttime = GetMonotonicTime()
             while self._isok:
                 # timeout checking
-                elapsedtime = time.time() - starttime
+                elapsedtime = GetMonotonicTime() - starttime
                 if timeout is not None and elapsedtime > timeout:
                     raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
 
                 # poll to see if something has been received, if received nothing, loop
-                startpolltime = time.time()
+                startpolltime = GetMonotonicTime()
                 waitingevents = self._socket.poll(50, zmq.POLLIN)
-                endpolltime = time.time()
+                endpolltime = GetMonotonicTime()
                 if endpolltime - startpolltime > 0.2:  # due to python delays sometimes this can be 0.11s
                     log.critical('polling time took %fs!', endpolltime - startpolltime)
                 if waitingevents == 0:
