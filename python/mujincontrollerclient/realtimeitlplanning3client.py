@@ -152,7 +152,7 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-    
+
     def StopITLProgram(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the itl program
         """
@@ -174,11 +174,11 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-    
+
     def PlotContacts(self, report={}, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
         taskparameters = {
             'command': 'PlotContacts',
-            'report' : report
+            'report': report
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)

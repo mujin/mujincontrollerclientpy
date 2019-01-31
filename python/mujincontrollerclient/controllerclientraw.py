@@ -18,6 +18,7 @@ import requests.adapters
 
 from . import json
 from . import GetAPIServerErrorFromWeb
+from . import ControllerClientError
 
 import logging
 log = logging.getLogger(__name__)
@@ -79,6 +80,9 @@ class ControllerWebClient(object):
         self._headers['Accept-Language'] = language
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
+        if timeout < 1e-6:
+            raise ControllerClientError('timeout value (%s sec) is too small' % timeout)
+
         url = self._baseurl + path
 
         # set all the headers prepared for this client
@@ -89,9 +93,6 @@ class ControllerWebClient(object):
 
     # python port of the javascript API Call function
     def APICall(self, request_type, api_url='', url_params=None, fields=None, data=None, headers=None, timeout=5):
-        if timeout < 1e-6:
-            raise ControllerClientError('timeout value (%s sec) is too small' % timeout)
-
         path = '/api/v1/' + api_url.lstrip('/')
         if not path.endswith('/'):
             path += '/'

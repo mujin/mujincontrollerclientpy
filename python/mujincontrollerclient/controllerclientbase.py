@@ -352,7 +352,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
         assert(status == 202)
-    
+
     def GetObjectLinks(self, objectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
@@ -360,7 +360,7 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'object/%s/link/' % (objectpk), fields=fields, timeout=timeout)
         assert(status == 200)
         return response
-    
+
     def GetObjectLink(self, objectpk, linkpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
@@ -368,7 +368,7 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'object/%s/link/%s/' % (objectpk, linkpk), fields=fields, timeout=timeout)
         assert(status == 200)
         return response
-    
+
     def DeleteObjectLink(self, objectpk, linkpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         status, response = self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
@@ -411,7 +411,7 @@ class ControllerClient(object):
         assert(usewebapi)
         status, response = self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
         assert(status == 202)
-    
+
     def GetObjectGeometryData(self, objectpk, geometrypk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
         """
@@ -419,7 +419,7 @@ class ControllerClient(object):
         status, response = self._webclient.APICall('GET', u'object/%s/geometry/%s/' % (objectpk, geometrypk), fields=fields, timeout=timeout)
         assert(status == 200)
         return response
-    
+
     def SetObjectGeometryMesh(self, objectpk, geometrypk, data, formathint='stl', unit='mm', usewebapi=True, timeout=5):
         """upload binary file content of a cad file to be set as the mesh for the geometry
         """
