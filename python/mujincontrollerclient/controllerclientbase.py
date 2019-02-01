@@ -490,7 +490,7 @@ class ControllerClient(object):
         }
         if tasktype:
             params['tasktype'] = tasktype
-        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, url_params=params)['objects']
+        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params)['objects']
 
     def GetSceneTask(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
