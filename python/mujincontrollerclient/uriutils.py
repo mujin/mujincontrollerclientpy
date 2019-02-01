@@ -392,41 +392,45 @@ class MujinResourceIdentifier(object):
     _primaryKey = EMPTY_STRING_UTF8
     _fragment = EMPTY_STRING_UNICODE
 
-    def __init__(self, scheme=SCHEME_MUJIN, fragment=EMPTY_STRING_UNICODE, uri=EMPTY_STRING_UNICODE, primaryKey=EMPTY_STRING_UTF8, partType=EMPTY_STRING_UNICODE, filename=EMPTY_STRING_UNICODE, suffix=EMPTY_STRING_UNICODE, mujinPath=EMPTY_STRING_UNICODE, fragmentSeparator=FRAGMENT_SEPARATOR_EMPTY, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_EMPTY):
+    def __init__(self, **kwargs):
+        # scheme=SCHEME_MUJIN, fragment=EMPTY_STRING_UNICODE, uri=EMPTY_STRING_UNICODE, primaryKey=EMPTY_STRING_UTF8, partType=EMPTY_STRING_UNICODE, filename=EMPTY_STRING_UNICODE, suffix=EMPTY_STRING_UNICODE, mujinPath=EMPTY_STRING_UNICODE, fragmentSeparator=FRAGMENT_SEPARATOR_EMPTY, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_EMPTY
 
-        self.mujinPath = mujinPath
-        self.scheme = scheme
-        self.fragment = fragment
-        self.suffix = suffix
-        self.fragmentSeparator = fragmentSeparator
-        self.primaryKeySeparator = primaryKeySeparator
+        self.mujinPath = kwargs.pop('mujinPath', EMPTY_STRING_UNICODE)
+        self.scheme = kwargs.pop('scheme', SCHEME_MUJIN)
+        self.fragment = kwargs.pop('fragment', EMPTY_STRING_UNICODE)
+        self.suffix = kwargs.pop('suffix', EMPTY_STRING_UNICODE)
+        self.fragmentSeparator = kwargs.pop('fragmentSeparator', FRAGMENT_SEPARATOR_EMPTY)
+        self.primaryKeySeparator = kwargs.pop('primaryKeySeparator', PRIMARY_KEY_SEPARATOR_EMPTY)
 
-        if primaryKey:
-            assert(not uri)
-            assert(not partType)
-            assert(not filename)
-            self._InitFromPrimaryKey(_EnsureUTF8(primaryKey))
-        elif uri:
-            assert(not primaryKey)
-            assert(not partType)
-            assert(not filename)
-            self._InitFromURI(_EnsureUnicode(uri))
-        elif partType:
-            assert(not primaryKey)
-            assert(not uri)
-            assert(not filename)
-            self._InitFromPartType(_EnsureUnicode(partType))
-        elif filename:
-            assert(not primaryKey)
-            assert(not uri)
-            assert(not partType)
-            self._InitFromFilename(_EnsureUnicode(filename))
+        if 'primaryKey' in kwargs:
+            assert('uri' not in kwargs)
+            assert('partType' not in kwargs)
+            assert('filename' not in kwargs)
+            self._InitFromPrimaryKey(_EnsureUTF8(kwargs.pop('primaryKey')))
+        elif 'uri' in kwargs:
+            assert('partType' not in kwargs)
+            assert('filename' not in kwargs)
+            assert('primaryKey' not in kwargs)
+            self._InitFromURI(_EnsureUnicode(kwargs.pop('uri')))
+        elif 'partType' in kwargs:
+            assert('uri' not in kwargs)
+            assert('filename' not in kwargs)
+            assert('primaryKey' not in kwargs)
+            self._InitFromPartType(_EnsureUnicode(kwargs.pop('partType')))
+        elif 'filename' in kwargs:
+            assert('uri' not in kwargs)
+            assert('partType' not in kwargs)
+            assert('primaryKey' not in kwargs)
+            self._InitFromFilename(_EnsureUnicode(kwargs.pop('filename')))
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
 
         # guess suffix based on primary key
         if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
             self._suffix = u'.mujin.dae'
+
+        if kwargs:
+            log.warn('left over arguments to MujinResourceIdentifier constructor are ignored: %r', kwargs)
 
     def _InitFromURI(self, uri):
         parts = _ParseURI(uri, fragmentSeparator=self._fragmentSeparator)
