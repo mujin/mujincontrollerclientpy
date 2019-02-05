@@ -222,11 +222,7 @@ def GetPrimaryKeyFromURI(uri, **kwargs):
 
     >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion'
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_SHARP)
-    '%E6%B5%8B%E8%AF%95_test..mujin.dae#body0_motion'
     >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT)
-    '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_SHARP)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
     """
     if uri is None or len(uri) == 0:
@@ -249,8 +245,7 @@ def GetPrimaryKeyFromFilename(filename, **kwargs):
     """
     return MujinResourceIdentifier(filename=filename, **kwargs).primaryKey
 
-
-def GetURIFromURI(uri, newFragmentSeparator, **kwargs):
+def GetURIFromURI(uri, newFragmentSeparator=None, **kwargs):
     """ Compose a new uri from old one
     input:
         uri: a utf-8 decoded unicode uri string.
@@ -271,6 +266,19 @@ def GetURIFromURI(uri, newFragmentSeparator, **kwargs):
         mri = mri.WithoutFragment()
     return mri.uri
 
+def GetEmptyURIFromWebURI(uri):
+    """ Compose a new uri from a Web URI without the fragment
+    input:
+        uri: a utf-8 decoded unicode uri string.
+    output:
+        uri: a utf-8 decoded unicode uri string.
+    
+    >>> GetEmptyURIFromWebURI(u'mujin:/test.mujin.dae@body0_motion')
+    u'mujin:/test.mujin.dae'
+    """
+    mri = MujinResourceIdentifier(uri=uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT)
+    mri = mri.WithoutFragment()
+    return mri.uri
 
 def GetURIFromPrimaryKey(primaryKey, **kwargs):
     """Given the encoded primary key (utf-8 encoded and quoted), returns the unicode URL.
