@@ -11,7 +11,7 @@ import os
 import time
 
 # mujin imports
-from . import APIServerError
+from . import APIServerError, GetMonotonicTime
 from . import controllerclientbase, zmqclient
 from . import zmq
 from . import json
@@ -139,10 +139,12 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def DeleteJobs(self, usewebapi=True, timeout=5):
         """ cancels all jobs
         """
-        # TODO(cleanup2)
-        # cancel on the zmq configure
-        if self._configsocket is not None:
-            self._SendConfigViaZMQ({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
+        if usewebapi:
+            super(PlanningControllerClient, self).DeleteJobs(usewebapi, timeout)
+        else:
+            # cancel on the zmq configure
+            if self._configsocket is not None:
+                self._SendConfigViaZMQ({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
 
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
         while self._isok and self._isokheartbeat:
@@ -153,21 +155,21 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             poller = zmq.Poller()
             poller.register(socket, zmq.POLLIN)
 
-            lastheartbeatts = time.time()
-            while self._isokheartbeat and time.time() - lastheartbeatts < reinitializetimeout:
+            lastheartbeatts = GetMonotonicTime()
+            while self._isokheartbeat and GetMonotonicTime() - lastheartbeatts < reinitializetimeout:
                 socks = dict(poller.poll(50))
                 if socket in socks and socks.get(socket) == zmq.POLLIN:
                     try:
                         reply = socket.recv_json(zmq.NOBLOCK)
                         if 'taskstate' in reply:
                             self._taskstate = reply['taskstate']
-                            lastheartbeatts = time.time()
+                            lastheartbeatts = GetMonotonicTime()
                         else:
                             self._taskstate = None
                     except zmq.ZMQError as e:
                         log.exception('failed to receive from publisher: %s', e)
             if self._isokheartbeat:
-                log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
+                log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
 
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
