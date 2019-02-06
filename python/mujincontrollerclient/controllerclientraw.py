@@ -45,6 +45,9 @@ class ControllerWebClient(object):
         # use basic auth
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
+        # set referer
+        self._headers['Referer'] = baseurl
+
         # set csrftoken
         # any string can be the csrftoken
         self._headers['X-CSRFToken'] = 'csrftoken'
