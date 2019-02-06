@@ -88,6 +88,26 @@ class APIServerError(ClientExceptionBase):
     def __repr__(self):
         return '<%s(message=%r, stacktrace=%r, errorcode=%r, inputcommand=%r)>' % (self.__class__.__name__, self._message, self._stacktrace, self._errorcode, self._inputcommand)
 
+    @property
+    def message(self):
+        """The error message from server."""
+        return self._message
+
+    @property
+    def errorcode(self):
+        """The error code from server. Could be None."""
+        return self._errorcode
+    
+    @property
+    def stacktrace(self):
+        """Stacktrace from the error. Could be None."""
+        return self._stacktrace
+    
+    @property
+    def inputcommand(self):
+        """The command that was sent to the server. Could be None."""
+        return self._inputcommand
+
 
 class TimeoutError(ClientExceptionBase):
     pass
