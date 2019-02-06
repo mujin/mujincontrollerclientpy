@@ -52,8 +52,8 @@ if __name__ == "__main__":
 
         MUJIN_BINPICKINGUI_CONTROLLER_USERNAME = os.environ.get('MUJIN_BINPICKINGUI_CONTROLLER_USERNAME', 'mujin').strip()
         MUJIN_BINPICKINGUI_CONTROLLER_PASSWORD = os.environ.get('MUJIN_BINPICKINGUI_CONTROLLER_PASSWORD', '').strip() or os.environ.get('MUJIN_WEBSTACK_%s_PASSWORD' % MUJIN_BINPICKINGUI_CONTROLLER_USERNAME, '').strip() or ''
-        self = controllerclientbase.ControllerClient(userconf.get('controllerurl','') or 'http://localhost', userconf.get('controllerusername','') or MUJIN_BINPICKINGUI_CONTROLLER_USERNAME, userconf.get('controllerpassword','') or MUJIN_BINPICKINGUI_CONTROLLER_PASSWORD)
-    
+        self = controllerclientbase.ControllerClient(userconf.get('controllerurl', '') or 'http://localhost', userconf.get('controllerusername', '') or MUJIN_BINPICKINGUI_CONTROLLER_USERNAME, userconf.get('controllerpassword', '') or MUJIN_BINPICKINGUI_CONTROLLER_PASSWORD)
+
     scenebasename = os.path.split(scenefilename)[1]
     if self.FileExists(scenebasename):
         response = six.input('File %s exists on server, would you like to overwrite? (y/n) ' % scenebasename)
