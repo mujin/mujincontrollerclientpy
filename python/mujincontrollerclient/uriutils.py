@@ -537,10 +537,13 @@ class MujinResourceIdentifier(object):
 
     @property
     def parseResult(self):
+        path = _Unquote(self._primaryKey)
+        if not path.startswith(u'/'):
+            path = u'/' + path
         return urlparse.ParseResult(
             scheme=self._scheme,
             netloc=EMPTY_STRING_UNICODE,
-            path=u'/' + _Unquote(self._primaryKey),
+            path=path,
             params=EMPTY_STRING_UNICODE,
             query=EMPTY_STRING_UNICODE,
             fragment=self._fragment,
