@@ -540,7 +540,7 @@ class MujinResourceIdentifier(object):
         return urlparse.ParseResult(
             scheme=self._scheme,
             netloc=EMPTY_STRING_UNICODE,
-            path=_Unquote(self._primaryKey),
+            path=u'/' + _Unquote(self._primaryKey),
             params=EMPTY_STRING_UNICODE,
             query=EMPTY_STRING_UNICODE,
             fragment=self._fragment,
