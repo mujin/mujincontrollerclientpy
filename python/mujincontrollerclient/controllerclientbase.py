@@ -536,7 +536,7 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'orderCycleLog/', data={
             'cycleIndex': cycleIndex,
-            'cycleStartProcessingDate': cycleStartProcessingDate,
+            'cycleStartProcessingDate': cycleStartProcessingDate.isoformat(),
             'orderId': orderId,
             'orderCycleLog': orderCycleLog,
             'controllerId': controllerId,
