@@ -532,11 +532,11 @@ class ControllerClient(object):
     # Order Cycle Log
     #
 
-    def CreateOrderCycleLog(self, cycleIndex, cycleElapsedProcessingTime, orderId, orderCycleLog, controllerId, fields=None, usewebapi=True, timeout=5):
+    def CreateOrderCycleLog(self, cycleIndex, cycleStartProcessingDate, orderId, orderCycleLog, controllerId, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'orderCycleLog/', data={
             'cycleIndex': cycleIndex,
-            'cycleElapsedProcessingTime': cycleElapsedProcessingTime,
+            'cycleStartProcessingDate': cycleStartProcessingDate,
             'orderId': orderId,
             'orderCycleLog': orderCycleLog,
             'controllerId': controllerId,
