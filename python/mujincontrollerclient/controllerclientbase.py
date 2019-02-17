@@ -532,9 +532,15 @@ class ControllerClient(object):
     # Order Cycle Log
     #
 
-    def CreateOrderCycleLog(self, orderCycleLog, fields=None, usewebapi=True, timeout=5):
+    def CreateOrderCycleLog(self, cycleIndex, cycleElapsedProcessingTime, orderId, orderCycleLog, controllerId, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('POST', u'orderCycleLog/', data=orderCycleLog, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', u'orderCycleLog/', data={
+            'cycleIndex': cycleIndex,
+            'cycleElapsedProcessingTime': cycleElapsedProcessingTime,
+            'orderId': orderId,
+            'orderCycleLog': orderCycleLog,
+            'controllerId': controllerId,
+        }, fields=fields, timeout=timeout)
 
     #
     # Geometry related
