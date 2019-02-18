@@ -532,17 +532,34 @@ class ControllerClient(object):
     # Order Cycle Log
     #
 
+    def GetOrderCycleLogs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        params.update(kwargs)
+        return self._webclient.APICall('GET', u'orderCycleLog/', fields=fields, timeout=timeout, params=params)['objects']
+
     def CreateOrderCycleLog(self, cycleIndex, dateCycleStartProcessing, orderId, orderCycleLog, controllerId, reporterControllerId, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'orderCycleLog/', data={
             'cycleIndex': cycleIndex,
-            'dateCycleStartProcessing': dateCycleStartProcessing.isoformat(),
+            'dateCycleStartProcessing': dateCycleStartProcessing,
             'orderId': orderId,
             'orderCycleLog': orderCycleLog,
             'controllerId': controllerId,
             'reporterControllerId': reporterControllerId,
-            'reporterDateCreated': reporterDateCreated.isoformat() if reporterDateCreated else None,
+            'reporterDateCreated': reporterDateCreated,
         }, fields=fields, timeout=timeout)
+
+    #
+    # Controller State
+    #
+
+    def GetControllerState(self, controllerId, fields=None, usewebapi=True, timeout=3):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'controllerState/%s/' % controllerId, fields=fields, timeout=timeout)
 
     #
     # Geometry related
@@ -753,6 +770,12 @@ class ControllerClient(object):
     def GetConfig(self, timeout=5):
         response = self._webclient.Request('GET', '/config/')
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code)
         return response.json()
 
+
+    def GetSystemInfo(self, timeout=3):
+        response = self._webclient.Request('GET', '/systeminfo/')
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code)
+        return response.json()
