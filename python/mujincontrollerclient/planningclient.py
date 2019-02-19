@@ -21,7 +21,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def _GetAPIServerErrorFromZMQ(response):
+def GetAPIServerErrorFromZMQ(response):
     """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
     """
     if response is None:
@@ -240,7 +240,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             # for fire and forget commands, no response will be available
             return None
 
-        error = _GetAPIServerErrorFromZMQ(response)
+        error = GetAPIServerErrorFromZMQ(response)
         if error is not None:
             log.warn('GetAPIServerErrorFromZMQ returned error for %r', response)
             raise error
@@ -293,7 +293,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             # for fire and forget commands, no response will be available
             return None
 
-        error = _GetAPIServerErrorFromZMQ(response)
+        error = GetAPIServerErrorFromZMQ(response)
         if error is not None:
             raise error
         return response['output']
