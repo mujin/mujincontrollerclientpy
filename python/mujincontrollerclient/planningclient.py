@@ -5,20 +5,40 @@ Planning client
 """
 
 # system imports
+import threading
+import weakref
 import os
 import time
-import zmq
-
-from threading import Thread
-import weakref
 
 # mujin imports
-from . import GetAPIServerErrorFromZMQ
+from . import APIServerError, GetMonotonicTime
 from . import controllerclientbase, zmqclient
+from . import zmq
 
 # logging
-from logging import getLogger
-log = getLogger(__name__)
+import logging
+log = logging.getLogger(__name__)
+
+
+def GetAPIServerErrorFromZMQ(response):
+    """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
+    """
+    if response is None:
+        return None
+
+    if 'error' in response:
+        if isinstance(response['error'], dict):
+            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
+
+        else:
+            return APIServerError(response['error'])
+
+    elif 'exception' in response:
+        return APIServerError(response['exception'])
+
+    elif 'status' in response and response['status'] != 'succeeded':
+        # something happened so raise exception
+        return APIServerError(u'Resulting status is %s' % response['status'])
 
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
@@ -70,7 +90,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             self.taskheartbeattimeout = taskheartbeattimeout
             if self.taskheartbeatport is not None:
                 self._isokheartbeat = True
-                self._heartbeatthread = Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
+                self._heartbeatthread = threading.Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
                 self._heartbeatthread.start()
 
         self.SetScenePrimaryKey(scenepk)
@@ -123,7 +143,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         else:
             # cancel on the zmq configure
             if self._configsocket is not None:
-                self._SendConfigViaZMQ({'command': 'cancel'}, self._slaverequestid, timeout=timeout, fireandforget=False)
+                self._SendConfigViaZMQ({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
 
     def _RunHeartbeatMonitorThread(self, reinitializetimeout=10.0):
         while self._isok and self._isokheartbeat:
@@ -134,21 +154,21 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             poller = zmq.Poller()
             poller.register(socket, zmq.POLLIN)
 
-            lastheartbeatts = time.time()
-            while self._isokheartbeat and time.time() - lastheartbeatts < reinitializetimeout:
+            lastheartbeatts = GetMonotonicTime()
+            while self._isokheartbeat and GetMonotonicTime() - lastheartbeatts < reinitializetimeout:
                 socks = dict(poller.poll(50))
                 if socket in socks and socks.get(socket) == zmq.POLLIN:
                     try:
                         reply = socket.recv_json(zmq.NOBLOCK)
                         if 'taskstate' in reply:
                             self._taskstate = reply['taskstate']
-                            lastheartbeatts = time.time()
+                            lastheartbeatts = GetMonotonicTime()
                         else:
                             self._taskstate = None
                     except zmq.ZMQError as e:
                         log.exception('failed to receive from publisher: %s', e)
             if self._isokheartbeat:
-                log.warn('%f secs since last heartbeat from controller' % (time.time() - lastheartbeatts))
+                log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
 
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
@@ -180,9 +200,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'resource_type': 'task',
             'slaverequestid': slaverequestid,
         }
-        status, response = self._webclient.APICall('POST', u'job/', data=data, timeout=timeout)
-        assert(status == 200)
-        return response
+        return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
 
     def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=None):
         '''executes task with a particular task type without creating a new task
@@ -190,14 +208,12 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
         # execute task
-        status, response = self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
+        return self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
             'tasktype': tasktype,
             'taskparameters': taskparameters,
             'slaverequestid': slaverequestid,
             'timeout': timeout,
         }, timeout=timeout)
-        assert(status == 200)
-        return response
 
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
         """executes command via web api
