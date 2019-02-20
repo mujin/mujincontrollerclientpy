@@ -200,7 +200,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'resource_type': 'task',
             'slaverequestid': slaverequestid,
         }
-        return self._webclient.APICall('POST', u'job/', data=data, timeout=timeout)
+        return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
 
     def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=None):
         '''executes task with a particular task type without creating a new task
