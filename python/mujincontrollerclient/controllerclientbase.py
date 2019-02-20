@@ -740,3 +740,14 @@ class ControllerClient(object):
             raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
         return response.json()
 
+    #
+    # Object set related
+    #
+
+    def AddObjectToObjectSet(self, objectpk, objectsetpk, timeout=10):
+        refpks = self._webclient.APICall('GET', u'scene/%s/?format=json' % objectsetpk, fields=['referenceobjectpks'], timeout=timeout)
+        if objectpk not in refpks['referenceobjectpks']:
+            refpks['referenceobjectpks'].append(objectpk)
+            return self._webclient.APICall('PUT', u'scene/%s/' % objectsetpk, data=refpks, fields=['referenceobjectpks'], timeout=timeout)
+        else:
+            log.warn(u'objectpk %r is already in objectsetpk %r, so do nothing.', objectpk, objectsetpk)
