@@ -245,7 +245,7 @@ class ControllerClient(object):
         """ returns the instance objects of the scene
         """
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)['objects']
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
@@ -395,7 +395,7 @@ class ControllerClient(object):
         params = {}
         if mesh:
             params['mesh'] = '1'
-        return self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, params=params, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', u'object/%s/geometry/' % objectpk, params=params, fields=fields, timeout=timeout)['geometries']
 
     #
     # Object Tools related
@@ -403,7 +403,7 @@ class ControllerClient(object):
 
     def GetRobotTools(self, robotpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', u'robot/%s/tool/' % robotpk, fields=fields, timeout=timeout)['tools']
 
     def GetRobotTool(self, robotpk, toolpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
@@ -430,7 +430,7 @@ class ControllerClient(object):
 
     def GetInstRobotTools(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
+        return self._webclient.APICall('GET', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), fields=fields, timeout=timeout)['tools']
 
     def GetInstRobotTool(self, scenepk, instobjectpk, toolpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
@@ -655,7 +655,7 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return json.loads(response.content)['filename']
+                return response.json()['filename']
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
@@ -664,7 +664,7 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return json.loads(response.content)['filename']
+                return response.json()['filename']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
@@ -673,7 +673,7 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
         if response.status_code in (200, 404):
             try:
-                return json.loads(response.content)
+                return response.json()
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
@@ -744,7 +744,7 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
-        return json.loads(response.content)
+        return response.json()
 
     #
     # Query list of scenepks based on barcdoe field
@@ -754,7 +754,7 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
-        return json.loads(response.content)
+        return response.json()
 
     #
     # Report stats to registration controller
@@ -764,3 +764,14 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/stats/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to upload stats, status code is %d') % response.status_code)
+
+    #
+    # Config.
+    #
+
+    def GetConfig(self, timeout=5):
+        response = self._webclient.Request('GET', '/config/')
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
+        return response.json()
+

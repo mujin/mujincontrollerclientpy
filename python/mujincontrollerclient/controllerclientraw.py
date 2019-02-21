@@ -45,6 +45,9 @@ class ControllerWebClient(object):
         # use basic auth
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
+        # set referer
+        self._headers['Referer'] = baseurl
+
         # set csrftoken
         # any string can be the csrftoken
         self._headers['X-CSRFToken'] = 'csrftoken'
@@ -91,7 +94,7 @@ class ControllerWebClient(object):
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
     # python port of the javascript API Call function
-    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, timeout=5):
+    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, timeout=5):
         path = '/api/v1/' + path.lstrip('/')
         if not path.endswith('/'):
             path += '/'
@@ -142,14 +145,17 @@ class ControllerWebClient(object):
         if response.status_code >= 400:
             raise APIServerError(raw)
 
+        # figure out the expected status code from method
+        # some api were mis-implemented to not return standard status code
+        if not expectedStatusCode:
+            expectedStatusCode = {
+                'GET': 200,
+                'POST': 201,
+                'DELETE': 204,
+                'PUT': 202,
+            }.get(method, 200)
+
         # check expected status code
-        expectedStatusCode = {
-            'GET': 200,
-            'HEAD': 200,
-            'POST': 201,
-            'DELETE': 204,
-            'PUT': 202,
-        }.get(method, 200)
         if response.status_code != expectedStatusCode:
             log.error('response status code is %d, expecting %d: %s', response.status_code, expectedStatusCode, raw)
             raise APIServerError(raw)
