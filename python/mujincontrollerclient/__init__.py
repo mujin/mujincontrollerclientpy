@@ -82,8 +82,8 @@ class APIServerError(ClientExceptionBase):
 
     def __str__(self):
         if self._message is not None:
-            return self._message
-        return _('Unknown error')
+            return _('API Server Error: %s')%self._message
+        return _('API Server Error: Unknown')
 
     def __repr__(self):
         return '<%s(message=%r, stacktrace=%r, errorcode=%r, inputcommand=%r)>' % (self.__class__.__name__, self._message, self._stacktrace, self._errorcode, self._inputcommand)
