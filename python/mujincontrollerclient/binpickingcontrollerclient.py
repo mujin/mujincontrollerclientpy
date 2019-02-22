@@ -244,7 +244,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, execute=1, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """Attach a requested tool. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool.
 
         :param newToolName: target tool name
@@ -264,7 +264,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'newToolName': newToolName,
             'toolChangeEndsJointValues': list(toolChangeEndsJointValues),
             'jointindices': list(jointindices),
-            'execute': execute,
         }
         if envclearance is not None:
             taskparameters['envclearance'] = envclearance
