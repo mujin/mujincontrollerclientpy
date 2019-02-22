@@ -268,6 +268,33 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
+    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        """Attach a requested tool. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool.
+
+        :param newToolName: target tool name
+        :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
+
+        :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
+          - currentTool: the name of the tool after the change operation
+          - previousTool: the name of the tool before the change operation
+        """
+
+        if jointindices is None:
+            jointindices = range(len(toolChangeEndsJointValues))
+            log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
+
+        taskparameters = {
+            'command': 'ChangeTool',
+            'newToolName': newToolName,
+            'toolChangeEndsJointValues': list(toolChangeEndsJointValues),
+            'jointindices': list(jointindices),
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
     ####################
     # scene commands
     ####################
