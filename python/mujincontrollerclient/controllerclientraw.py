@@ -75,14 +75,15 @@ class ControllerWebClient(object):
         session = requests.Session()
         session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
+        csrftoken = 'csrftoken'
         headers = {
             'Accept-Language': self._language,
+            'X-CSRFToken': csrftoken,
         }
+        session.cookies.set('csrftoken', headers['X-CSRFToken'], path='/')
         response = session.head('%s/api/v1/' % self._baseurl, headers=headers, timeout=timeout)
         if response.status_code != requests.codes.ok:
             raise AuthenticationError(_('Failed to authenticate: %r') % response.content.decode('utf-8'))
-
-        csrftoken = response.cookies.get('csrftoken', None)
 
         # for older mujin systems, a second POST request is required for logging in
         if response.cookies.get('sessionid', None) is None:
