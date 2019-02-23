@@ -748,6 +748,6 @@ class ControllerClient(object):
         refpks = self._webclient.APICall('GET', u'scene/%s/?format=json' % objectsetpk, fields=['referenceobjectpks'], timeout=timeout)
         if objectpk not in refpks['referenceobjectpks']:
             refpks['referenceobjectpks'].append(objectpk)
-            return self._webclient.APICall('PUT', u'scene/%s/' % objectsetpk, data=refpks, fields=['referenceobjectpks'], timeout=timeout)
         else:
-            log.warn(u'objectpk %r is already in objectsetpk %r, so do nothing.', objectpk, objectsetpk)
+            log.warn(u'objectpk %r is already in objectsetpk %r, so this call will change nothing.', objectpk, objectsetpk)
+        return self._webclient.APICall('PUT', u'scene/%s/' % objectsetpk, data=refpks, fields=['referenceobjectpks'], timeout=timeout)
