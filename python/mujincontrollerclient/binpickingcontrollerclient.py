@@ -244,15 +244,15 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=None, **kwargs):
         """Attach a requested tool. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool.
 
         :param newToolName: target tool name
         :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
 
         :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
-          - currentTool: the name of the tool after the change operation
-          - previousTool: the name of the tool before the change operation
+          - currentTool: the name of the attached tool after the change operation
+          - previousTool: the name of the previously attached tool before the change operation
         """
 
         if jointindices is None:
@@ -270,6 +270,22 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
+    def SyncAttachedTool(self, robotname=None, robots=None, timeout=10, usewebapi=None, **kwargs):
+        """
+        Read attached tool information from IO variable specified in toolChangeInfo, and update tool links accordingly
+
+        :return: a dictionary with the following key:
+          - currentTool: the name of currently attached tool
+        """
+
+        taskparameters = {
+            'command': 'SyncAttachedTool',
+        }
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
+
 
     ####################
     # scene commands
