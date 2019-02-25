@@ -271,6 +271,34 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
 
+    def ChangeToolForPart(self, partType, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        """Attach a tool needed to grasp the given part type. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool. If there is no tool associated to the given part type, this function does nothing.
+
+        :param partType: target part type
+        :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
+
+        :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
+          - currentTool: the name of the tool after the change operation
+          - previousTool: the name of the tool before the change operation
+          - toolForPart: the name of the tool associated to the given part type. If there is no tool associated to the part type, empty.
+        """
+
+        if jointindices is None:
+            jointindices = range(len(toolChangeEndsJointValues))
+            log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
+
+        taskparameters = {
+            'command': 'ChangeToolForPart',
+            'partType': partType,
+            'toolChangeEndsJointValues': list(toolChangeEndsJointValues),
+            'jointindices': list(jointindices),
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
     def SyncAttachedTool(self, robotname=None, robots=None, timeout=10, usewebapi=None, **kwargs):
         """
         Read attached tool information from IO variable specified in toolChangeInfo, and update tool links accordingly
