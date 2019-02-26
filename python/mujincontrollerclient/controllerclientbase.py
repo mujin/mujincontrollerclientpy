@@ -690,6 +690,13 @@ class ControllerClient(object):
             'size': int(response.headers['Content-Length']),
         }
 
+    def FlushCache(self, timeout=5):
+        """flush pending changes in cache to disk
+        """
+        response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+
     #
     # Log related
     #
