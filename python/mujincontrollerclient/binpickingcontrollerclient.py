@@ -251,8 +251,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
 
         :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
-          - currentTool: the name of the attached tool after the change operation
-          - previousTool: the name of the previously attached tool before the change operation
+          - currentAttachedTool: the name of the attached tool after the change operation
+          - previousAttachedTool: the name of the previously attached tool before the change operation
         """
 
         if jointindices is None:
@@ -278,8 +278,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
 
         :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
-          - currentTool: the name of the tool after the change operation
-          - previousTool: the name of the tool before the change operation
+          - currentAttachedTool: the name of the tool after the change operation
+          - previousAttachedTool: the name of the tool before the change operation
           - toolForPart: the name of the tool associated to the given part type. If there is no tool associated to the part type, empty.
         """
 
@@ -304,7 +304,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         Read attached tool information from IO variable specified in toolChangeInfo, and update tool links accordingly
 
         :return: a dictionary with the following key:
-          - currentTool: the name of currently attached tool
+          - currentAttachedTool: the name of currently attached tool
         """
 
         taskparameters = {
