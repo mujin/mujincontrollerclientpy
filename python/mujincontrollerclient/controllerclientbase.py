@@ -742,8 +742,34 @@ class ControllerClient(object):
     #
 
     def GetConfig(self, timeout=5):
-        response = self._webclient.Request('GET', '/config/')
+        response = self._webclient.Request('GET', '/config/', timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
         return response.json()
+
+    #
+    # Reference Object PKs.
+    #
+
+    def ModifySceneAddReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
+        """
+        Add a referenceobjectpk to the scene.
+        """
+        response = self._webclient.Request('POST', '/referenceobjectpks/add/',  data={
+            'scenepk': scenepk,
+            'referenceobjectpk': referenceobjectpk,
+        }, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to add referenceobjectpk %r to scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
+
+    def ModifySceneRemoveReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
+        """
+        Remove a referenceobjectpk from the scene.
+        """
+        response = self._webclient.Request('POST', '/referenceobjectpks/remove/',  data={
+            'scenepk': scenepk,
+            'referenceobjectpk': referenceobjectpk,
+        }, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
 
