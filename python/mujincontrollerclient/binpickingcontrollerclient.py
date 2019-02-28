@@ -268,7 +268,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=None, **kwargs):
+    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=30, usewebapi=None, **kwargs):
         """Attach a requested tool. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool.
 
         :param newToolName: target tool name
@@ -295,7 +295,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
 
-    def ChangeToolForPart(self, partType, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+    def ChangeToolForPart(self, partType, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=30, usewebapi=True, **kwargs):
         """Attach a tool needed to grasp the given part type. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool. If there is no tool associated to the given part type, this function does nothing.
 
         :param partType: target part type
