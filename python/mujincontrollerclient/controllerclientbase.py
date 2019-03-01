@@ -755,10 +755,10 @@ class ControllerClient(object):
         """
         Add a referenceobjectpk to the scene.
         """
-        response = self._webclient.Request('POST', '/referenceobjectpks/add/',  data={
+        response = self._webclient.Request('POST', '/referenceobjectpks/add/', data=json.dumps({
             'scenepk': scenepk,
             'referenceobjectpk': referenceobjectpk,
-        }, timeout=timeout)
+        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to add referenceobjectpk %r to scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
 
@@ -766,10 +766,10 @@ class ControllerClient(object):
         """
         Remove a referenceobjectpk from the scene.
         """
-        response = self._webclient.Request('POST', '/referenceobjectpks/remove/',  data={
+        response = self._webclient.Request('POST', '/referenceobjectpks/remove/', data=json.dumps({
             'scenepk': scenepk,
             'referenceobjectpk': referenceobjectpk,
-        }, timeout=timeout)
+        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
 
