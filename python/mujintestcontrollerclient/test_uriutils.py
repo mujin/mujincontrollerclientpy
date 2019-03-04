@@ -99,6 +99,13 @@ def test_GetPrimaryKeyFromPartType(partType, suffix, expected):
     assert uriutils.GetPrimaryKeyFromPartType(partType, suffix=suffix) == expected
 
 
+@pytest.mark.parametrize('partType, suffix, expected', [
+    (u'测试_test', u'.mujin.dae', u'mujin:/测试_test.mujin.dae'),
+])
+def test_GetURIFromPartType(partType, suffix, expected):
+    assert uriutils.GetURIFromPartType(partType, suffix=suffix) == expected
+
+
 @pytest.mark.parametrize('filename, mujinPath, suffix, expected', [
     (u'/data/detection/测试_test.mujin.dae', u'/data/detection', u'.mujin.dae', u'测试_test'),
     (u'/data/detection/测试_test.mujin.dae', u'/data/dete', u'.mujin.dae', u'/data/detection/测试_test'),
