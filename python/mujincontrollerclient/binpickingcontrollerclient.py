@@ -517,7 +517,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
-            'command': 'StopPickPlaceThread',
+            'command': 'StopPackFormationComputationThread',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
