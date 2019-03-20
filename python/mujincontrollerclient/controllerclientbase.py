@@ -611,8 +611,11 @@ class ControllerClient(object):
     # File related
     #
 
-    def UploadFile(self, f, filename=None, timeout=10):
+    def UploadFile(self, f, filename=None, timeout=10, returnDict=False):
         """uploads a file managed by file handle f
+
+        Args:
+            returnDict (bool): If True, returns the response of the web call in dict format
         """
         data = {}
         if filename:
@@ -620,7 +623,11 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()['filename']
+                parsedDict = response.json()
+                if returnDict:
+                    return parsedDict
+                else:
+                    return parsedDict['filename']
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
