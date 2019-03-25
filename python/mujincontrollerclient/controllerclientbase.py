@@ -611,7 +611,7 @@ class ControllerClient(object):
     # File related
     #
 
-    def UploadFile(self, f, filename=None, timeout=10, returnDict=False):
+    def UploadFile(self, f, filename=None, timeout=10):
         """uploads a file managed by file handle f
 
         Args:
@@ -623,11 +623,7 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
-                parsedDict = response.json()
-                if returnDict:
-                    return parsedDict
-                else:
-                    return parsedDict['filename']
+                return response.json()
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
@@ -682,6 +678,19 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
+
+    def FlushAndHeadFile(self, filename, timeout=5):
+        """downloads a file given filename
+
+        :return: a streaming response
+        """
+        response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return {
+            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
+            'size': int(response.headers['Content-Length']),
+        }
 
     def HeadFile(self, filename, timeout=5):
         """Perform a HEAD operation on given filename to retrieve metadata.
@@ -779,4 +788,3 @@ class ControllerClient(object):
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
-
