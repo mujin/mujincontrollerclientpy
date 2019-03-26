@@ -12,7 +12,7 @@ setup(
     version='0.0.1',
     packages=['mujincontrollerclient'],
     package_dir={'mujincontrollerclient': 'python/mujincontrollerclient'},
-    scripts=['bin/mujin_controllerclientpy_registerscene.py'],
+    scripts=['bin/mujin_mujincontrollerclientpy_registerscene.py', 'bin/mujin_mujincontrollerclientpy_runshell.py'],
     locale_dir='locale',
     license='Apache License, Version 2.0',
     long_description=open('README.rst').read(),
