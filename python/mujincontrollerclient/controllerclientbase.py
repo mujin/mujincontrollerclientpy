@@ -541,13 +541,14 @@ class ControllerClient(object):
         params.update(kwargs)
         return self._webclient.APICall('GET', u'orderCycleLog/', fields=fields, timeout=timeout, params=params)['objects']
 
-    def CreateOrderCycleLog(self, cycleIndex, dateCycleStartProcessing, orderId, orderCycleLog, controllerId, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
+    def CreateOrderCycleLog(self, cycleIndex, cycleType, dateCycleStartProcessing, orderId, content, controllerId, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'orderCycleLog/', data={
             'cycleIndex': cycleIndex,
+            'cycleType': cycleType,
             'dateCycleStartProcessing': dateCycleStartProcessing,
             'orderId': orderId,
-            'orderCycleLog': orderCycleLog,
+            'content': content,
             'controllerId': controllerId,
             'reporterControllerId': reporterControllerId,
             'reporterDateCreated': reporterDateCreated,
