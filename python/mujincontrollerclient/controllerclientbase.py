@@ -723,6 +723,13 @@ class ControllerClient(object):
             'size': int(response.headers['Content-Length']),
         }
 
+    def FlushCache(self, timeout=5):
+        """flush pending changes in cache to disk
+        """
+        response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+
     #
     # Log related
     #
@@ -768,14 +775,40 @@ class ControllerClient(object):
     #
 
     def GetConfig(self, timeout=5):
-        response = self._webclient.Request('GET', '/config/')
+        response = self._webclient.Request('GET', '/config/', timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code)
         return response.json()
-
 
     def GetSystemInfo(self, timeout=3):
         response = self._webclient.Request('GET', '/systeminfo/')
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code)
         return response.json()
+
+    #
+    # Reference Object PKs.
+    #
+
+    def ModifySceneAddReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
+        """
+        Add a referenceobjectpk to the scene.
+        """
+        response = self._webclient.Request('POST', '/referenceobjectpks/add/', data=json.dumps({
+            'scenepk': scenepk,
+            'referenceobjectpk': referenceobjectpk,
+        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to add referenceobjectpk %r to scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
+
+    def ModifySceneRemoveReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
+        """
+        Remove a referenceobjectpk from the scene.
+        """
+        response = self._webclient.Request('POST', '/referenceobjectpks/remove/', data=json.dumps({
+            'scenepk': scenepk,
+            'referenceobjectpk': referenceobjectpk,
+        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
+
