@@ -579,14 +579,16 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def ValidatePackFormationResult(self, packFormationResult, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def ValidatePackFormationResultList(self, packFormationResultList, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """
-        Validates pack formation result and compute info (fillRatio, packageDimensions, packedItemsInfo, etc) about it .
+        Validates pack formation result list and compute info (fillRatio, packageDimensions, packedItemsInfo, etc) about it .
         kwargs should be packing parameters
+        :return dictionary {'validatedPackFormationResultList':[{'validationStatus', 'errorCode', 'errorDesc', (optional)'packFormationResult'}]}
         """
         taskparameters = {
-            'command': 'ValidatePackFormationResult',
-            'packFormationResult': packFormationResult
+            'command': 'ValidatePackFormationResultList',
+            'packFormationResultList': packFormationResultList
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        ret = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return ret 
