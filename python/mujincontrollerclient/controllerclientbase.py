@@ -174,7 +174,7 @@ class ControllerClient(object):
         """uploads a file managed by file handle f
 
         """
-        return self.UploadFile(f, timeout=timeout)
+        return self.UploadFile(f, timeout=timeout)['filename']
 
     def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         """list all available scene on controller
