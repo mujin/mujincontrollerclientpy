@@ -614,8 +614,8 @@ class ControllerClient(object):
     def UploadFile(self, f, filename=None, timeout=10):
         """uploads a file managed by file handle f
 
-        Args:
-            returnDict (bool): If True, returns the response of the web call in dict format
+        Returns:
+            (dict) json response
         """
         data = {}
         if filename:
@@ -670,7 +670,7 @@ class ControllerClient(object):
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
-        """downloads a file given filename
+        """Flush and perform a HEAD operation on given filename to retrieve metadata.
 
         :return: a streaming response
         """
@@ -680,11 +680,11 @@ class ControllerClient(object):
         return response
 
     def FlushAndHeadFile(self, filename, timeout=5):
-        """downloads a file given filename
+        """Flush and perform a HEAD operation on given filename to retrieve metadata.
 
-        :return: a streaming response
+        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
         """
-        response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
+        response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         return {
@@ -695,7 +695,7 @@ class ControllerClient(object):
     def HeadFile(self, filename, timeout=5):
         """Perform a HEAD operation on given filename to retrieve metadata.
 
-        :return: a dict containing keys like modified and size
+        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
         """
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
