@@ -529,26 +529,25 @@ class ControllerClient(object):
             self._webclient.APICall('DELETE', u'job/', timeout=timeout)
 
     #
-    # Order Cycle Log
+    # Cycle Log
     #
 
-    def GetOrderCycleLogs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+    def GetCycleLogs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         assert(usewebapi)
         params = {
             'offset': offset,
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'orderCycleLog/', fields=fields, timeout=timeout, params=params)['objects']
+        return self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params)['objects']
 
-    def CreateOrderCycleLog(self, cycleIndex, cycleType, dateCycleStartProcessing, orderId, content, controllerId, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
+    def CreateCycleLog(self, cycleIndex, cycleType, dateStarted, cycleLog, controllerId, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('POST', u'orderCycleLog/', data={
+        return self._webclient.APICall('POST', u'cycleLog/', data={
             'cycleIndex': cycleIndex,
             'cycleType': cycleType,
-            'dateCycleStartProcessing': dateCycleStartProcessing,
-            'orderId': orderId,
-            'content': content,
+            'dateStarted': dateStarted,
+            'cycleLog': cycleLog,
             'controllerId': controllerId,
             'reporterControllerId': reporterControllerId,
             'reporterDateCreated': reporterDateCreated,
