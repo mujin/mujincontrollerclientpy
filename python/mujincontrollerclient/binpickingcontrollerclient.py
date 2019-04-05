@@ -533,7 +533,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
 
     def VisualizePackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
+        :param initializeCameraPosition: bool. reset camera position
         """
+
         taskparameters = {
             'command': 'VisualizePackFormationResult',
         }
