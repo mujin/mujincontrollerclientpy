@@ -380,6 +380,8 @@ def GetPrimaryKeyFromPartType(partType, **kwargs):
 def GetURIFromPartType(partType, **kwargs):
     return MujinResourceIdentifier(partType=partType, **kwargs).uri
 
+def GetPartTypeFromURI(uri, **kwargs):
+    return MujinResourceIdentifier(uri=uri, **kwargs).partType
 
 def GetPartTypeFromFilename(filename, **kwargs):
     u"""
