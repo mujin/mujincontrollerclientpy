@@ -160,8 +160,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                 if socket in socks and socks.get(socket) == zmq.POLLIN:
                     try:
                         reply = socket.recv_json(zmq.NOBLOCK)
-                        if 'taskstate' in reply:
-                            self._taskstate = reply['taskstate']
+                        if 'slavestates' in reply and 'slaverequestid-'+str(self._slaverequestid) in reply['slavestates'] and 'taskstate' in reply['slavestates']['slaverequestid-'+str(self._slaverequestid)]:
+                            self._taskstate = reply['slavestates']['slaverequestid-'+str(self._slaverequestid)]['taskstate']
                             lastheartbeatts = GetMonotonicTime()
                         else:
                             self._taskstate = None
