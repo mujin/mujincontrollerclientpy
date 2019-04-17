@@ -112,3 +112,11 @@ def test_GetURIFromPartType(partType, suffix, expected):
 ])
 def test_GetPartTypeFromFilename(filename, mujinPath, suffix, expected):
     assert uriutils.GetPartTypeFromFilename(filename, mujinPath=mujinPath, suffix=suffix) == expected
+
+@pytest.mark.parametrize('uri, fragmentSeparator,  expected', [
+    (u'mujin:/测试_test.mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test'),
+    (u'mujin:/测试_test.mujin.dae', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test'),
+    (u'mujin:/test.mujin.dae', uriutils.FRAGMENT_SEPARATOR_AT, u'test'),
+])
+def test_GetPartTypeFromURI(uri, fragmentSeparator, expected):
+    assert uriutils.GetPartTypeFromURI(uri, fragmentSeparator=fragmentSeparator) == expected
