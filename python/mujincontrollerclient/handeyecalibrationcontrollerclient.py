@@ -33,7 +33,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
             'command': 'ComputeCalibrationPoses',
             'camerafullname': camerafullname,
             'halconpatternparameters': halconpatternparameters,
-            'patternvisibility': calibboardvisibility,
+            'calibboardvisibility': calibboardvisibility,
             'calibboardLinkName': calibboardLinkName,
             'calibboardGeomName': calibboardGeomName,
             'numsamples': numsamples,
