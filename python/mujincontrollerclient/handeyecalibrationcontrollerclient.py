@@ -28,27 +28,37 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
 
-    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
+    def ComputeCalibrationPoses(self, cameracontainername, primarysensorname, secondarysensornames, numsamples, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
         taskparameters = {
             'command': 'ComputeCalibrationPoses',
-            'camerafullname': camerafullname,
-            'halconpatternparameters': halconpatternparameters,
+            'cameracontainername': cameracontainername,
+            'primarysensorname': primarysensorname,
+            'secondarysensornames': secondarysensornames,
+            'numsamples': numsamples,
             'calibboardvisibility': calibboardvisibility,
             'calibboardLinkName': calibboardLinkName,
             'calibboardGeomName': calibboardGeomName,
-            'numsamples': numsamples,
         }
         taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters['robot'] = self.robot
-        result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
-        return result
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
 
-    def SampleCalibrationConfiguration(self, gridindex, timeout=3000, **kwargs):
-        return self.ExecuteCommand({
+    def SampleCalibrationConfiguration(self, cameracontainername, primarysensorname, secondarysensornames, gridindex, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
+        taskparameters = {
             'command': 'SampleCalibrationConfiguration',
-            'gridindex': gridindex
-        }, timeout=timeout, usewebapi=True)
+            'cameracontainername': cameracontainername,
+            'primarysensorname': primarysensorname,
+            'secondarysensornames': secondarysensornames,
+            'gridindex': gridindex,
+            'calibboardvisibility': calibboardvisibility,
+            'calibboardLinkName': calibboardLinkName,
+            'calibboardGeomName': calibboardGeomName,
+        }
+        taskparameters.update(kwargs)
+        if self.robot is not None:
+            taskparameters['robot'] = self.robot
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
 
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({
