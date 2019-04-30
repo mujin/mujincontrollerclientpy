@@ -299,17 +299,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
-    def GetInstObjectAndSensorInfo(self, instobjectnames, sensornames, unit='m', timeout=10, **kwargs):
-        taskparameters = {
-            'command': 'GetInstObjectAndSensorInfo',
-            'instobjectnames': instobjectnames,
-            'sensornames': sensornames,
-            'unit': unit,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def MoveRobotOutOfCameraOcclusion(self, regionname=None, robotspeed=None, toolname=None, timeout=10, **kwargs):
         """moves the robot out of camera occlusion and deletes targets if it was in occlusion.
 
@@ -517,7 +507,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
-            'command': 'StopPickPlaceThread',
+            'command': 'StopPackFormationComputationThread',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -531,6 +521,18 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def VisualizePackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        :param initializeCameraPosition: bool. reset camera position
+        """
+
+        taskparameters = {
+            'command': 'VisualizePackFormationResult',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    
     def GetPackFormationSolution(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
@@ -549,12 +551,12 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def GetLatestPackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GetLatestPackFormationResultList(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """
         Gets latest pack formation computation result
         """
         taskparameters = {
-            'command': 'GetLatestPackFormationResult',
+            'command': 'GetLatestPackFormationResultList',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -568,3 +570,17 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def ValidatePackFormationResultList(self, packFormationResultList, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """
+        Validates pack formation result list and compute info (fillRatio, packageDimensions, packedItemsInfo, etc) about it .
+        kwargs should be packing parameters
+        :return dictionary {'validatedPackFormationResultList':[{'validationStatus', 'errorCode', 'errorDesc', (optional)'packFormationResult'}]}
+        """
+        taskparameters = {
+            'command': 'ValidatePackFormationResultList',
+            'packFormationResultList': packFormationResultList
+        }
+        taskparameters.update(kwargs)
+        ret = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return ret 
