@@ -174,7 +174,7 @@ class ControllerClient(object):
         """uploads a file managed by file handle f
 
         """
-        return self.UploadFile(f, timeout=timeout)
+        return self.UploadFile(f, timeout=timeout)['filename']
 
     def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         """list all available scene on controller
@@ -613,6 +613,9 @@ class ControllerClient(object):
 
     def UploadFile(self, f, filename=None, timeout=10):
         """uploads a file managed by file handle f
+
+        Returns:
+            (dict) json response
         """
         data = {}
         if filename:
@@ -620,7 +623,7 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()['filename']
+                return response.json()
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
@@ -667,7 +670,7 @@ class ControllerClient(object):
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
-        """downloads a file given filename
+        """Flush and perform a HEAD operation on given filename to retrieve metadata.
 
         :return: a streaming response
         """
@@ -676,10 +679,23 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
+    def FlushAndHeadFile(self, filename, timeout=5):
+        """Flush and perform a HEAD operation on given filename to retrieve metadata.
+
+        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
+        """
+        response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return {
+            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
+            'size': int(response.headers['Content-Length']),
+        }
+
     def HeadFile(self, filename, timeout=5):
         """Perform a HEAD operation on given filename to retrieve metadata.
 
-        :return: a dict containing keys like modified and size
+        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
         """
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
@@ -772,4 +788,3 @@ class ControllerClient(object):
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
-
