@@ -321,6 +321,17 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
+    def GetInstObjectAndSensorInfo(self, instobjectnames=None, sensornames=None, unit='mm', timeout=10, **kwargs):
+        """returns information about the inst objects and sensors part of those inst objects
+        """
+        taskparameters = {'command': 'GetInstObjectAndSensorInfo', 'unit':unit}
+        if instobjectnames is not None:
+            taskparameters['instobjectnames'] = instobjectnames
+        if sensornames is not None:
+            taskparameters['sensornames'] = sensornames
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     def GetAABB(self, targetname, unit='mm', timeout=10, **kwargs):
         """Gets the axis aligned bounding box of object
         :param targetname: name of the object
