@@ -87,9 +87,9 @@ def _Quote(primaryKey):
     assert(isinstance(primaryKey, six.text_type))
     if six.PY3:
         # python3 quote seems to deal with unicode input
-        return _EnsureUTF8(quote(primaryKey))
+        return _EnsureUTF8(quote(primaryKey, safe=''))
     else:
-        return _EnsureUTF8(quote(_EnsureUTF8(primaryKey)))
+        return _EnsureUTF8(quote(_EnsureUTF8(primaryKey), safe=''))
 
 
 def _ParseURI(uri, fragmentSeparator):
