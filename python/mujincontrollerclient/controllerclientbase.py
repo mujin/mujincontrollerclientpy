@@ -713,6 +713,29 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
 
+    def FlushAndDownloadModifiedSceneFiles(self, contentdatemodifieds, timeout=5):
+        """special function to download scene files that has changes
+
+        :param contentdatemodifieds: a dict containing mapping from scenepk to contentdatemodified
+        :return: a dict mapping from scenepk to http response for scenes that changed
+        """
+        responses = dict([
+            (scenepk, None)
+            for scenepk in contentdatemodifieds.keys()
+        ])
+        kwargs = {
+            'pk__in': ','.join(contentdatemodifieds.keys()),
+        }
+        scenes = self.GetScenes(fields='pk,contentdatemodified', timeout=timeout, **kwargs)
+        for scene in scenes:
+            # remove the scenes that did not change from results
+            if contentdatemodifieds.get(scene['pk'], '') == scene['contentdatemodified']:
+                del responses[scene['pk']]
+        for scenepk in responses.keys():
+            filename = uriutils.GetFilenameFromPrimaryKey(scenepk)
+            responses[scenepk] = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
+        return responses
+
     #
     # Log related
     #
