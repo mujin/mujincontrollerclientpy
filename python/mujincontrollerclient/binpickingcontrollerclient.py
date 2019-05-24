@@ -350,6 +350,13 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def SetCalibrationAtStartOfExecutionCycle(self, timeout=10, **kwargs):
+        taskparameters = {
+            'command': 'SetCalibrationAtStartOfExecutionCycle',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         taskparameters = {
             'command': 'SetStopPickPlaceAfterExecutionCycle',

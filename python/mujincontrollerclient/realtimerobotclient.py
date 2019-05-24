@@ -419,6 +419,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def CalibrateForceTorqueSensor(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """goes through the force torque sensor calibration procedure
+        """
+        taskparameters = {'command': 'CalibrateForceTorqueSensor'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
     def ExecuteRobotProgram(self, robotProgramName, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """execute a robot specific program by name
         """
