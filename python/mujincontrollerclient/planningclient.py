@@ -232,6 +232,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             },
             'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
+            'stamp': time.time(),
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
