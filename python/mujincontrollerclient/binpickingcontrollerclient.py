@@ -150,19 +150,21 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
-    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, finishCode=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         :param resetExecutionState: if True, then reset the order state variables. By default True
         :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
+        :param finishCode: optional finish code to end the cycle with (if it doesn't end with something else beforehand)
         """
         taskparameters = {
             'command': 'StopPickPlaceThread',
             'resetExecutionState': resetExecutionState,
             'resetStatusPickPlace': resetStatusPickPlace,
+            'finishCode': finishCode
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+    
     def GetPickPlaceStatus(self, timeout=10, **kwargs):
         """gets the status of the pick and place thread
         :return: status (0: not running, 1: no error, 2: error) of the pick and place thread in a json dictionary, e.g. {'status': 2, 'error': 'an error happened'}
