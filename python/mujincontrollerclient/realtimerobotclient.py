@@ -515,15 +515,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-
-    def SetRobotBridgeIOVariablesAsciiHex16(self, iovalues, robotname=None, timeout=20, usewebapi=None, **kwargs):
+    
+    def SetRobotBridgeIOVariablesAsciiHex16(self, ioname, iovalue, robotname=None, timeout=20, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariablesAsciiHex16',
-            'iovalues': list(iovalues)
+            'ioname': ioname,
+            'iovalue': iovalue,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-
+    
     def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """returns the data of the IO in ascii hex as a string
 
