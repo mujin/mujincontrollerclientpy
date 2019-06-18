@@ -55,7 +55,7 @@ if __name__ == "__main__":
     
     scenebasename = os.path.split(scenefilename)[1]
     if self.FileExists(scenebasename):
-        response = input('File %s exists on server, would you like to overwrite? (y/n) ' % scenebasename)
+        response = raw_input('File %s exists on server, would you like to overwrite? (y/n) ' % scenebasename)
         if response != 'y':
             sys.exit(0)
 
