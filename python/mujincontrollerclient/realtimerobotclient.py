@@ -507,7 +507,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+    
+    def GetRobotBridgeIOVariables(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """returns the data of the IO in ascii hex as a string
 
+        :param ioname: One IO name to read
+        :param ionames: a list of the IO names to read
+        """
+        taskparameters = {
+            'command': 'GetRobotBridgeIOVariables'
+        }
+        if ioname is not None and len(ioname) > 0:
+            taskparameters['ioname'] = ioname
+        if ionames is not None and len(ionames) > 0:
+            taskparameters['ionames'] = ionames
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
