@@ -174,7 +174,7 @@ class ControllerClient(object):
         """uploads a file managed by file handle f
 
         """
-        return self.UploadFile(f, timeout=timeout)
+        return self.UploadFile(f, timeout=timeout)['filename']
 
     def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
         """list all available scene on controller
@@ -647,6 +647,9 @@ class ControllerClient(object):
 
     def UploadFile(self, f, filename=None, timeout=10):
         """uploads a file managed by file handle f
+
+        Returns:
+            (dict) json response
         """
         data = {}
         if filename:
@@ -654,7 +657,7 @@ class ControllerClient(object):
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
-                return response.json()['filename']
+                return response.json()
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
@@ -701,7 +704,7 @@ class ControllerClient(object):
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
-        """downloads a file given filename
+        """Flush and perform a HEAD operation on given filename to retrieve metadata.
 
         :return: a streaming response
         """
@@ -710,10 +713,23 @@ class ControllerClient(object):
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
+    def FlushAndHeadFile(self, filename, timeout=5):
+        """Flush and perform a HEAD operation on given filename to retrieve metadata.
+
+        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
+        """
+        response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return {
+            'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
+            'size': int(response.headers['Content-Length']),
+        }
+
     def HeadFile(self, filename, timeout=5):
         """Perform a HEAD operation on given filename to retrieve metadata.
 
-        :return: a dict containing keys like modified and size
+        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
         """
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
@@ -723,6 +739,13 @@ class ControllerClient(object):
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
         }
+
+    def FlushCache(self, timeout=5):
+        """flush pending changes in cache to disk
+        """
+        response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
 
     #
     # Log related
@@ -769,8 +792,33 @@ class ControllerClient(object):
     #
 
     def GetConfig(self, timeout=5):
-        response = self._webclient.Request('GET', '/config/')
+        response = self._webclient.Request('GET', '/config/', timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
         return response.json()
 
+    #
+    # Reference Object PKs.
+    #
+
+    def ModifySceneAddReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
+        """
+        Add a referenceobjectpk to the scene.
+        """
+        response = self._webclient.Request('POST', '/referenceobjectpks/add/', data=json.dumps({
+            'scenepk': scenepk,
+            'referenceobjectpk': referenceobjectpk,
+        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to add referenceobjectpk %r to scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
+
+    def ModifySceneRemoveReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
+        """
+        Remove a referenceobjectpk from the scene.
+        """
+        response = self._webclient.Request('POST', '/referenceobjectpks/remove/', data=json.dumps({
+            'scenepk': scenepk,
+            'referenceobjectpk': referenceobjectpk,
+        }), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
