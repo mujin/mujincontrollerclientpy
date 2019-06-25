@@ -533,9 +533,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
-    def SetRobotBridgeIOVariablesAsciiHex16(self, ioname, iovalue, robotname=None, timeout=20, usewebapi=None, **kwargs):
+    def SetRobotBridgeIOVariableAsciiHex16(self, ioname, iovalue, robotname=None, timeout=20, usewebapi=None, **kwargs):
         taskparameters = {
-            'command': 'SetRobotBridgeIOVariablesAsciiHex16',
+            'command': 'SetRobotBridgeIOVariableAsciiHex16',
             'ioname': ioname,
             'iovalue': iovalue,
         }
