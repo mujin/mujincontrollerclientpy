@@ -150,19 +150,21 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
-    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, finishCode=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         :param resetExecutionState: if True, then reset the order state variables. By default True
         :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
+        :param finishCode: optional finish code to end the cycle with (if it doesn't end with something else beforehand)
         """
         taskparameters = {
             'command': 'StopPickPlaceThread',
             'resetExecutionState': resetExecutionState,
             'resetStatusPickPlace': resetStatusPickPlace,
+            'finishCode': finishCode
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+    
     def GetPickPlaceStatus(self, timeout=10, **kwargs):
         """gets the status of the pick and place thread
         :return: status (0: not running, 1: no error, 2: error) of the pick and place thread in a json dictionary, e.g. {'status': 2, 'error': 'an error happened'}
@@ -299,17 +301,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
-    def GetInstObjectAndSensorInfo(self, instobjectnames, sensornames, unit='m', timeout=10, **kwargs):
-        taskparameters = {
-            'command': 'GetInstObjectAndSensorInfo',
-            'instobjectnames': instobjectnames,
-            'sensornames': sensornames,
-            'unit': unit,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def MoveRobotOutOfCameraOcclusion(self, regionname=None, robotspeed=None, toolname=None, timeout=10, **kwargs):
         """moves the robot out of camera occlusion and deletes targets if it was in occlusion.
 
@@ -517,7 +509,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
-            'command': 'StopPickPlaceThread',
+            'command': 'StopPackFormationComputationThread',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -531,6 +523,18 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def VisualizePackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        :param initializeCameraPosition: bool. reset camera position
+        """
+
+        taskparameters = {
+            'command': 'VisualizePackFormationResult',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    
     def GetPackFormationSolution(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
@@ -549,12 +553,12 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def GetLatestPackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GetLatestPackFormationResultList(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """
         Gets latest pack formation computation result
         """
         taskparameters = {
-            'command': 'GetLatestPackFormationResult',
+            'command': 'GetLatestPackFormationResultList',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -568,3 +572,17 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def ValidatePackFormationResultList(self, packFormationResultList, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """
+        Validates pack formation result list and compute info (fillRatio, packageDimensions, packedItemsInfo, etc) about it .
+        kwargs should be packing parameters
+        :return dictionary {'validatedPackFormationResultList':[{'validationStatus', 'errorCode', 'errorDesc', (optional)'packFormationResult'}]}
+        """
+        taskparameters = {
+            'command': 'ValidatePackFormationResultList',
+            'packFormationResultList': packFormationResultList
+        }
+        taskparameters.update(kwargs)
+        ret = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return ret 
