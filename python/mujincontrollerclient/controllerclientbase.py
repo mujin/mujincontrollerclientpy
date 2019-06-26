@@ -574,7 +574,7 @@ class ControllerClient(object):
         """
         import numpy
         assert(usewebapi)
-        response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, headers={'X-Author': author}, timeout=timeout)
+        response = self._webclient.APICall('GET', u'object/%s/scenejs/' % objectpk, timeout=timeout)
         geometries = []
         for encodedGeometry in response['geometries']:
             geometry = {}
@@ -626,13 +626,13 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, fields='attachedsensors,object_pk,name', headers={'X-Author': author}, timeout=timeout)['objects']
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, fields='attachedsensors,object_pk,name', timeout=timeout)['objects']
         cameracontainernames = set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
         sensormapping = dict(sensormapping)
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
                 cameracontainerpk = instobject['object_pk']
-                attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk, headers={'X-Author': author})['attachedsensors']
+                attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)['attachedsensors']
                 for attachedsensor in attachedsensors:
                     camerafullname = instobject['name'] + '/' + attachedsensor['name']
                     cameraid = attachedsensor['sensordata'].get('hardware_id', None)
