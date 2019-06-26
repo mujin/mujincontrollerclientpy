@@ -193,6 +193,30 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
+    def InitializePartsAlignXYPlane(self, timeout=10, **kwargs):
+        """
+        :param targetpk: the name of the part to drop into container, e.g. bolt0.mujin.dae
+        :param numtargets: the number of targets to create
+        :param containername: where to put the parts, default to sourcecontainername in userconfig
+        :param basename: The basename to give to all the new target names. Numbers are suffixed at the end, like basename+'0134'. If not specified, will use a basename derived from the targeturi.
+        :param startPosition: list of [x, y, z] in mm
+        :param separation: int. interval between generated targets in mm
+        """
+        taskparameters = {
+            'command': 'InitializePartsAlignXYPlane',
+        }
+        taskparameters.update(kwargs)
+        if 'containername' not in taskparameters:
+            taskparameters['containername'] = self.regionname
+        if 'startPosition' in taskparameters and taskparameters['startPosition'] is not None \
+           and len(taskparameters['startPosition']) == 3:
+            coords = {}
+            for index, coord in enumerate(taskparameters['startPosition']):
+                coords['{}coord'.format(chr(ord('x')+index))] = coord
+            taskparameters.update(coords)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+
     def InitializePartsWithPhysics(self, timeout=10, **kwargs):
         """Start a physics simulation where the parts drop down into the bin. The method returns as soon as the physics is initialized, user has to wait for the "duration" or call StopPhysicsThread command.
         :param targeturi: the target uri to initialize the scene with
@@ -245,6 +269,77 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'JitterPartUntilValidGrasp'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
+
+    def ChangeTool(self, newToolName, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=60, usewebapi=None, **kwargs):
+        """Attach a requested tool. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool.
+
+        :param newToolName: target tool name
+        :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
+
+        :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
+          - currentAttachedTool: the name of the attached tool after the change operation
+          - previousAttachedTool: the name of the previously attached tool before the change operation
+        """
+
+        if jointindices is None:
+            jointindices = range(len(toolChangeEndsJointValues))
+            log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
+
+        taskparameters = {
+            'command': 'ChangeTool',
+            'newToolName': newToolName,
+            'toolChangeEndsJointValues': list(toolChangeEndsJointValues),
+            'jointindices': list(jointindices),
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
+    def ChangeToolForPart(self, partType, toolChangeEndsJointValues, jointindices=None, robotname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, timeout=60, usewebapi=True, **kwargs):
+        """Attach a tool needed to grasp the given part type. If the target tool is already attached, this function does nothing. If a different tool is attached, the currently attached tool gets detached first before attaching the target tool. If there is no tool associated to the given part type, this function does nothing.
+
+        :param partType: target part type
+        :param toolChangeEndsJointValues: joint values at the beginning and the end of tasks to attach/detach a tool
+
+        :return: If failed, an empty dictionary. If succeeded, a dictionary with the following keys:
+          - currentAttachedTool: the name of the tool after the change operation
+          - previousAttachedTool: the name of the tool before the change operation
+          - toolForPart: the name of the tool associated to the given part type. If there is no tool associated to the part type, empty.
+        """
+
+        if jointindices is None:
+            jointindices = range(len(toolChangeEndsJointValues))
+            log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
+
+        taskparameters = {
+            'command': 'ChangeToolForPart',
+            'partType': partType,
+            'toolChangeEndsJointValues': list(toolChangeEndsJointValues),
+            'jointindices': list(jointindices),
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
+    def SyncAttachedTool(self, robotname=None, robots=None, timeout=10, usewebapi=None, **kwargs):
+        """
+        Read attached tool information from IO variable specified in toolChangeInfo, and update tool links accordingly
+
+        :return: a dictionary with the following key:
+          - currentAttachedTool: the name of currently attached tool
+        """
+
+        taskparameters = {
+            'command': 'SyncAttachedTool',
+        }
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi)
+
 
     ####################
     # scene commands
