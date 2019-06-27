@@ -279,9 +279,9 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), data=ikparamdata, fields=fields, headers={'X-Author': author}, timeout=timeout)
 
-    def DeleteObjectIKParam(self, objectpk, ikparampk, usewebapi=True, timeout=5):
+    def DeleteObjectIKParam(self, objectpk, ikparampk, author='', usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'object/%s/ikparam/%s/' % (objectpk, ikparampk), headers={'X-Author': author}, timeout=timeout)
 
     #
     # GraspSet related
@@ -298,9 +298,9 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), data=graspsetdata, fields=fields, headers={'X-Author': author}, timeout=timeout)
 
-    def DeleteObjectGraspSet(self, objectpk, graspsetpk, usewebapi=True, timeout=5):
+    def DeleteObjectGraspSet(self, objectpk, graspsetpk, author='', usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), headers={'X-Author': author}, timeout=timeout)
 
     #
     # Link related
@@ -333,9 +333,9 @@ class ControllerClient(object):
         assert(status == 200)
         return response
 
-    def DeleteObjectLink(self, objectpk, linkpk, usewebapi=True, timeout=5):
+    def DeleteObjectLink(self, objectpk, linkpk, author='', usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), headers={'X-Author': author}, timeout=timeout)
 
     #
     # Attachment related
@@ -349,9 +349,9 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), data=attachmentdata, fields=fields, headers={'X-Author': author}, timeout=timeout)
 
-    def DeleteObjectAttachment(self, objectpk, attachmentpk, usewebapi=True, timeout=5):
+    def DeleteObjectAttachment(self, objectpk, attachmentpk, author='', usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'object/%s/attachment/%s/' % (objectpk, attachmentpk), headers={'X-Author': author}, timeout=timeout)
 
     #
     # Geometry related
@@ -389,9 +389,9 @@ class ControllerClient(object):
         params = {'unit': unit}
         return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, data=data, headers=headers, timeout=timeout)
 
-    def DeleteObjectGeometry(self, objectpk, geometrypk, usewebapi=True, timeout=5):
+    def DeleteObjectGeometry(self, objectpk, geometrypk, author='', usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'object/%s/geometry/%s/' % (objectpk, geometrypk), headers={'X-Author': author}, timeout=timeout)
 
     def GetObjectGeometries(self, objectpk, mesh=False, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
