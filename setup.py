@@ -6,10 +6,13 @@ try:
 except ImportError:
     from distutils.dist import Distribution
 
+version = {}
+execfile('python/mujincontrollerclient/version.py', version)
+
 setup(
     distclass=Distribution,
-    name='MujinControllerClient',
-    version='0.0.1',
+    name='mujincontrollerclient',
+    version=version['__version__'],
     packages=['mujincontrollerclient'],
     package_dir={'mujincontrollerclient': 'python/mujincontrollerclient'},
     scripts=['bin/mujin_controllerclientpy_registerscene.py'],
