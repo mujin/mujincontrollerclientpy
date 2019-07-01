@@ -93,7 +93,7 @@ class ControllerClient(object):
     controllerIp = ''  # hostname of the controller web server
     controllerPort = 80  # port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword=''):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None):
         """logs into the mujin controller
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -124,7 +124,7 @@ class ControllerClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword)
+        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author)
 
     def __del__(self):
         self.Destroy()
@@ -382,7 +382,9 @@ class ControllerClient(object):
         assert(usewebapi)
         assert(formathint == 'stl')  # for now, only support stl
 
-        headers = {'Content-Type': 'application/sla'}
+        headers = {
+            'Content-Type': 'application/sla',
+        }
         params = {'unit': unit}
         return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, data=data, headers=headers, timeout=timeout)
 
