@@ -7,7 +7,7 @@ except ImportError:
     from distutils.dist import Distribution
 
 version = {}
-execfile('python/mujincontrollerclient/version.py', version)
+exec(open('python/mujincontrollerclient/version.py').read(), version)
 
 setup(
     distclass=Distribution,
