@@ -632,14 +632,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # jogging related
     #
-    def SetJogModeVelocities(self, jogtype, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+    def SetJogModeVelocities(self, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """
         :param jogtype: One of 'joints', 'world', 'robot', 'tool'
         :param canJogInCheckMode: if true, then allow jogging even if in check mode. By default it is false.
+        :param checkSelfCollisionWhileJogging:
+        :param force:
+        :param robotname:
+        :param toolname:
+        :param robotspeed:
+        :param robotaccelmult:
         """
         taskparameters = {
             'command': 'SetJogModeVelocities',
-            'jogtype': jogtype,
             'movejointsigns': movejointsigns,
         }
         if canJogInCheckMode is not None:
