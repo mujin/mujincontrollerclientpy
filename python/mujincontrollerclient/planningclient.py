@@ -153,15 +153,15 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             socket.setsockopt(zmq.SUBSCRIBE, '')
             poller = zmq.Poller()
             poller.register(socket, zmq.POLLIN)
-
+            
             lastheartbeatts = GetMonotonicTime()
             while self._isokheartbeat and GetMonotonicTime() - lastheartbeatts < reinitializetimeout:
                 socks = dict(poller.poll(50))
                 if socket in socks and socks.get(socket) == zmq.POLLIN:
                     try:
                         reply = socket.recv_json(zmq.NOBLOCK)
-                        if 'taskstate' in reply:
-                            self._taskstate = reply['taskstate']
+                        if 'slavestates' in reply:
+                            self._taskstate = reply.get('slavestates', {}).get('slaverequestid-%s'%self._slaverequestid, None)
                             lastheartbeatts = GetMonotonicTime()
                         else:
                             self._taskstate = None
@@ -169,12 +169,14 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                         log.exception('failed to receive from publisher: %s', e)
             if self._isokheartbeat:
                 log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
-
+    
     def GetPublishedTaskState(self):
         """return most recent published state. if publishing is disabled, then will return None
         """
+        if self._heartbeatthread is None or not self._isokheartbeat:
+            log.warn('heartbeat thread not running taskheartbeatport=%s, so cannot get latest taskstate', self.taskheartbeatport)
         return self._taskstate
-
+    
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
         sceneuri = controllerclientbase.GetURIFromPrimaryKey(scenepk)
@@ -230,6 +232,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             },
             'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
+            'stamp': time.time(),
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
@@ -379,3 +382,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             viewercommand['pose'] = [float(f) for f in pose]
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
+        configuration = {'startipython': True}
+        configuration.update(kwargs)
+        return self.Configure(configuration, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)

@@ -166,6 +166,18 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
+    def MoveJointStraight(self, deltagoalvalue, jointName, timeout=10, robotspeed=None, **kwargs):
+        """moves joint straight
+        :param jointName: name of the joint to move
+        :param deltagoalvalue: how much to move joint in delta
+        """
+        taskparameters = {'command': 'MoveJointStraight',
+                          'deltagoalvalue': deltagoalvalue,
+                          'jointName': jointName,
+                          }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
+
     def MoveToolLinear(self, goaltype, goals, toolname=None, timeout=10, robotspeed=None, **kwargs):
         """moves the tool linear
         :param goaltype: type of the goal, e.g. translationdirection5d
@@ -519,7 +531,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+    
+    def GetRobotBridgeIOVariables(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """returns the data of the IO in ascii hex as a string
 
+        :param ioname: One IO name to read
+        :param ionames: a list of the IO names to read
+        """
+        taskparameters = {
+            'command': 'GetRobotBridgeIOVariables'
+        }
+        if ioname is not None and len(ioname) > 0:
+            taskparameters['ioname'] = ioname
+        if ionames is not None and len(ionames) > 0:
+            taskparameters['ionames'] = ionames
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
     def SetRobotBridgeIOVariables(self, iovalues, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
@@ -527,15 +556,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-
-    def SetRobotBridgeIOVariablesAsciiHex16(self, iovalues, robotname=None, timeout=20, usewebapi=None, **kwargs):
+    
+    def SetRobotBridgeIOVariableAsciiHex16(self, ioname, iovalue, robotname=None, timeout=20, usewebapi=None, **kwargs):
         taskparameters = {
-            'command': 'SetRobotBridgeIOVariablesAsciiHex16',
-            'iovalues': list(iovalues)
+            'command': 'SetRobotBridgeIOVariableAsciiHex16',
+            'ioname': ioname,
+            'iovalue': iovalue,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-
+    
     def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """returns the data of the IO in ascii hex as a string
 
@@ -578,11 +608,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
-
-    def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
-        taskparameters = {'command': 'StartIPython'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def ReloadModule(self, timeout=10, **kwargs):
         taskparameters = {'command': 'ReloadModule'}
@@ -645,6 +670,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {
             'command': 'SetRobotBridgeServoOn',
             'isservoon': servoon
+        }
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
+
+    def SetRobotBridgeLockMode(self, islockmode, robotname=None, timeout=3, fireandforget=False):
+        taskparameters = {
+            'command': 'SetRobotBridgeLockMode',
+            'islockmode': islockmode
         }
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
 
@@ -712,6 +744,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
+    def RestoreSceneInitialState(self, usewebapi=None, timeout=1, **kwargs):
+        """restore scene to the state on filesystem
+        """
+        taskparameters = {
+            'command': 'RestoreSceneInitialState',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
     #
     # Motor test related.
     #
@@ -751,6 +792,38 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunDynamicsIdentificationTest(self, timeout, usewebapi=False, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'RunDynamicsIdentificationTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetTimeToRunDynamicsIdentificationTest(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTest'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def GetInertiaChildJointStartValues(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'GetInertiaChildJointStartValues'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = dict()
+        taskparameters['command'] = 'CalculateTestRangeFromCollision'
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    # def RunDynamicsIdentificationInertiaTest(self):
+    #     # TODO
+    #     pass
+
+    # def RunDynamicsIdentificationCenterOfMassTest(self):
+    #     # TODO
+    #     pass
 
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
@@ -792,3 +865,18 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def IsProfilingRunning(self, timeout=10, usewebapi=False):
+        """Queries if profiling is running on planning
+        """
+        return self.ExecuteCommand({'command': 'IsProfilingRunning'}, usewebapi=usewebapi, timeout=timeout)
+
+    def StartProfiling(self, timeout=10, usewebapi=False, clocktype='cpu'):
+        """Start profiling planning
+        """
+        return self.ExecuteCommand({'command': 'StartProfiling', 'clocktype': clocktype}, usewebapi=usewebapi, timeout=timeout)
+
+    def StopProfiling(self, timeout=10, usewebapi=False):
+        """Stop profiling planning
+        """
+        return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
