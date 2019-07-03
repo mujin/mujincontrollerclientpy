@@ -166,6 +166,13 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
+    def SetLogLevel(self, level, timeout=5):
+        """ Set webstack log level
+        """
+        response = self._webclient.Request('POST', '/loglevel/', data={'level': level}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('failed to set webstack log level, status code is: %d') % response.status_code)
+
     #
     # Scene related
     #
