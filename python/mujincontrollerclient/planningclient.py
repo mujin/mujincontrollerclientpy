@@ -281,6 +281,13 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         configuration['command'] = 'configure'
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
+    def SetLogLevel(self, level, fireandforget=None, timeout=5):
+        configuration = {
+            'command': 'setloglevel',
+            'level': level
+        }
+        return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget)
+
     def SendConfig(self, command, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
         # log.debug('Send config: %r', command)
         if slaverequestid is None:
