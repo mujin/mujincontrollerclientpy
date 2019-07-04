@@ -12,11 +12,11 @@ def ConfigurePlanningserver(level, config, taskzmqport=11000):
     routerport = os.environ.get('MUJIN_PLANNINGSERVER_MASTER_ROUTER_PORT', taskzmqport)
     client = planningclient.PlanningControllerClient(
         taskzmqport=routerport,
-        taskheartbeatport=None, 
-        taskheartbeattimeout=None, 
-        tasktype=None, 
+        taskheartbeatport=None,
+        taskheartbeattimeout=None,
+        tasktype=None,
         scenepk=uriutils.GetPrimaryKeyFromURI(config.get('sceneuri', '')),
-        usewebapi=False, 
+        usewebapi=False,
         controllerurl=controllerurl)
     client.SetLogLevel(level)
 
