@@ -281,7 +281,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         configuration['command'] = 'configure'
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetLogLevel(self, level, fireandforget=None, timeout=5):
+    def SetPlanningLogLevel(self, level, fireandforget=None, timeout=5):
         configuration = {
             'command': 'setloglevel',
             'level': level
