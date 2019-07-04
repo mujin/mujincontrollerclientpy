@@ -16,7 +16,6 @@ setup(
     packages=['mujincontrollerclient'],
     package_dir={'mujincontrollerclient': 'python/mujincontrollerclient'},
     scripts=['bin/mujin_controllerclientpy_registerscene.py',
-             'bin/mujin_controllerclientpy_setplanningserverloglevel.py'],
     locale_dir='locale',
     license='Apache License, Version 2.0',
     long_description=open('README.rst').read(),
