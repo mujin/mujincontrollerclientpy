@@ -18,7 +18,7 @@ def ConfigurePlanningserver(level, config, taskzmqport=11000):
         scenepk=uriutils.GetPrimaryKeyFromURI(config.get('sceneuri', '')),
         usewebapi=False,
         controllerurl=controllerurl)
-    client.SetLogLevel(level)
+    client.SetPlanningLogLevel(level)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Set planningserver logging level')
