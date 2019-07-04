@@ -344,7 +344,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, **kwargs):
         """removes objects with prefix
         """
@@ -360,7 +360,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         if removeRegionNames is not None:
             taskparameters['removeRegionNames'] = removeRegionNames
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+    
     def GetTrajectoryLog(self, timeout=10, **kwargs):
         """Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
 
@@ -873,3 +873,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Stop profiling planning
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
+    
+    def SyncGrabbingTargetState(self, timeout=10, usewebapi=False, fireandforget=False, **kwargs):
+        """Syncs isGrabbingTarget signal from robotbridges with the internal planning grabbing client.
+        """
+        taskparameters = {
+            'command': 'SyncGrabbingTargetState',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
