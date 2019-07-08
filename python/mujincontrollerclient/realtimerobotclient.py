@@ -304,7 +304,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def GetInnerEmptyRegionOBB(self, targetname, linkname=None, unit='mm', timeout=10, **kwargs):
         """ Get the inner empty oriented bounding box of a container
         :param targetname: name of the object
@@ -320,7 +320,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['linkname'] = linkname
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def GetInstObjectAndSensorInfo(self, instobjectnames=None, sensornames=None, unit='mm', timeout=10, **kwargs):
         """returns information about the inst objects and sensors part of those inst objects
         """
@@ -329,6 +329,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['instobjectnames'] = instobjectnames
         if sensornames is not None:
             taskparameters['sensornames'] = sensornames
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def GetInstObjectInfoFromURI(self, instobjecturi=None, unit='mm', timeout=10, **kwargs):
+        """opens a URI and returns info about the internal/external and geometry info from it
+        """
+        taskparameters = {'command': 'GetInstObjectInfoFromURI', 'unit':unit}
+        if instobjecturi is not None:
+            taskparameters['objecturi'] = instobjecturi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
@@ -570,7 +579,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
+    def GetRobotBridgeIOVariableString(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """returns the data of the IO in ascii hex as a string
 
+        :param ioname: One IO name to read
+        :param ionames: a list of the IO names to read
+        """
+        taskparameters = {
+            'command': 'GetRobotBridgeIOVariableString'
+        }
+        if ioname is not None and len(ioname) > 0:
+            taskparameters['ioname'] = ioname
+        if ionames is not None and len(ionames) > 0:
+            taskparameters['ionames'] = ionames
+        
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'ComputeIkParamPosition',
