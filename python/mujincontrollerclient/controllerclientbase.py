@@ -93,7 +93,7 @@ class ControllerClient(object):
     controllerIp = ''  # hostname of the controller web server
     controllerPort = 80  # port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword=''):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None):
         """logs into the mujin controller
         :param controllerurl: url of the mujin controller, e.g. http://controller14
         :param controllerusername: username of the mujin controller, e.g. testuser
@@ -124,7 +124,7 @@ class ControllerClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword)
+        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author)
 
     def __del__(self):
         self.Destroy()
@@ -165,6 +165,13 @@ class ControllerClient(object):
         response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
+
+    def SetLogLevel(self, level, timeout=5):
+        """ Set webstack log level
+        """
+        response = self._webclient.Request('POST', '/loglevel/', data={'level': level}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('failed to set webstack log level, status code is: %d') % response.status_code)
 
     #
     # Scene related
@@ -317,6 +324,22 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
 
+    def GetObjectLinks(self, objectpk, fields=None, usewebapi=True, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/link/' % (objectpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
+    def GetObjectLink(self, objectpk, linkpk, fields=None, usewebapi=True, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/link/%s/' % (objectpk, linkpk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
     def DeleteObjectLink(self, objectpk, linkpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'object/%s/link/%s/' % (objectpk, linkpk), timeout=timeout)
@@ -352,13 +375,23 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
 
+    def GetObjectGeometryData(self, objectpk, geometrypk, fields=None, usewebapi=True, timeout=5):
+        """ returns the instance objects of the scene
+        """
+        assert(usewebapi)
+        status, response = self._webclient.APICall('GET', u'object/%s/geometry/%s/' % (objectpk, geometrypk), fields=fields, timeout=timeout)
+        assert(status == 200)
+        return response
+
     def SetObjectGeometryMesh(self, objectpk, geometrypk, data, formathint='stl', unit='mm', usewebapi=True, timeout=5):
         """upload binary file content of a cad file to be set as the mesh for the geometry
         """
         assert(usewebapi)
         assert(formathint == 'stl')  # for now, only support stl
 
-        headers = {'Content-Type': 'application/sla'}
+        headers = {
+            'Content-Type': 'application/sla',
+        }
         params = {'unit': unit}
         return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, data=data, headers=headers, timeout=timeout)
 
@@ -442,6 +475,13 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
 
+    def SetRobotAttachedActuator(self, robotpk, attachedactuatorpk, attachedacturtordata, fields=None, usewebapi=True, timeout=5):
+        """sets the attachedactuatorpk values via a WebAPI PUT call
+        :param attachedacturtordata: key-value pairs of the data to modify on the attachedactuator
+        """
+        assert(usewebapi)
+        return self._webclient.APICall('PUT', u'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
+
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
@@ -450,12 +490,15 @@ class ControllerClient(object):
     # Task related
     #
 
-    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
+    def GetSceneTasks(self, scenepk, fields=None, offset=0, limit=0, tasktype=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params={
+        params = {
             'offset': offset,
             'limit': limit,
-        })['objects']
+        }
+        if tasktype:
+            params['tasktype'] = tasktype
+        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params)['objects']
 
     def GetSceneTask(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)

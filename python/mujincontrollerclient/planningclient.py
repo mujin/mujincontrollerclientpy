@@ -281,6 +281,13 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         configuration['command'] = 'configure'
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
+    def SetPlanningLogLevel(self, level, fireandforget=None, timeout=5):
+        configuration = {
+            'command': 'setloglevel',
+            'level': level
+        }
+        return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget)
+
     def SendConfig(self, command, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
         # log.debug('Send config: %r', command)
         if slaverequestid is None:
@@ -382,3 +389,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             viewercommand['pose'] = [float(f) for f in pose]
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def StartIPython(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
+        configuration = {'startipython': True}
+        configuration.update(kwargs)
+        return self.Configure(configuration, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
