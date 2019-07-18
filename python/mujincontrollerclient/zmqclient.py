@@ -244,7 +244,7 @@ class ZmqClient(object):
         self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit, timeout=reusetimeout)
         self._socket = None
         self._isok = True
-        self._checkpreemptfn=checkpreemptfn
+        self._checkpreemptfn = checkpreemptfn
 
     def __del__(self):
         self.Destroy()
