@@ -224,6 +224,7 @@ class ZmqClient(object):
     _socket = None
     _isok = False
     _callerthread = None  # last caller thread
+    _callercontext = None # the context of the last caller
 
     def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None, checkpreemptfn=None, reusetimeout=10.0):
         """creates a new zmq client, uses zmq req socket over tcp
@@ -281,18 +282,20 @@ class ZmqClient(object):
     @property
     def port(self):
         return self._port
-
+    
     def _CheckCallerThread(self, context=None):
         """catch bad caller who use zmq client from multiple threads and causes random race conditions.
         """
         callerthread = repr(threading.current_thread())
         oldcallerthread = self._callerthread
+        oldcallercontext = self._callercontext
         self._callerthread = callerthread
+        self._callercontext = context
         if oldcallerthread is not None:
             # assert oldcallerthread == callerthread, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
             if oldcallerthread != callerthread:
-                log.error('zmqclient used from multiple threads in %s, this is a bug in the caller: previously = %s, now = %s' % (context, oldcallerthread, callerthread))
-
+                log.error('zmqclient used from multiple threads in %s, this is a bug in the caller: previously = %s, now = %s. oldcontext=%r', context, oldcallerthread, callerthread, oldcallercontext)
+    
     def _AcquireSocket(self, timeout=None, checkpreempt=True):
         # if we were holding on to a socket before, release it before acquiring one
         self._ReleaseSocket()
