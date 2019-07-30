@@ -831,3 +831,32 @@ class ControllerClient(object):
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
+
+    #
+    # ITL program related
+    #
+
+    def GetITLPrograms(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        params.update(kwargs)
+        return self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params)['objects']
+
+    def GetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'itl/%s/' % programName, fields=fields, timeout=timeout)
+
+    def CreateITLProgram(self, data, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'itl/', data=data, fields=fields, timeout=timeout)
+
+    def SetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('PUT', u'itl/%s/' % programName, data=data, fields=fields, timeout=timeout)
+
+    def DeleteITLProgram(self, programName, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
