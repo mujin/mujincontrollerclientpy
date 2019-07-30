@@ -112,13 +112,10 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def StartITLProgram(self, programName, programFilename=None, programEntrypoint=None, parameters=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+    def StartITLProgram(self, programName, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'StartITLProgram',
             'programName': programName,
-            'programFilename': programFilename,
-            'programEntrypoint': programEntrypoint,
-            'parameters': parameters,
         }
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
@@ -163,15 +160,12 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def GenerateExecutionGraph(self, programName, programFilename=None, programEntrypoint=None, parameters=None, commandTimeout=0.2, totalTimeout=1.0, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GenerateExecutionGraph(self, programName, commandTimeout=0.2, totalTimeout=1.0, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """generate list of commands for the itl program
         """
         taskparameters = {
             'command': 'GenerateExecutionGraph',
             'programName': programName,
-            'programFilename': programFilename,
-            'programEntrypoint': programEntrypoint,
-            'parameters': parameters,
             'commandTimeout': commandTimeout,
             'totalTimeout': totalTimeout,
         }
