@@ -853,7 +853,7 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'itl/', data=data, fields=fields, timeout=timeout)
 
-    def SetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
+    def SetITLProgram(self, programName, data, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         self._webclient.APICall('PUT', u'itl/%s/' % programName, data=data, fields=fields, timeout=timeout)
 
