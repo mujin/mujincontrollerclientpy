@@ -124,33 +124,6 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    # def DeleteITLProgram(self, taskname, program, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
-    #     taskparameters = {
-    #         'command': 'DeleteITLProgram',
-    #         'taskname': taskname,
-    #         'program': program,
-    #     }
-    #     taskparameters.update(kwargs)
-    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    # def RenameITLProgram(self, oldName, newName, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
-    #     taskparameters = {
-    #         'command': 'RenameITLProgram',
-    #         'oldName': oldName,
-    #         'newName': newName,
-    #     }
-    #     taskparameters.update(kwargs)
-    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    # def CopyITLProgram(self, oldName, newName, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
-    #     taskparameters = {
-    #         'command': 'CopyITLProgram',
-    #         'oldName': oldName,
-    #         'newName': newName,
-    #     }
-    #     taskparameters.update(kwargs)
-    #     return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
     def StopITLProgram(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the itl program
         """
