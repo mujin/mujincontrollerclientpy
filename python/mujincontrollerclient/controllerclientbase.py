@@ -471,8 +471,7 @@ class ControllerClient(object):
         :param attachedacturtordata: key-value pairs of the data to modify on the attachedactuator
         """
         assert(usewebapi)
-        status, response = self._webclient.APICall('PUT', u'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
-        assert(status == 202)
+        return self._webclient.APICall('PUT', u'robot/%s/attachedactuator/%s/' % (robotpk, attachedactuatorpk), data=attachedacturtordata, fields=fields, timeout=timeout)
 
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
         assert(usewebapi)
