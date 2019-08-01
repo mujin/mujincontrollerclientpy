@@ -839,3 +839,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Stop profiling planning
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
+
+    def SetInstantaneousJointValues(self, objectName, jointvalues, timeout=10):
+        return self.ExecuteCommand({'command': 'SetInstantaneousJointValues', 'objectName': objectName, 'jointvalues':jointvalues}, timeout=timeout)
