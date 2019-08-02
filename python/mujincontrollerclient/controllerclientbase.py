@@ -805,7 +805,12 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
         return response.json()
-
+    
+    def SetConfig(self, data, timeout=5):
+        response = self._webclient.Request('PUT', '/config/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to set configuration fron controller, status code is %d') % response.status_code)
+    
     #
     # Reference Object PKs.
     #
