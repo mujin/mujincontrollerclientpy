@@ -183,7 +183,7 @@ class ControllerClient(object):
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
-    def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+    def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, withMetaData=False, **kwargs):
         """list all available scene on controller
         """
         assert(usewebapi)
@@ -192,7 +192,10 @@ class ControllerClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params)['objects']
+        response = self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params)
+        if withMetaData:
+            return response
+        return response['objects']
 
     def GetScene(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested scene
