@@ -323,7 +323,7 @@ class ZmqClient(object):
         """
         # log.debug('Sending command via ZMQ: %s', command)
         if checkpreempt is None:
-            log.warn('Need to specify checkpreempt to zmq client')
+            log.warn(u'Need to specify checkpreempt to zmq client for command %r: %s', command)
         
         self._CheckCallerThread(command)
 
