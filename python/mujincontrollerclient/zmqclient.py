@@ -305,11 +305,11 @@ class ZmqClient(object):
         if self._socket is not None:
             self._pool.ReleaseSocket(self._socket)
             self._socket = None
-
+    
     def SetPreemptFn(self, checkpreemptfn):
         self._checkpreemptfn = checkpreemptfn
-
-    def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True, checkpreempt=True):
+    
+    def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True, checkpreempt=None):
         """sends command via established zmq socket
 
         :param command: command in json format
@@ -322,7 +322,9 @@ class ZmqClient(object):
         :return: returns the response from the zmq server in json format if blockwait is True
         """
         # log.debug('Sending command via ZMQ: %s', command)
-
+        if checkpreempt is None:
+            log.warn('Need to specify checkpreempt to zmq client')
+        
         self._CheckCallerThread(command)
 
         if fireandforget:
