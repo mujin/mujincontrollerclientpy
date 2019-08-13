@@ -222,7 +222,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None):
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True):
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -236,7 +236,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
-        response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+        response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
 
         if fireandforget:
             # for fire and forget commands, no response will be available
@@ -295,9 +295,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
         return self._SendConfigViaZMQ(command, slaverequestid=slaverequestid, timeout=timeout, fireandforget=fireandforget)
 
-    def _SendConfigViaZMQ(self, command, slaverequestid='', timeout=None, fireandforget=None):
+    def _SendConfigViaZMQ(self, command, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True):
         command['slaverequestid'] = slaverequestid
-        response = self._configsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget)
+        response = self._configsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
         if fireandforget:
             # for fire and forget commands, no response will be available
             return None
