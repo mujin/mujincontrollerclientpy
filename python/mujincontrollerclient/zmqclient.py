@@ -1,33 +1,33 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2015 MUJIN Inc
 
-# logging
-import time
-import zmq
+import threading
 
-from . import TimeoutError
+from . import zmq
+from . import TimeoutError, GetMonotonicTime
 
 import logging
 log = logging.getLogger(__name__)
 
+
 class ZmqSocketPool(object):
 
-    _url = None # url that sockets should connect to
-    _ctx = None # the context to use
-    _ctxown = None # the context owned exclusively
-    _timeout = None # timeout waiting for either send on receive while a socket is in the polling state
-    _limit = None # limit on number of socket alive at any time, None means unlimited
+    _url = None  # url that sockets should connect to
+    _ctx = None  # the context to use
+    _ctxown = None  # the context owned exclusively
+    _timeout = None  # timeout waiting for either send on receive while a socket is in the polling state
+    _limit = None  # limit on number of socket alive at any time, None means unlimited
 
-    _isok = False # whether it is time to terminate
-    _poller = None # znq poller that tracks sockets in self._pollingsockets
-    _sockets = None # all sockets alive, a dictionary mapping from socket to True
-    _pollingsockets = None # sockets that are in the polling state, waiting for send or receive, a dictionary mapping from socket to timestamp when added to the poller
-    _availablesockets = None # list of sockets that are ready for use immediately
+    _isok = False  # whether it is time to terminate
+    _poller = None  # znq poller that tracks sockets in self._pollingsockets
+    _sockets = None  # all sockets alive, a dictionary mapping from socket to True
+    _pollingsockets = None  # sockets that are in the polling state, waiting for send or receive, a dictionary mapping from socket to timestamp when added to the poller
+    _availablesockets = None  # list of sockets that are ready for use immediately
 
-    _acquirecount = 0 # number of times a socket is acuired
-    _releasecount = 0 # number of times a socket is released
-    _opencount = 0 # number of times we opened a new socket
-    _closecount = 0 # number of times we closed a socket
+    _acquirecount = 0  # number of times a socket is acuired
+    _releasecount = 0  # number of times a socket is released
+    _opencount = 0  # number of times we opened a new socket
+    _closecount = 0  # number of times we closed a socket
 
     def __init__(self, url, ctx=None, timeout=10.0, limit=None):
         """creates a socket pool, the pool can lease out socket for send and recv.
@@ -59,7 +59,7 @@ class ZmqSocketPool(object):
 
     def __del__(self):
         self.Destroy()
-        
+
     def Destroy(self):
         self.SetDestroy()
 
@@ -75,13 +75,13 @@ class ZmqSocketPool(object):
             self._CloseSocket(sockets.pop())
         assert(self._opencount == self._closecount)
 
-        log.verbose('sockets: opened = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
-        
+        # log.debug('sockets: opened = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
+
         if self._ctxown is not None:
             try:
                 self._ctxown.destroy()
             except Exception:
-                log.exception()
+                log.exception('caught exception when destroying context')
             self._ctxown = None
         self._ctx = None
 
@@ -102,7 +102,7 @@ class ZmqSocketPool(object):
         self._sockets[socket] = True
         self._opencount += 1
 
-        log.verbose('opened a socket, url = %s opened = %d, closed = %d', self._url, self._opencount, self._closecount)
+        # log.debug('opened a socket, url = %s opened = %d, closed = %d', self._url, self._opencount, self._closecount)
         return socket
 
     def _CloseSocket(self, socket):
@@ -110,36 +110,37 @@ class ZmqSocketPool(object):
         self._closecount += 1
         del self._sockets[socket]
         try:
-            socket.close()
-        except:
-            log.exception()
+            # make sure we do not linger when closing socket
+            socket.close(linger=0)
+        except Exception as e:
+            log.exception('caught exception when closing socket: %s', e)
 
     def _StartPollingSocket(self, socket):
         assert(socket not in self._pollingsockets)
-        self._pollingsockets[socket] = time.time()
-        self._poller.register(socket, zmq.POLLIN|zmq.POLLOUT)
+        self._pollingsockets[socket] = GetMonotonicTime()
+        self._poller.register(socket, zmq.POLLIN | zmq.POLLOUT)
 
     def _StopPollingSocket(self, socket):
         assert(socket in self._pollingsockets)
         self._poller.unregister(socket)
-        del self._pollingsockets[socket]            
+        del self._pollingsockets[socket]
 
     def _Poll(self, timeout=0):
         """spin once and does internal polling of sockets
         """
-        now = time.time()
+        now = GetMonotonicTime()
 
         # poll for receives, non blocking if timeout is 0
         for socket, event in self._poller.poll(timeout):
             if (event & zmq.POLLIN) == zmq.POLLIN:
-                log.verbose('a socket is ready for receive, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
+                # log.debug('a socket is ready for receive, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
 
                 # at least one message can be received without blocking
                 try:
                     socket.recv(zmq.NOBLOCK)
-                except:
+                except Exception as e:
                     # when error occur, throw the socket away
-                    log.exception()
+                    log.exception('caught exception when recv: %s', e)
                     self._StopPollingSocket(socket)
                     self._CloseSocket(socket)
                     continue
@@ -150,7 +151,7 @@ class ZmqSocketPool(object):
         # poll again for send, non blocking if timeout is 0, some previously in recv state socket may now be available for sending
         for socket, event in self._poller.poll(timeout):
             if (event & zmq.POLLOUT) == zmq.POLLOUT:
-                log.verbose('a socket is ready for send, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
+                # log.debug('a socket is ready for send, url = %s, polling = %d, availble = %d', self._url, len(self._pollingsockets), len(self._availablesockets))
 
                 # at least one message can be sent to socket without blocking
                 self._StopPollingSocket(socket)
@@ -168,13 +169,13 @@ class ZmqSocketPool(object):
             self._StopPollingSocket(socket)
             self._CloseSocket(socket)
 
-    def AcquireSocket(self, timeout=None):
+    def AcquireSocket(self, timeout=None, checkpreemptfn=None):
         """acquire a socket from the list of availble sockets for sending
         """
         # first we try a non blocking poll
         self._Poll(timeout=0)
 
-        starttime = time.time()
+        starttime = GetMonotonicTime()
         while self._isok:
 
             # if a socket is available, use it
@@ -190,9 +191,12 @@ class ZmqSocketPool(object):
                 return socket
 
             # check for timeout
-            elapsedtime = time.time() - starttime
+            elapsedtime = GetMonotonicTime() - starttime
             if timeout is not None and elapsedtime > timeout:
                 raise TimeoutError(u'Timed out waiting for a socket to %s to become available after %f seconds' % (self._url, elapsedtime))
+
+            if checkpreemptfn is not None:
+                checkpreemptfn()
 
             # otherwise, wait by a small blocking poll
             self._Poll(timeout=50)
@@ -210,6 +214,7 @@ class ZmqSocketPool(object):
             else:
                 self._CloseSocket(socket)
 
+
 class ZmqClient(object):
 
     _hostname = None
@@ -218,27 +223,33 @@ class ZmqClient(object):
     _pool = None
     _socket = None
     _isok = False
-    
-    def __init__(self, hostname, port, ctx=None, limit=100):
+    _callerthread = None  # last caller thread
+    _callercontext = None # the context of the last caller
+
+    def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None, checkpreemptfn=None, reusetimeout=10.0):
         """creates a new zmq client, uses zmq req socket over tcp
 
         :param hostname: hostname or ip to connect to
         :param port: port to connect to
         :param ctx: optionally specifies a zmq context to use, if not provided, a new zmq context will be created
         :param limit: defaults to 100, limit the number of underlying zmq socket to create, usually one socket will actually be used, but if server times out frequently and you use fireandforget, then this limit caps the number of sockets we can use
+        :param url: allow passing of zmq socket url instead of hostname and port
         """
 
         self._hostname = hostname
         self._port = int(port)
-        self._url = 'tcp://%s:%d' % (self._hostname, self._port)
+        self._url = url
+        if self._url is None:
+            self._url = 'tcp://%s:%d' % (self._hostname, self._port)
 
-        self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit)
+        self._pool = ZmqSocketPool(self._url, ctx=ctx, limit=limit, timeout=reusetimeout)
         self._socket = None
         self._isok = True
-    
+        self._checkpreemptfn = checkpreemptfn
+
     def __del__(self):
         self.Destroy()
-    
+
     def Destroy(self):
         self.SetDestroy()
 
@@ -271,18 +282,34 @@ class ZmqClient(object):
     @property
     def port(self):
         return self._port
-
-    def _AcquireSocket(self, timeout=None):
+    
+    def _CheckCallerThread(self, context=None):
+        """catch bad caller who use zmq client from multiple threads and causes random race conditions.
+        """
+        callerthread = repr(threading.current_thread())
+        oldcallerthread = self._callerthread
+        oldcallercontext = self._callercontext
+        self._callerthread = callerthread
+        self._callercontext = context
+        if oldcallerthread is not None:
+            # assert oldcallerthread == callerthread, 'zmqclient used from multiple threads: previously = %s, now = %s' % (oldcallerthread, callerthread)
+            if oldcallerthread != callerthread:
+                log.error('zmqclient used from multiple threads, this is a bug in the caller: previously = %s, now = %s, previous context = %s, new context = %s', oldcallerthread, callerthread, repr(oldcallercontext)[:100], repr(context)[:100])
+    
+    def _AcquireSocket(self, timeout=None, checkpreempt=True):
         # if we were holding on to a socket before, release it before acquiring one
         self._ReleaseSocket()
-        self._socket = self._pool.AcquireSocket(timeout=timeout)
+        self._socket = self._pool.AcquireSocket(timeout=timeout, checkpreemptfn=self._checkpreemptfn if checkpreempt else None)
 
     def _ReleaseSocket(self):
         if self._socket is not None:
             self._pool.ReleaseSocket(self._socket)
             self._socket = None
     
-    def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True):
+    def SetPreemptFn(self, checkpreemptfn):
+        self._checkpreemptfn = checkpreemptfn
+    
+    def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True, checkpreempt=None):
         """sends command via established zmq socket
 
         :param command: command in json format
@@ -291,16 +318,20 @@ class ZmqClient(object):
         :param fireandforget: if True, will send command and immediately return without trying to receive, blockwait will be set to False
         :param sendjson: if True (default), will send data as json
         :param recvjson: if True (default), will parse received data as json
-        
+
         :return: returns the response from the zmq server in json format if blockwait is True
         """
-        log.verbose(u'Sending command via ZMQ: %s', command)
+        # log.debug('Sending command via ZMQ: %s', command)
+        if checkpreempt is None:
+            log.warn(u'Need to specify checkpreempt to zmq client for command %r: %s', command)
+        
+        self._CheckCallerThread(command)
 
         if fireandforget:
             blockwait = False
 
         # acquire a socket for sending
-        self._AcquireSocket(timeout=timeout)
+        self._AcquireSocket(timeout=timeout, checkpreempt=checkpreempt)
 
         # we may be exiting, the pool refused to give us a socket
         if not self._isok or self._socket is None:
@@ -310,15 +341,19 @@ class ZmqClient(object):
         releasesocket = True
         try:
             # send phase
-            starttime = time.time()
+            starttime = GetMonotonicTime()
             while self._isok:
                 # timeout checking
-                elapsedtime = time.time() - starttime
+                elapsedtime = GetMonotonicTime() - starttime
                 if timeout is not None and elapsedtime > timeout:
                     raise TimeoutError(u'Timed out trying to send to %s after %f seconds' % (self._url, elapsedtime))
-                
+
+                if checkpreempt and self._checkpreemptfn is not None:
+                    self._checkpreemptfn()
+
                 # poll to see if we can send, if not, loop
-                if self._socket.poll(50, zmq.POLLOUT) == 0:
+                waitingevents = self._socket.poll(50, zmq.POLLOUT)
+                if (waitingevents & zmq.POLLOUT) != zmq.POLLOUT:
                     continue
 
                 if sendjson:
@@ -339,7 +374,7 @@ class ZmqClient(object):
                 return None
 
             # receive
-            return self.ReceiveCommand(timeout=timeout, recvjson=recvjson)
+            return self.ReceiveCommand(timeout=timeout, recvjson=recvjson, checkpreempt=checkpreempt)
 
         finally:
             # release socket
@@ -349,8 +384,10 @@ class ZmqClient(object):
         # TODO: raise UserInterrupt
         return None
 
+    def IsWaitingReply(self):
+        return self._socket is not None
 
-    def ReceiveCommand(self, timeout=10.0, recvjson=True):
+    def ReceiveCommand(self, timeout=10.0, recvjson=True, checkpreempt=True):
         """receive response to a previous SendCommand call, SendCommand must be called with blockwait=False and fireandforget=False
 
         :param timeout: if None, block. If >= 0, use as timeout
@@ -358,28 +395,32 @@ class ZmqClient(object):
 
         :return: returns the recv or recv_json response
         """
+        self._CheckCallerThread('ReceiveCommand')
 
         # should have called SendCommand with blockwait=False first
         assert(self._socket is not None)
 
         try:
             # receive phase
-            starttime = time.time()
+            starttime = GetMonotonicTime()
             while self._isok:
                 # timeout checking
-                elapsedtime = time.time() - starttime
+                elapsedtime = GetMonotonicTime() - starttime
                 if timeout is not None and elapsedtime > timeout:
                     raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
-                
+
+                if checkpreempt and self._checkpreemptfn is not None:
+                    self._checkpreemptfn()
+
                 # poll to see if something has been received, if received nothing, loop
-                startpolltime = time.time()
+                startpolltime = GetMonotonicTime()
                 waitingevents = self._socket.poll(50, zmq.POLLIN)
-                endpolltime = time.time()
-                if endpolltime - startpolltime > 0.2: # due to python delays sometimes this can be 0.11s
-                    log.critical('polling time took %fs!', endpolltime-startpolltime)
-                if waitingevents == 0:
+                endpolltime = GetMonotonicTime()
+                if endpolltime - startpolltime > 0.2:  # due to python delays sometimes this can be 0.11s
+                    log.critical('polling time took %fs!', endpolltime - startpolltime)
+                if (waitingevents & zmq.POLLIN) != zmq.POLLIN:
                     continue
-                
+
                 if recvjson:
                     return self._socket.recv_json(zmq.NOBLOCK)
                 else:

@@ -1,161 +1,127 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2014-2015 MUJIN Inc.
 
+from .version import __version__ # noqa: F401
+
+import six
+
+try:
+    import ujson as json  # noqa: F401
+except ImportError:
+    import json  # noqa: F401
+
+try:
+    import urllib.parse as urlparse  # noqa: F401
+except ImportError:
+    import urlparse  # noqa: F401
+
+import zmq  # noqa: F401 # TODO: stub zmq
+
+# use GetMonotonicTime if possible
+try:
+    from mujincommon import GetMonotonicTime
+except ImportError:
+    import time
+    if hasattr(time, 'monotonic'):
+        def GetMonotonicTime():
+            return time.monotonic()
+    else:
+        def GetMonotonicTime():
+            return time.time()
+
+import logging
+log = logging.getLogger(__name__)
+
 try:
     import mujincommon.i18n
     ugettext, ungettext = mujincommon.i18n.GetDomain('mujincontrollerclientpy').GetTranslationFunctions()
 except ImportError:
-    import gettext
-    _null_translations = gettext.NullTranslations()
-    ugettext = _null_translations.ugettext
-    ungettext = _null_translations.ugettext
+    def ugettext(message):
+        return message
+
+    def ungettext(singular, plural, n):
+        return singular if n == 1 else plural
 
 _ = ugettext
 
-import json
 
-from logging import addLevelName, NOTSET, getLoggerClass
-
-VERBOSE = 5
-
-class MujinLogger(getLoggerClass()):
-    def __init__(self, name, level=NOTSET):
-        super(MujinLogger, self).__init__(name, level)
-
-        addLevelName(VERBOSE, "VERBOSE")
-    
-    def verbose(self, msg, *args, **kwargs):
-        if self.isEnabledFor(VERBOSE):
-            self._log(VERBOSE, msg, args, **kwargs)
-
-#     def __eq__(self, r):
-#         return self.msg == r.msg
-#     
-#     def __ne__(self, r):
-#         return self.msg != r.msg
-
+@six.python_2_unicode_compatible
 class ClientExceptionBase(Exception):
     """client base exception
     """
-    def __init__(self, msg=u''):
-        self.msg = unicode(msg)
+    _message = None  # the error message, should be unicode
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.__class__.__name__, self.msg)
+    def __init__(self, message=''):
+        if message is not None and not isinstance(message, six.text_type):
+            message = message.decode('utf-8', 'ignore')
+        self._message = message
 
     def __str__(self):
-        return unicode(self).encode('utf-8')
+        return u'%s: %s' % (self.__class__.__name__, self._message)
 
     def __repr__(self):
-        return '<%s(%r)>' % (self.__class__.__name__, self.msg)
+        return '<%s(message=%r)>' % (self.__class__.__name__, self._message)
 
-    def __eq__(self, r):
-        return self.msg == r.msg
 
-    def __ne__(self, r):
-        return self.msg != r.msg
+@six.python_2_unicode_compatible
+class APIServerError(ClientExceptionBase):
+    _message = None  # the error. should be unicode
+    _errorcode = None  # the error code coming from the server
+    _stacktrace = None  # the traceback from the error. should be unicode
+    _inputcommand = None  # the command sent to the server
 
-class APIServerError(Exception):
-    responseerror_message = None # the error. should be unicode
-    responseerrorcode = None # the error code coming from the server
-    responsestacktrace = None # the traceback from the error. should be unicode
-    inputcommand = None # the command sent to the server
-    def __init__(self, responseerror_message, responsestacktrace=None, responseerrorcode=None, inputcommand=None):
-        if isinstance(responseerror_message, unicode):
-            self.responseerror_message = responseerror_message
-        elif responseerror_message is not None:
-            self.responseerror_message = unicode(responseerror_message, 'utf-8')
-        if isinstance(responsestacktrace, unicode):
-            self.responsestacktrace = responsestacktrace
-        elif responsestacktrace is not None:
-            self.responsestacktrace = unicode(responsestacktrace, 'utf-8')
+    def __init__(self, message, stacktrace=None, errorcode=None, inputcommand=None):
+        if message is not None and not isinstance(message, six.text_type):
+            message = message.decode('utf-8', 'ignore')
 
-        self.responseerrorcode = responseerrorcode
-        self.inputcommand = inputcommand
-        
-    def __unicode__(self):
-        if self.responseerror_message is not None:
-            return self.responseerror_message
-        
-        return _('Unknown error')
-    
+        if stacktrace is not None and not isinstance(stacktrace, six.text_type):
+            stacktrace = stacktrace.decode('utf-8', 'ignore')
+
+        self._message = message
+        self._stacktrace = stacktrace
+        self._errorcode = errorcode
+        self._inputcommand = inputcommand
+
     def __str__(self):
-        return unicode(self).encode('utf-8')
-    
+        if self._message is not None:
+            return _('API Server Error: %s')%self._message
+        return _('API Server Error: Unknown')
+
     def __repr__(self):
-        return '<%s(%r, %r, %r, %r)>' % (self.__class__.__name__, self.responseerror_message, self.responsestacktrace, self.responseerrorcode, self.inputcommand)
+        return '<%s(message=%r, stacktrace=%r, errorcode=%r, inputcommand=%r)>' % (self.__class__.__name__, self._message, self._stacktrace, self._errorcode, self._inputcommand)
 
-def GetAPIServerErrorFromWeb(request_type, url, status_code, responsecontent):
-    inputcommand = {'request_type':request_type, 'url':url, 'status_code':status_code}
-    responseerror_message = _('Unknown error')
-    responseerrorcode = None
-    responsestacktrace = None
-    try:
-        content = json.loads(responsecontent)
-        responsestacktrace = content.get('stacktrace',None)
-        if responsestacktrace is not None:
-            responsestacktrace = responsestacktrace.encode('utf-8')
-        responseerror_message = content.get('error_message', None)
-        if responseerror_message is not None:
-            responseerror_message = responseerror_message.encode('utf-8')
-        responseerrorcode = content.get('error_code',None)
-    except ValueError:
-        if isinstance(responsecontent, unicode):
-            responseerror_message = responsecontent.encode('utf-8')
-        else:
-            responseerror_message = responsecontent
-    return APIServerError(responseerror_message, responsestacktrace, responseerrorcode, inputcommand)
+    @property
+    def message(self):
+        """The error message from server."""
+        return self._message
 
-def GetAPIServerErrorFromZMQ(response):
-    """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
-    """
-    if response is None:
-        return None
+    @property
+    def errorcode(self):
+        """The error code from server. Could be None."""
+        return self._errorcode
     
-    if 'error' in response:
-        if isinstance(response['error'], dict):
-            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
-        
-        else:
-            return APIServerError(response['error'])
+    @property
+    def stacktrace(self):
+        """Stacktrace from the error. Could be None."""
+        return self._stacktrace
     
-    elif 'exception' in response:
-        return APIServerError(response['exception'])
-    
-    elif 'status' in response and response['status'] != 'succeeded':
-        # something happened so raise exception
-        return APIServerError(u'Resulting status is %s' % response['status'])
-    
-    return None
+    @property
+    def inputcommand(self):
+        """The command that was sent to the server. Could be None."""
+        return self._inputcommand
 
-class FluidPlanningError(Exception):
+
+class TimeoutError(ClientExceptionBase):
     pass
 
-class TimeoutError(Exception):
+
+class AuthenticationError(ClientExceptionBase):
     pass
 
-class AuthenticationError(Exception):
-    pass
 
 class ControllerClientError(ClientExceptionBase):
-    def __unicode__(self):
-        return _('Controller Client Error:\n%s')%self.msg
-
-class BinPickingError(ClientExceptionBase):
-    def __unicode__(self):
-        return _('Bin Picking Client Error:\n%s')%self.msg
-
-class HandEyeCalibrationError(ClientExceptionBase):
-    def __unicode__(self):
-        return _('Hand-eye Calibration Client Error:\n%s')%self.msg
-
-from traceback import format_exc
+    pass
 
 
-def GetExceptionStack():
-    """returns the unicode of format_exc
-    """
-    s = format_exc()
-    if isinstance(s, unicode):
-        return s
-    return unicode(s, 'utf-8')
+class URIError(ClientExceptionBase):
+    pass
