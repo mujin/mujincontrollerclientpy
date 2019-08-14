@@ -2,21 +2,21 @@
 # Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 
-# logging
-import logging
-log = logging.getLogger(__name__)
-
 # system imports
 
 # mujin imports
 from . import planningclient
-from . import ugettext as _
+
+# logging
+import logging
+log = logging.getLogger(__name__)
+
 
 class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient):
     """mujin controller client for hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
-    
+
     def __init__(self, robot, **kwargs):
         """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
         :param controllerurl: url of the mujin controller, e.g. http://controller14
@@ -27,49 +27,42 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         """
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
-        
-    def ComputeCalibrationPoses(self, camerafullname, numsamples, halconpatternparameters, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, targetarea="", targetregionname=None, samplingmethod=None, timeout=3000, **kwargs):
-        taskparameters = {'command': 'ComputeCalibrationPoses',
-                          'camerafullname': camerafullname,
-                          'halconpatternparameters': halconpatternparameters,
-                          'patternvisibility': calibboardvisibility,
-                          'calibboardLinkName':calibboardLinkName,
-                          'calibboardGeomName':calibboardGeomName,
-                          'numsamples': numsamples,
-                          'targetarea': targetarea
-                          }
-        if targetregionname is not None:
-            taskparameters['targetregionname'] = targetregionname
-        if samplingmethod is not None:
-            taskparameters['samplingmethod'] = samplingmethod
+
+    def ComputeCalibrationPoses(self, cameracontainername, primarysensorname, secondarysensornames, numsamples, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
+        taskparameters = {
+            'command': 'ComputeCalibrationPoses',
+            'cameracontainername': cameracontainername,
+            'primarysensorname': primarysensorname,
+            'secondarysensornames': secondarysensornames,
+            'numsamples': numsamples,
+            'calibboardvisibility': calibboardvisibility,
+            'calibboardLinkName': calibboardLinkName,
+            'calibboardGeomName': calibboardGeomName,
+        }
         taskparameters.update(kwargs)
         if self.robot is not None:
-            taskparameters["robot"] = self.robot
-        result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
-        return result
-    
-    def ComputeStereoCalibrationPoses(self, camerafullnames, numsamples, halconpatternparameters, calibboardvisibility, targetarea="", targetregionname=None, samplingmethod=None, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
-        """
-        :param calibboardGeomName:
-        """
-        taskparameters = {'command': 'ComputeStereoCalibrationPoses',
-                          'camerafullnames': camerafullnames,
-                          'halconpatternparameters': halconpatternparameters,
-                          'patternvisibility': calibboardvisibility,
-                          'calibboardLinkName':calibboardLinkName,
-                          'calibboardGeomName':calibboardGeomName,
-                          'numsamples': numsamples,
-                          'targetarea': targetarea
-                          }
-        if targetregionname is not None:
-            taskparameters['targetregionname'] = targetregionname
-        if samplingmethod is not None:
-            taskparameters['samplingmethod'] = samplingmethod
+            taskparameters['robot'] = self.robot
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
+
+    def SampleCalibrationConfiguration(self, cameracontainername, primarysensorname, secondarysensornames, gridindex, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
+        taskparameters = {
+            'command': 'SampleCalibrationConfiguration',
+            'cameracontainername': cameracontainername,
+            'primarysensorname': primarysensorname,
+            'secondarysensornames': secondarysensornames,
+            'gridindex': gridindex,
+            'calibboardvisibility': calibboardvisibility,
+            'calibboardLinkName': calibboardLinkName,
+            'calibboardGeomName': calibboardGeomName,
+        }
         taskparameters.update(kwargs)
         if self.robot is not None:
-            taskparameters["robot"] = self.robot
-        result = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
-        return result
-    
+            taskparameters['robot'] = self.robot
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
+
     def ReloadModule(self, **kwargs):
-        return self.ExecuteCommand({'command': 'ReloadModule', 'sceneparams': self.sceneparams, 'tasktype': self.tasktype}, **kwargs)
+        return self.ExecuteCommand({
+            'command': 'ReloadModule',
+            'sceneparams': self.sceneparams,
+            'tasktype': self.tasktype,
+        }, **kwargs)
