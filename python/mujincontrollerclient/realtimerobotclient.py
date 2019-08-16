@@ -752,9 +752,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
+    
     def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
+        
+        :prefixes: list of strings describing the prefix of the instobject names. If prefix ends with a '$', then it is has to match to the end (ie the whole name)
         """
         taskparameters = {
             'command': 'SetIgnoreObjectsFromUpdateWithPrefix',
@@ -762,7 +764,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
+    
     def RestoreSceneInitialState(self, usewebapi=None, timeout=1, **kwargs):
         """restore scene to the state on filesystem
         """
