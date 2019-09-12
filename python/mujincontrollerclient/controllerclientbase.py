@@ -184,7 +184,7 @@ class ControllerClient(object):
         """Sends a dummy HEAD request to api endpoint
         """
         assert(usewebapi)
-        response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
+        response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
@@ -830,7 +830,7 @@ class ControllerClient(object):
 
     def SetConfig(self, data, timeout=5):
         response = self._webclient.Request('PUT', '/config/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
-        if response.status_code != 200:
+        if response.status_code != 202:
             raise ControllerClientError(_('Failed to set configuration fron controller, status code is %d') % response.status_code)
 
     #
