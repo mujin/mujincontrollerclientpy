@@ -49,6 +49,7 @@ def _ApplyTemplate(config, template):
 
         'robots', # TODO for now skipping this
         'devices', # TODO for now skipping this
+        'calibrationParameters', # TODO for now skipping this
 
         'sourceContainerInfo',
         'sourcecontainername',
