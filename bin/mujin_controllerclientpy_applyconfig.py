@@ -52,6 +52,9 @@ def _ApplyTemplate(config, template):
 
         'sourceContainerInfo',
         'sourcecontainername',
+
+        'binpickingparameters.predictDetectionInfo.alignLongAxisToX',
+        'binpickingparameters.predictDetectionInfo.alignLongAxisToY',
     )
 
     for path in preservedpaths:
