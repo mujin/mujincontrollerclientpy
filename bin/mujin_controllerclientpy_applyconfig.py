@@ -39,11 +39,14 @@ def _ApplyTemplate(config, template):
     )
 
     for path in preservedpaths:
+        parts = path.split('.')
+        parts, key = parts[:-1], parts[-1]
+
+        # navigate to the part of the conf for preservation
         cursor = config
         newcursor = newconfig
-
         skip = False
-        for part in path.split('.')[:-1]:
+        for part in parts:
             if part not in cursor or part not in newcursor:
                 skip = True
                 break
@@ -59,8 +62,11 @@ def _ApplyTemplate(config, template):
             newcursor = newcursor[part]
         if skip:
             continue
-        key = path.split('.')[-1]
-        newcursor[key] = copy.deepcopy(cursor[key])
+
+        # copy the original conf back at that location
+        if key in cursor:
+            newcursor[key] = copy.deepcopy(cursor[key])
+
     return newconfig
 
 
