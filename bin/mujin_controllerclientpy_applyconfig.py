@@ -53,10 +53,16 @@ def _ApplyTemplate(config, template):
 
         'sourceContainerInfo',
         'sourcecontainername',
+        'sourcecontainernames',
+        'destContainerInfo',
+        'destcontainername',
+        'destcontainernames',
 
         'binpickingparameters.predictDetectionInfo.alignLongAxisToX',
         'binpickingparameters.predictDetectionInfo.alignLongAxisToY',
         'binpickingparameters.labelerDirection',
+
+        'sceneuri',
     )
 
     for path in preservedpaths:
