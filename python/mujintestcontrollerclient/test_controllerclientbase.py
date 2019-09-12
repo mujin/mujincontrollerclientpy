@@ -14,7 +14,7 @@ from mujincontrollerclient.controllerclientbase import ControllerClient
 ])
 def test_PingAndLogin(url, username, password):
     with requests_mock.Mocker() as mock:
-        mock.head('%s/u/%s' % (url, username))
+        mock.head('%s/u/%s/' % (url, username))
         controllerclient = ControllerClient(url, username, password)
         controllerclient.Ping()
         controllerclient.Login()
