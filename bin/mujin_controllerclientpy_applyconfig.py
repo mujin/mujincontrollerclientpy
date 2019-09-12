@@ -22,7 +22,7 @@ def _DiffConfig(oldconfig, newconfig):
             oldfile.write(_PrettifyConfig(oldconfig))
             newfile.write(_PrettifyConfig(newconfig))
             try:
-                subprocess.check_call(['diff', '--color', oldfile.name, newfile.name])
+                subprocess.check_call(['diff', '--color', '--unified=5', oldfile.name, newfile.name])
                 return False
             except subprocess.CalledProcessError:
                 return True
@@ -34,8 +34,24 @@ def _ApplyTemplate(config, template):
     # preserve the following path in the original config
     preservedpaths = (
         'cameraHome',
+
         'networkInterfaceSettings',
+        'ntpServer',
+        'ntpStratum',
+
         'useFallbackUI',
+        'motionUI',
+
+        'tweakstepsize',
+
+        'robotspeed',
+        'robotaccelmult',
+
+        'robots', # TODO for now skipping this
+        'devices', # TODO for now skipping this
+
+        'sourceContainerInfo',
+        'sourcecontainername',
     )
 
     for path in preservedpaths:
@@ -110,15 +126,18 @@ def _RunMain():
     newconfig = _ApplyTemplate(config, template)
 
     # if the config is different, prompt the user
-    if _DiffConfig(config, newconfig):
-        try:
-            log.warn('configuration will be changed on %s', target)
-            if not options.force:
-                raw_input('Are you sure about applying the above changes to %s? Press ENTER to continue ...' % target)
-        except KeyboardInterrupt:
-            print('')
-            log.warn('canceled by user')
-            return
+    if not _DiffConfig(config, newconfig):
+        log.debug('configuration already up-to-date on %s', target)
+        return
+
+    try:
+        log.warn('configuration will be changed on %s', target)
+        if not options.force:
+            raw_input('Are you sure about applying the above changes to %s? Press ENTER to continue ...' % target)
+    except KeyboardInterrupt:
+        print('')
+        log.warn('canceled by user')
+        return
 
     # apply the configuration changes
     log.debug('applying configuration on %s', target)
