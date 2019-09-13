@@ -31,46 +31,47 @@ def _DiffConfig(oldconfig, newconfig):
 
 def _ApplyTemplate(config, template, preservedpaths=None):
     newconfig = copy.deepcopy(template)
-
+    
     # preserve the following path in the original config
-    preservedpaths = preservedpaths or []
+    if preservedpaths is None:
+        # add some basics
+        preservedpaths = [
+            # ui specific
+            'useFallbackUI',
+            'usermodepassword',
+            'users',
+            'cameraHome',
+            'tweakstepsize',
+            'sourceContainerInfo',
+            'sourcecontainername',
+            'sourcecontainernames',
+            'destContainerInfo',
+            'destcontainername',
+            'destcontainernames',
+            
+            # temp settings
+            'robotname',
+            'robotspeed',
+            'robotaccelmult',
+            'robotlockmode',
+            
+            # controller specific
+            'sceneuri',
+            'robots', # TODO for now skipping this
+            'devices', # TODO for now skipping this
+            'calibrationParameters', # TODO for now skipping this
+        ]
+    
+    # always preserve network settings!
     preservedpaths += [
         # network specific
         'networkInterfaceSettings',
         'ntpServer',
         'ntpStratum',
-
-        # ui specific
-        'useFallbackUI',
-        'motionUI',
-        'usermodepassword',
-        'users',
-        'cameraHome',
-        'tweakstepsize',
-        'sourceContainerInfo',
-        'sourcecontainername',
-        'sourcecontainernames',
-        'destContainerInfo',
-        'destcontainername',
-        'destcontainernames',
-
-        # temp settings
-        'robotname',
-        'robotspeed',
-        'robotaccelmult',
-        'robotlockmode',
-
-        # controller specific
-        'sceneuri',
-        'robots', # TODO for now skipping this
-        'devices', # TODO for now skipping this
-        'calibrationParameters', # TODO for now skipping this
-
-        # binpickingparameters
-        'binpickingparameters.predictDetectionInfo.alignLongAxisToX',
-        'binpickingparameters.predictDetectionInfo.alignLongAxisToY',
-        'binpickingparameters.labelerDirection',
     ]
+    
+    # others
+
 
     for path in set(preservedpaths):
         parts = path.split('.')
