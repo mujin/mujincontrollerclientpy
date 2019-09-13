@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import six
 import copy
 import json
 import argparse
@@ -144,7 +145,7 @@ def _RunMain():
     try:
         log.warn('configuration will be changed on %s', target)
         if not options.force:
-            raw_input('Are you sure about applying the above changes to %s? Press ENTER to continue ...' % target)
+            six.moves.input('Are you sure about applying the above changes to %s? Press ENTER to continue ...' % target)
     except KeyboardInterrupt:
         print('')
         log.warn('canceled by user')
