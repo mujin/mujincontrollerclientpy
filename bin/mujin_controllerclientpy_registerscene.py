@@ -56,7 +56,7 @@ if __name__ == "__main__":
     
     scenebasename = os.path.split(scenefilename)[1]
     if self.FileExists(scenebasename):
-        response = six.input('File %s exists on server, would you like to overwrite? (y/n) ' % scenebasename)
+        response = six.moves.input('File %s exists on server, would you like to overwrite? (y/n) ' % scenebasename)
         if response != 'y':
             sys.exit(0)
 
