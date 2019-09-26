@@ -27,6 +27,7 @@ def test_GetFragmentFromURI(uri, fragmentSeparator, expected):
     (u'mujin:/测试_test..mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_SHARP, b'%E6%B5%8B%E8%AF%95_test..mujin.dae#body0_motion'),
     (u'mujin:/测试_test..mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_SHARP, uriutils.PRIMARY_KEY_SEPARATOR_AT, b'%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'),
     (u'mujin:/测试_test..mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_SHARP, uriutils.PRIMARY_KEY_SEPARATOR_SHARP, b'%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'),
+    (u'mujin:/private/s/gittest.mujin.dae', uriutils.FRAGMENT_SEPARATOR_SHARP, uriutils.PRIMARY_KEY_SEPARATOR_SHARP, b'private%2Fs%2Fgittest.mujin.dae'),
 ])
 def test_GetPrimaryKeyFromURI(uri, fragmentSeparator, primaryKeySeparator, expected):
     assert uriutils.GetPrimaryKeyFromURI(uri, fragmentSeparator=fragmentSeparator, primaryKeySeparator=primaryKeySeparator) == expected
@@ -34,8 +35,9 @@ def test_GetPrimaryKeyFromURI(uri, fragmentSeparator, primaryKeySeparator, expec
 
 @pytest.mark.parametrize('filename, mujinPath, expected', [
     (u'/data/detection/测试_test.mujin.dae', u'/data/detection', b'%E6%B5%8B%E8%AF%95_test.mujin.dae'),
-    (u'/data/u/mujin/测试_test.mujin.dae', u'/data/detection', b'/data/u/mujin/%E6%B5%8B%E8%AF%95_test.mujin.dae'),
-    (u'/abcdefg/test.mujin.dae', u'/abc', b'/abcdefg/test.mujin.dae'),
+    (u'/data/u/mujin/测试_test.mujin.dae', u'/data/detection', b'%2Fdata%2Fu%2Fmujin%2F%E6%B5%8B%E8%AF%95_test.mujin.dae'),
+    (u'/abcdefg/test.mujin.dae', u'/abc', b'%2Fabcdefg%2Ftest.mujin.dae'),
+    (u'/data/media/mujin/private/s/gittest.mujin.dae', u'/data/media/mujin', b'private%2Fs%2Fgittest.mujin.dae'),
 ])
 def test_GetPrimaryKeyFromFilename(filename, mujinPath, expected):
     assert uriutils.GetPrimaryKeyFromFilename(filename, mujinPath=mujinPath) == expected
@@ -112,3 +114,11 @@ def test_GetURIFromPartType(partType, suffix, expected):
 ])
 def test_GetPartTypeFromFilename(filename, mujinPath, suffix, expected):
     assert uriutils.GetPartTypeFromFilename(filename, mujinPath=mujinPath, suffix=suffix) == expected
+
+@pytest.mark.parametrize('uri, fragmentSeparator,  expected', [
+    (u'mujin:/测试_test.mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test'),
+    (u'mujin:/测试_test.mujin.dae', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test'),
+    (u'mujin:/test.mujin.dae', uriutils.FRAGMENT_SEPARATOR_AT, u'test'),
+])
+def test_GetPartTypeFromURI(uri, fragmentSeparator, expected):
+    assert uriutils.GetPartTypeFromURI(uri, fragmentSeparator=fragmentSeparator) == expected

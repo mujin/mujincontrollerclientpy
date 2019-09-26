@@ -6,17 +6,21 @@ try:
 except ImportError:
     from distutils.dist import Distribution
 
+version = {}
+exec(open('python/mujincontrollerclient/version.py').read(), version)
+
 setup(
     distclass=Distribution,
-    name='MujinControllerClient',
-    version='0.0.1',
+    name='mujincontrollerclient',
+    version=version['__version__'],
     packages=['mujincontrollerclient'],
     package_dir={'mujincontrollerclient': 'python/mujincontrollerclient'},
-    scripts=['bin/mujin_mujincontrollerclientpy_registerscene.py', 'bin/mujin_mujincontrollerclientpy_runshell.py'],
+    scripts=['bin/mujin_controllerclientpy_registerscene.py', 'bin/mujin_controllerclientpy_applyconfig.py', 'bin/mujin_controllerclientpy_runshell.py'],
     locale_dir='locale',
     license='Apache License, Version 2.0',
     long_description=open('README.rst').read(),
     # flake8 compliance configuration
     enable_flake8=True,  # Enable checks
     fail_on_flake=True,  # Fail builds when checks fail
+    install_requires=[],
 )

@@ -87,9 +87,9 @@ def _Quote(primaryKey):
     assert(isinstance(primaryKey, six.text_type))
     if six.PY3:
         # python3 quote seems to deal with unicode input
-        return _EnsureUTF8(quote(primaryKey))
+        return _EnsureUTF8(quote(primaryKey, safe=''))
     else:
-        return _EnsureUTF8(quote(_EnsureUTF8(primaryKey)))
+        return _EnsureUTF8(quote(_EnsureUTF8(primaryKey), safe=''))
 
 
 def _ParseURI(uri, fragmentSeparator):
@@ -370,14 +370,18 @@ def GetPrimaryKeyFromPartType(partType, **kwargs):
     output:
         primaryKey: a utf-8 encoded str (quoted).
 
-    >>> GetPrimaryKeyFromPartType(u'测试_test')
+    >>> GetPrimaryKeyFromPartType(u'测试_test', suffix='.mujin.dae')
     '%E6%B5%8B%E8%AF%95_test.mujin.dae'
+    >>> GetPrimaryKeyFromPartType(u'测试_test')
+    '%E6%B5%8B%E8%AF%95_test'
     """
     return MujinResourceIdentifier(partType=partType, **kwargs).primaryKey
 
 def GetURIFromPartType(partType, **kwargs):
     return MujinResourceIdentifier(partType=partType, **kwargs).uri
 
+def GetPartTypeFromURI(uri, **kwargs):
+    return MujinResourceIdentifier(uri=uri, **kwargs).partType
 
 def GetPartTypeFromFilename(filename, **kwargs):
     u"""
