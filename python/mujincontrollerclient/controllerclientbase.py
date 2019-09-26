@@ -604,7 +604,7 @@ class ControllerClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
 
     def CreateCycleLog(self, cycleIndex, cycleType, dateStarted, cycleLog, controllerId, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
@@ -909,7 +909,7 @@ class ControllerClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
 
     def GetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
