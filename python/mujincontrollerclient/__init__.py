@@ -125,3 +125,6 @@ class ControllerClientError(ClientExceptionBase):
 
 class URIError(ClientExceptionBase):
     pass
+
+class UserInterrupt(ClientExceptionBase):
+    pass
