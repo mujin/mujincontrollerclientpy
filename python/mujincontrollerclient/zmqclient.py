@@ -2,6 +2,7 @@
 # Copyright (C) 2012-2015 MUJIN Inc
 
 import threading
+import six
 
 from . import zmq
 from . import TimeoutError, GetMonotonicTime
@@ -159,7 +160,7 @@ class ZmqSocketPool(object):
 
         # check for socket that stayed in the polling state for too long
         timedoutsockets = []
-        for socket, timestamp in self._pollingsockets.iteritems():
+        for socket, timestamp in six.iteritems(self._pollingsockets):
             if now - timestamp > self._timeout:
                 timedoutsockets.append(socket)
 
