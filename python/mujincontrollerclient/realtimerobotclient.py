@@ -753,26 +753,27 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunDynamicsIdentificationTest(self, timeout, usewebapi=False, **kwargs):
-        taskparameters = dict()
-        taskparameters['command'] = 'RunDynamicsIdentificationTest'
+        taskparameters = {'command': 'RunDynamicsIdentificationTest'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def GetTimeToRunDynamicsIdentificationTest(self, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = dict()
-        taskparameters['command'] = 'GetTimeToRunDynamicsIdentificationTest'
+        taskparameters = {'command': 'GetTimeToRunDynamicsIdentificationTest'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def GetInertiaChildJointStartValues(self, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = dict()
-        taskparameters['command'] = 'GetInertiaChildJointStartValues'
+        taskparameters = {'command': 'GetInertiaChildJointStartValues'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
-        taskparameters = dict()
-        taskparameters['command'] = 'CalculateTestRangeFromCollision'
+        taskparameters = {'command': 'CalculateTestRangeFromCollision'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def DynamicsIdentificationTest3DViewerHandler(self, usewebapi=False, timeout=10, **kwargs):
+        taskparameters = {'command': 'DynamicsIdentificationTest3DViewerHandler'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
