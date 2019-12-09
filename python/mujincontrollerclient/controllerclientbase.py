@@ -490,6 +490,10 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
 
+    def GetRobotAttachedSensors(self, robotpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % robotpk, timeout=timeout)['attachedsensors']
+
     def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, fields=None, usewebapi=True, timeout=5):
         """sets the attachedsensor values via a WebAPI PUT call
         :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
