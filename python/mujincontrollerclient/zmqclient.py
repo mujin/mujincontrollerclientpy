@@ -2,9 +2,10 @@
 # Copyright (C) 2012-2015 MUJIN Inc
 
 import threading
+import six
 
 from . import zmq
-from . import TimeoutError, GetMonotonicTime
+from . import TimeoutError, UserInterrupt, GetMonotonicTime
 
 import logging
 log = logging.getLogger(__name__)
@@ -94,7 +95,7 @@ class ZmqSocketPool(object):
 
     def _OpenSocket(self):
         if not self._isok:
-            return None
+            raise UserInterrupt(u'Interrupted while opening new socket, ZMQ socket pool is stopping')
 
         socket = self._ctx.socket(zmq.REQ)
         socket.connect(self._url)
@@ -159,7 +160,7 @@ class ZmqSocketPool(object):
 
         # check for socket that stayed in the polling state for too long
         timedoutsockets = []
-        for socket, timestamp in self._pollingsockets.iteritems():
+        for socket, timestamp in six.iteritems(self._pollingsockets):
             if now - timestamp > self._timeout:
                 timedoutsockets.append(socket)
 
@@ -201,8 +202,7 @@ class ZmqSocketPool(object):
             # otherwise, wait by a small blocking poll
             self._Poll(timeout=50)
 
-        # TODO: raise UserInterrupt
-        return None
+        raise UserInterrupt(u'Interrupted while acquiring socket, ZMQ socket pool is stopping')
 
     def ReleaseSocket(self, socket, reuse=True):
         """release a socket after use, if caller did not call recv, the pool will take care of that
@@ -334,9 +334,8 @@ class ZmqClient(object):
         self._AcquireSocket(timeout=timeout, checkpreempt=checkpreempt)
 
         # we may be exiting, the pool refused to give us a socket
-        if not self._isok or self._socket is None:
-            # TODO: raise UserInterrupt
-            return None
+        if not self._isok:
+            raise UserInterrupt(u'Interrupted after acquiring socket, ZMQ client is stopping')
 
         releasesocket = True
         try:
@@ -381,8 +380,7 @@ class ZmqClient(object):
             if releasesocket:
                 self._ReleaseSocket()
 
-        # TODO: raise UserInterrupt
-        return None
+        raise UserInterrupt(u'Interrupted while waiting to send, ZMQ client is stopping')
 
     def IsWaitingReply(self):
         return self._socket is not None
@@ -430,5 +428,4 @@ class ZmqClient(object):
             # release socket
             self._ReleaseSocket()
 
-        # TODO: raise UserInterrupt
-        return None
+        raise UserInterrupt(u'Interrupted while waiting for response, ZMQ client is stopping')
