@@ -354,8 +354,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, doRemoveGrabbedObjects=False, **kwargs):
         """removes objects with prefix
+        
+        :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
+        :param doRemoveGrabbedObjects: if True, then also removed objects even if they are grabbed by the robot.
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
                           }
@@ -368,6 +371,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['objectPrefixesExpectingFromSlaveTrigger'] = objectPrefixesExpectingFromSlaveTrigger
         if removeRegionNames is not None:
             taskparameters['removeRegionNames'] = removeRegionNames
+        if doRemoveGrabbedObjects is not None:
+            taskparameters['doRemoveGrabbedObjects'] = doRemoveGrabbedObjects
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def GetTrajectoryLog(self, timeout=10, **kwargs):
@@ -743,7 +748,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=1, **kwargs):
+    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=2, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
         """
         taskparameters = {
@@ -751,9 +756,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'enable': bool(enable)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
-    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=2, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
         
         :prefixes: list of strings describing the prefix of the instobject names. If prefix ends with a '$', then it is has to match to the end (ie the whole name)
