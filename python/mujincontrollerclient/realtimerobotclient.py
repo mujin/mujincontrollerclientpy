@@ -304,7 +304,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def GetInnerEmptyRegionOBB(self, targetname, linkname=None, unit='mm', timeout=10, **kwargs):
         """ Get the inner empty oriented bounding box of a container
         :param targetname: name of the object
@@ -320,7 +320,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['linkname'] = linkname
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def GetInstObjectAndSensorInfo(self, instobjectnames=None, sensornames=None, unit='mm', timeout=10, **kwargs):
         """returns information about the inst objects and sensors part of those inst objects
         """
@@ -329,6 +329,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['instobjectnames'] = instobjectnames
         if sensornames is not None:
             taskparameters['sensornames'] = sensornames
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def GetInstObjectInfoFromURI(self, instobjecturi=None, unit='mm', timeout=10, **kwargs):
+        """opens a URI and returns info about the internal/external and geometry info from it
+        """
+        taskparameters = {'command': 'GetInstObjectInfoFromURI', 'unit':unit}
+        if instobjecturi is not None:
+            taskparameters['objecturi'] = instobjecturi
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
@@ -345,8 +354,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, doRemoveGrabbedObjects=False, **kwargs):
         """removes objects with prefix
+        
+        :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
+        :param doRemoveGrabbedObjects: if True, then also removed objects even if they are grabbed by the robot.
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
                           }
@@ -359,6 +371,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['objectPrefixesExpectingFromSlaveTrigger'] = objectPrefixesExpectingFromSlaveTrigger
         if removeRegionNames is not None:
             taskparameters['removeRegionNames'] = removeRegionNames
+        if doRemoveGrabbedObjects is not None:
+            taskparameters['doRemoveGrabbedObjects'] = doRemoveGrabbedObjects
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def GetTrajectoryLog(self, timeout=10, **kwargs):
@@ -570,7 +584,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
+    def GetRobotBridgeIOVariableString(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
+        """returns the data of the IO in ascii hex as a string
 
+        :param ioname: One IO name to read
+        :param ionames: a list of the IO names to read
+        """
+        taskparameters = {
+            'command': 'GetRobotBridgeIOVariableString'
+        }
+        if ioname is not None and len(ioname) > 0:
+            taskparameters['ioname'] = ioname
+        if ionames is not None and len(ionames) > 0:
+            taskparameters['ionames'] = ionames
+        
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+    
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         taskparameters = {
             'command': 'ComputeIkParamPosition',
@@ -717,7 +748,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=1, **kwargs):
+    def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=2, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
         """
         taskparameters = {
@@ -725,10 +756,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'enable': bool(enable)
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
+    def SetIgnoreObjectsFromUpdateWithPrefix(self, prefixes, usewebapi=False, timeout=2, fireandforget=False, **kwargs):
         """enables publishing collision data to the robotbridge
+        
+        :prefixes: list of strings describing the prefix of the instobject names. If prefix ends with a '$', then it is has to match to the end (ie the whole name)
         """
         taskparameters = {
             'command': 'SetIgnoreObjectsFromUpdateWithPrefix',
@@ -736,7 +769,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
+    
     def RestoreSceneInitialState(self, usewebapi=None, timeout=1, **kwargs):
         """restore scene to the state on filesystem
         """

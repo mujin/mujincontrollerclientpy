@@ -112,44 +112,15 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def StartITLProgram(self, taskname, program, parameters=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+    def StartITLProgram(self, programName, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'StartITLProgram',
-            'taskname': taskname,
-            'program': program,
-            'parameters': parameters,
+            'programName': programName,
         }
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
         if robotaccelmult is not None:
             taskparameters['robotaccelmult'] = robotaccelmult
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def DeleteITLProgram(self, taskname, program, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
-        taskparameters = {
-            'command': 'DeleteITLProgram',
-            'taskname': taskname,
-            'program': program,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def RenameITLProgram(self, oldName, newName, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
-        taskparameters = {
-            'command': 'RenameITLProgram',
-            'oldName': oldName,
-            'newName': newName,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def CopyITLProgram(self, oldName, newName, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
-        taskparameters = {
-            'command': 'CopyITLProgram',
-            'oldName': oldName,
-            'newName': newName,
-        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
@@ -162,13 +133,12 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def GenerateExecutionGraph(self, program, parameters=None, commandTimeout=0.2, totalTimeout=1.0, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GenerateExecutionGraph(self, programName, commandTimeout=0.2, totalTimeout=1.0, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """generate list of commands for the itl program
         """
         taskparameters = {
             'command': 'GenerateExecutionGraph',
-            'program': program,
-            'parameters': parameters,
+            'programName': programName,
             'commandTimeout': commandTimeout,
             'totalTimeout': totalTimeout,
         }

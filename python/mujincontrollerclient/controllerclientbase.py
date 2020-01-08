@@ -83,6 +83,28 @@ def _FormatHTTPDate(dt):
 class ControllerClient(object):
     """mujin controller client base
     """
+
+    class ObjectsWrapper(list):
+        """wrap response for list of objects, provides extra meta data
+        """
+        _meta = None  # meta dict returned from server
+
+        def __init__(self, data):
+            super(ControllerClient.ObjectsWrapper, self).__init__(data['objects'])
+            self._meta = data['meta']
+
+        @property
+        def totalCount(self):
+            return self._meta['total_count']
+
+        @property
+        def limit(self):
+            return self._meta['limit']
+
+        @property
+        def offset(self):
+            return self._meta['offset']
+
     _webclient = None
     _userinfo = None  # a dict storing user info, like locale
 
@@ -162,7 +184,7 @@ class ControllerClient(object):
         """Sends a dummy HEAD request to api endpoint
         """
         assert(usewebapi)
-        response = self._webclient.Request('HEAD', u'/u/%s' % self.controllerusername, timeout=timeout)
+        response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
@@ -192,7 +214,7 @@ class ControllerClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
 
     def GetScene(self, pk, fields=None, usewebapi=True, timeout=5):
         """returns requested scene
@@ -252,7 +274,7 @@ class ControllerClient(object):
         """ returns the instance objects of the scene
         """
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout))
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
@@ -498,7 +520,7 @@ class ControllerClient(object):
         }
         if tasktype:
             params['tasktype'] = tasktype
-        return self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/task/' % scenepk, fields=fields, timeout=timeout, params=params))
 
     def GetSceneTask(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
@@ -552,10 +574,10 @@ class ControllerClient(object):
 
     def GetJobs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'job/', fields=fields, timeout=timeout, params={
             'offset': offset,
             'limit': limit,
-        })['objects']
+        }))
 
     def DeleteJob(self, jobpk, usewebapi=True, timeout=5):
         """ cancels the job with the corresponding jobk
@@ -599,7 +621,7 @@ class ControllerClient(object):
 
     def GetSceneInstanceObjectsViaWebapi(self, scenepk, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout))
 
     #
     # Sensor mappings related
@@ -806,6 +828,11 @@ class ControllerClient(object):
             raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
         return response.json()
 
+    def SetConfig(self, data, timeout=5):
+        response = self._webclient.Request('PUT', '/config/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code != 202:
+            raise ControllerClientError(_('Failed to set configuration fron controller, status code is %d') % response.status_code)
+
     #
     # Reference Object PKs.
     #
@@ -831,3 +858,32 @@ class ControllerClient(object):
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
+
+    #
+    # ITL program related
+    #
+
+    def GetITLPrograms(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        params.update(kwargs)
+        return self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params)['objects']
+
+    def GetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'itl/%s/' % programName, fields=fields, timeout=timeout)
+
+    def CreateITLProgram(self, data, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'itl/', data=data, fields=fields, timeout=timeout)
+
+    def SetITLProgram(self, programName, data, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('PUT', u'itl/%s/' % programName, data=data, fields=fields, timeout=timeout)
+
+    def DeleteITLProgram(self, programName, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
