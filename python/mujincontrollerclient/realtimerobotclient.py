@@ -882,3 +882,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def SetInstantaneousJointValues(self, objectName, jointvalues, timeout=10, usewebapi=True):
+        return self.ExecuteCommand({'command': 'SetInstantaneousJointValues', 'objectName': objectName, 'jointvalues':jointvalues}, timeout=timeout, usewebapi=usewebapi)
