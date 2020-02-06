@@ -405,22 +405,22 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def ChuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+    def ChuckGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         """chucks the manipulator
         :param toolname: name of the manipulator, default is taken from self.robots
         """
         taskparameters = {'command': 'ChuckGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
-    def UnchuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+    def UnchuckGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         """unchucks the manipulator and releases the target
         :param toolname: name of the manipulator, default is taken from self.robots
         :param targetname: name of the target
         """
         taskparameters = {'command': 'UnchuckGripper'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
     def CalibrateGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """goes through the gripper calibration procedure
