@@ -48,19 +48,6 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def MoveToCommand(self, program, commandindex=0, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {
-            'command': 'MoveToCommand',
-            'program': program,
-            'commandindex': commandindex,
-            'envclearance': envclearance,
-        }
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
     def ExecuteTrajectory(self, identifier, trajectories, statevalues=None, stepping=False, istep=None, cycles=1, restorevalues=None, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {
             'command': 'ExecuteTrajectory',
@@ -92,34 +79,18 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
             taskparameters['robotaccelmult'] = robotaccelmult
         return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def CancelExecuteTrajectoryStep(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'CancelExecuteTrajectoryStep'}
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    def PauseExecuteTrajectory(self, usewebapi=True, timeout=10, fireandforget=False):
+        taskparameters = {'command': 'PauseExecuteTrajectory'}
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetPauseExecuteTrajectory(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'SetPauseExecuteTrajectory'}
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
-
-    def ResumeExecuteTrajectory(self, envclearance=15, robots=None, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False):
+    def ResumeExecuteTrajectory(self, usewebapi=True, timeout=10, fireandforget=False):
         taskparameters = {'command': 'ResumeExecuteTrajectory'}
-        if robotspeed is not None:
-            taskparameters['robotspeed'] = robotspeed
-        if robotaccelmult is not None:
-            taskparameters['robotaccelmult'] = robotaccelmult
-        return self.ExecuteCommand(taskparameters, robots=robots, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def ComputeRobotConfigsForCommandVisualization(self, program, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
+    def ComputeRobotConfigsForCommandVisualization(self, executiongraph, commandindex=0, usewebapi=True, timeout=2, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'ComputeRobotConfigsForCommandVisualization',
-            'program': program,
+            'executiongraph': executiongraph,
             'commandindex': commandindex,
         }
         taskparameters.update(kwargs)
@@ -141,10 +112,10 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def StartITLProgram(self, program, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
+    def StartITLProgram(self, programName, robotspeed=None, robotaccelmult=None, usewebapi=True, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {
             'command': 'StartITLProgram',
-            'program': program,
+            'programName': programName,
         }
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
@@ -156,7 +127,28 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
     def StopITLProgram(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the itl program
         """
-        taskparameters = {'command': 'StopITLProgram',
-                          }
+        taskparameters = {
+            'command': 'StopITLProgram',
+        }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def GenerateExecutionGraph(self, programName, commandTimeout=0.2, totalTimeout=1.0, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """generate list of commands for the itl program
+        """
+        taskparameters = {
+            'command': 'GenerateExecutionGraph',
+            'programName': programName,
+            'commandTimeout': commandTimeout,
+            'totalTimeout': totalTimeout,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def PlotContacts(self, report={}, usewebapi=False, timeout=1, fireandforget=True, **kwargs):
+        taskparameters = {
+            'command': 'PlotContacts',
+            'report': report
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
