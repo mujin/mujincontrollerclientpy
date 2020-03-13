@@ -443,10 +443,6 @@ class MujinResourceIdentifier(object):
         # guess suffix based on primary key
         if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
             self._suffix = u'.mujin.dae'
-            self._primaryKey = self._primaryKey[:-len(self._suffix)]
-        elif self._suffix and self._primaryKey.endswith(self._suffix):
-            log.warn('suffix specified in both the primary key and as a parameter')
-            self._primaryKey = self._primaryKey[:-len(self._suffix)]
 
         if kwargs:
             log.warn('left over arguments to MujinResourceIdentifier constructor are ignored: %r', kwargs)
@@ -475,7 +471,10 @@ class MujinResourceIdentifier(object):
             self._fragment = _EnsureUnicode(fragment)
 
     def _InitFromPartType(self, partType):
-        self._primaryKey = _Quote(partType + self._suffix)
+        primaryKey = partType
+        if not primaryKey.endswith(self._suffix):
+            primaryKey += self._suffix
+        self._primaryKey = _Quote(primaryKey)
 
     def _InitFromFilename(self, filename):
         if self._mujinPath and filename.startswith(self._mujinPath):
@@ -562,9 +561,12 @@ class MujinResourceIdentifier(object):
 
     @property
     def filename(self):
+        fileName = self.partType
+        if not self.partType.endswith(self._suffix):
+            fileName += self._suffix
         if not self._mujinPath:
-            return self.partType + self._suffix
-        return os.path.join(self._mujinPath, self.partType + self._suffix)
+            return fileName
+        return os.path.join(self._mujinPath, fileName)
 
     @property
     def partType(self):
