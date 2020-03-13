@@ -21,7 +21,6 @@ except ImportError:
 
 import os
 import six
-import copy
 
 from . import URIError
 from . import urlparse
