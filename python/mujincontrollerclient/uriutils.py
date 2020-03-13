@@ -443,6 +443,7 @@ class MujinResourceIdentifier(object):
         # guess suffix based on primary key
         if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
             self._suffix = u'.mujin.dae'
+            self._primaryKey = self._primaryKey[:-len(self._suffix)]
         elif self._suffix and self._primaryKey.endswith(self._suffix):
             log.warn('suffix specified in both the primary key and as a parameter')
             self._primaryKey = self._primaryKey[:-len(self._suffix)]
