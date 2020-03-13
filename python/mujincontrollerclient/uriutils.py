@@ -21,6 +21,7 @@ except ImportError:
 
 import os
 import six
+import copy
 
 from . import URIError
 from . import urlparse
@@ -473,7 +474,7 @@ class MujinResourceIdentifier(object):
     def _InitFromPartType(self, partType):
         primaryKey = partType
         if not primaryKey.endswith(self._suffix):
-            primaryKey += self._suffix
+            primaryKey = primaryKey + self._suffix
         self._primaryKey = _Quote(primaryKey)
 
     def _InitFromFilename(self, filename):
@@ -563,7 +564,7 @@ class MujinResourceIdentifier(object):
     def filename(self):
         fileName = self.partType
         if not self.partType.endswith(self._suffix):
-            fileName += self._suffix
+            fileName = fileName + self._suffix
         if not self._mujinPath:
             return fileName
         return os.path.join(self._mujinPath, fileName)
