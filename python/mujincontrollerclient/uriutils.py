@@ -472,7 +472,7 @@ class MujinResourceIdentifier(object):
 
     def _InitFromPartType(self, partType):
         primaryKey = partType
-        if not primaryKey.endswith(self._suffix):
+        if self._suffix and not primaryKey.endswith(self._suffix):
             primaryKey = primaryKey + self._suffix
         self._primaryKey = _Quote(primaryKey)
 
@@ -562,7 +562,7 @@ class MujinResourceIdentifier(object):
     @property
     def filename(self):
         fileName = self.partType
-        if not self.partType.endswith(self._suffix):
+        if self._suffix and not self.partType.endswith(self._suffix):
             fileName = fileName + self._suffix
         if not self._mujinPath:
             return fileName
