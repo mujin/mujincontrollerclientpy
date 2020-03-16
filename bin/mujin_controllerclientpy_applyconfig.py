@@ -7,6 +7,9 @@ import json
 import argparse
 import tempfile
 import subprocess
+import tarfile
+import io
+import cStringIO
 from mujincontrollerclient.controllerclientbase import ControllerClient
 
 import logging
@@ -108,13 +111,13 @@ def _ApplyTemplate(config, template, preservedpaths=None):
 def _RunMain():
     parser = argparse.ArgumentParser(description='Apply configuration on controller from template')
     parser.add_argument('--loglevel', action='store', type=str, dest='loglevel', default=None, help='the python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL [default=%(default)s]')
-    parser.add_argument('--template', action='store', type=str, dest='template', required=True, help='path to template config file [default=%(default)s]')
+    parser.add_argument('--template', action='store', type=str, dest='template', required=True, help='path to template config directory [default=%(default)s]')
+    parser.add_argument('--config', action='store', type=str, dest='config', default=None, help='path to controller config directory, if --controller is not used [default=%(default)s]')
     parser.add_argument('--controller', action='store', type=str, dest='controller', default=None, help='controller ip or hostname, e.g controller123 [default=%(default)s]')
-    parser.add_argument('--config', action='store', type=str, dest='config', default=None, help='controller ip or hostname, e.g binpickingsystem.conf [default=%(default)s]')
     parser.add_argument('--username', action='store', type=str, dest='username', default='mujin', help='controller username [default=%(default)s]')
     parser.add_argument('--password', action='store', type=str, dest='password', default='mujin', help='controller password [default=%(default)s]')
     parser.add_argument('--force', action='store_true', dest='force', help='apply without confirmation [default=%(default)s]')
-    parser.add_argument('--preserve', action='store', type=str, dest='preserve', default=None, help='path to a file containing the list of additional keys to preserve while merging template [default=%(default)s]')
+    parser.add_argument('--schema', action='append', type=str, dest='schemas', help='additional schemas [default=%(default)s]')
     options = parser.parse_args()
 
     # configure logging
@@ -125,40 +128,56 @@ def _RunMain():
         logging.basicConfig(format='%(asctime)s %(name)s [%(levelname)s] [%(filename)s:%(lineno)s %(funcName)s] %(message)s', level=options.loglevel)
 
     # load template
-    with open(options.template, 'r') as f:
-        template = json.load(f)
-
-    # load preservelist
-    preservedpaths = None
-    if options.preserve:
-        preservedpaths = []
-        with open(options.preserve, 'r') as f:
-            for line in f.read().strip().split('\n'):
-                line = line.split('#')[0].strip()
-                if line:
-                    preservedpaths.append(line)
+    # TODO: read entire directory
+    template = {}
+    config = {}
 
     # construct client
     if options.controller:
+        target = options.controller
         client = ControllerClient('http://%s' % options.controller, options.username, options.password)
         client.Ping()
-        config = client.GetConfig()
-        target = client.controllerIp
+
+        # download config backup from controller
+        response = client.Backup(media=False, config=True)
+        with tarfile.open(fileobj=io.BytesIO(response.content), mode='r:*') as tar:
+            for member in tar.getmembers():
+                if not member.isfile():
+                    continue
+                if member.path.startswith('config/ensenso/'):
+                    filename = member.path[len('config/ensenso/'):]
+                    parts = filename.split('.')
+                    if len(parts) != 2 or not parts[0].isdigit() or parts[1] != 'json':
+                        continue
+                    config['ensenso/%s' % filename] = json.load(tar.extractfile(member))
+
+                elif member.path.startswith('config/'):
+                    filename = member.path[len('config/'):]
+                    if filename not in ('controllersystem.conf', 'binpickingsystem.conf', 'teachworkersystem.conf'):
+                        continue
+
+                    config[filename] = json.load(tar.extractfile(member))
+        
     elif options.config:
-        with open(options.config, 'r') as f:
-            config = json.load(f)
         target = options.config
+
+        # TODO: read the entire directory
+        
     else:
         log.error('need to supply either --controller or --config to continue')
         return
 
-    # apply template
-    newconfig = _ApplyTemplate(config, template, preservedpaths=preservedpaths)
+    from IPython.terminal import embed
+    ipshell = embed.InteractiveShellEmbed(config=embed.load_default_config())(local_ns=locals())
+
+    # TODO: apply template
+    # newconfig = _ApplyTemplate(config, template)
+    newconfig = config
 
     # if the config is different, prompt the user
     if not _DiffConfig(config, newconfig):
         log.debug('configuration already up-to-date on %s', target)
-        return
+        # return
 
     try:
         log.warn('configuration will be changed on %s', target)
@@ -172,10 +191,19 @@ def _RunMain():
     # apply the configuration changes
     log.debug('applying configuration on %s', target)
     if options.controller:
-        client.SetConfig(newconfig)
+        # restore configurations
+        output = cStringIO.StringIO()
+        with tarfile.open(fileobj=output, mode='w|gz') as tar:
+            for filename, content in newconfig.items():
+                content = _PrettifyConfig(content)
+                info = tarfile.TarInfo('config/%s' % filename)
+                info.size = len(content)
+                tar.addfile(info, cStringIO.StringIO(content))
+        output.seek(0)
+        client.RestoreBackup(output, media=False, config=True)
     elif options.config:
-        with open(options.config, 'w') as f:
-            f.write(_PrettifyConfig(newconfig))
+        # TODO: write out the entire directory
+        pass
     log.debug('done')
 
 
