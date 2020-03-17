@@ -3,7 +3,6 @@
 
 import argparse
 import copy
-import cStringIO
 import io
 import json
 import os
