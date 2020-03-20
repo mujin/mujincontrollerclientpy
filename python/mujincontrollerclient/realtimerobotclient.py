@@ -19,8 +19,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     _robotspeed = None  # speed of the robot, e.g. 0.4
     _robotaccelmult = None  # current robot accel mult
     _envclearance = None  # environment clearance in milimeter, e.g. 20
+    _toolChangeInfos = None  # a dict of tool change info for robots
 
-    def __init__(self, robotname, robots, devices, robotspeed=None, robotaccelmult=None, envclearance=10.0, **kwargs):
+    def __init__(self, robotname, robots, devices, robotspeed=None, robotaccelmult=None, envclearance=10.0, toolChangeInfos=None, **kwargs):
         """
         :param robotspeed: speed of the robot, e.g. 0.4
         :param envclearance: environment clearance in milimeter, e.g. 20
@@ -32,6 +33,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
         self._envclearance = envclearance
+        self._toolChangeInfos = toolChangeInfos
 
     def GetRobotName(self):
         return self._robotname
@@ -54,6 +56,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def SetDevices(self, devices):
         self._devices = devices
 
+    def GetToolChangeInfos(self):
+        return self._toolChangeInfos
+
+    def SetToolChangeInfos(self, toolChangeInfos):
+        self._toolChangeInfos = toolChangeInfos
+
     def GetRobotControllerUri(self):
         robots = self._robots or {}
         return robots.get(self._robotname, {}).get('robotControllerUri', '')
@@ -74,7 +82,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def SetRobotAccelMult(self, robotaccelmult):
         self._robotaccelmult = robotaccelmult
 
-    def ExecuteCommand(self, taskparameters, robotname=None, devices=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False):
+    def ExecuteCommand(self, taskparameters, robotname=None, devices=None, toolname=None, robots=None, robotspeed=None, robotaccelmult=None, envclearance=None, toolChangeInfos=None, usewebapi=None, timeout=10, fireandforget=False):
         """wrapper to ExecuteCommand with robot info set up in taskparameters
 
         executes a command on the task.
@@ -95,6 +103,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             robots = self._robots
         if devices is None:
             devices = self._devices
+        if toolChangeInfos is None:
+            toolChangeInfos = self._toolChangeInfos
 
         # caller wants to use a different tool
         if toolname is not None:
@@ -113,6 +123,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['robotname'] = robotname
         if devices is not None:
             taskparameters['devices'] = devices
+        if toolChangeInfos is not None:
+            taskparameters['toolChangeInfos'] = toolChangeInfos
 
         # log.debug('robotname = %r, robots = %r, devices = %r', robotname, robots, devices)
 
@@ -567,6 +579,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+
+    def SetRobotBridgeIOVariablesAsciiHex16(self, iovalues, robotname=None, timeout=20, usewebapi=None, **kwargs):
+        taskparameters = {
+            'command': 'SetRobotBridgeIOVariablesAsciiHex16',
+            'iovalues': iovalues,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
     def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """returns the data of the IO in ascii hex as a string
@@ -892,6 +912,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
+    def CheckBodyCollision(self, bodyname1, bodyname2='', usewebapi=False, timeout=1, fireandforget=False, **kwargs):
+        taskparameters = {
+            'command': 'CheckBodyCollision',
+            'bodyname1': bodyname1,
+            'bodyname2': bodyname2,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+    
     def IsProfilingRunning(self, timeout=10, usewebapi=False):
         """Queries if profiling is running on planning
         """
