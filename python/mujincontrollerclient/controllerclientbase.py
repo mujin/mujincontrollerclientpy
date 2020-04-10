@@ -542,6 +542,19 @@ class ControllerClient(object):
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
 
+    def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+        """
+        :return: {'jobpk': 'xxx', 'msg': 'xxx'}
+        Notice: This function can be overwritted in subclass, like RunSceneTaskAsync in planningclient.py
+        """
+        assert(usewebapi)
+        data = {
+            'scenepk': scenepk,
+            'target_pk': taskpk,
+            'resource_type': 'task',
+        }
+        return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
+
     #
     # Result related
     #

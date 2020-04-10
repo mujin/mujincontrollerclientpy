@@ -192,6 +192,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def RunSceneTaskAsync(self, scenepk, taskpk, slaverequestid=None, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
+        Notice: overwrite function in controllerclientbase. This function with additional slaverequestid
         """
         assert(usewebapi)
         if slaverequestid is None:
