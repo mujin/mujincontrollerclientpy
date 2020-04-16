@@ -29,6 +29,48 @@ def _DiffConfig(oldconfig, newconfig):
                 return True
 
 
+def _CopyValueOfPath(src, dest, path, parentPath=None):
+    currentPathElement = path[0]
+    if currentPathElement == '*':
+        if isinstance(src, dict) and isinstance(dest, dict):
+            for srcKey, srcValue in src.iteritems():
+                if srcKey in dest:
+                    _CopyValueOfPath(srcValue, dest[srcKey], path[1:], (parentPath or [])+[path[0]])
+                else:
+                    log.warn('Key %s does not exist in destination conf: %s' % (srcKey, '.'.join(parentPath or ['(root)'])))
+
+        elif isinstance(src, list) and isinstance(dest, list):
+            for index in range(len(src)):
+                if len(dest) > index:
+                    _CopyValueOfPath(src[index], dest[index], path[1:], (parentPath or [])+[path[0]])
+                else:
+                    log.warn('Index %d is out of range in destination conf: %s' % (index, '.'.join(parentPath or ['(root)'])))
+                    break
+
+        else:
+            log.warn('Wildcard can be applied only on dict or list: %s' % '.'.join(parentPath or ['(root)']))
+
+    else:
+        if isinstance(src, dict) and isinstance(dest, dict):
+            if currentPathElement not in src:
+                return
+        elif isinstance(src, list) and isinstance(dest, list):
+            currentPathElement = int(currentPathElement)
+            if len(src) <= currentPathElement:
+                return
+            elif len(dest) <= currentPathElement:
+                log.warn('Index %d is out of range in destination conf: %s' % (currentPathElement, '.'.join(parentPath or ['(root)'])))
+                return
+        else:
+            log.warn('Element needs to be either of dict or list: %s' % '.'.join(parentPath or ['(root)']))
+            return
+
+        if len(path) == 1:
+            dest[currentPathElement] = copy.deepcopy(src[currentPathElement])
+        else:
+            _CopyValueOfPath(src[currentPathElement], dest[currentPathElement], path[1:], (parentPath or [])+[path[0]])
+
+
 def _ApplyTemplate(config, template, preservedpaths=None):
     newconfig = copy.deepcopy(template)
     
@@ -73,34 +115,9 @@ def _ApplyTemplate(config, template, preservedpaths=None):
     # others
 
 
-    for path in set(preservedpaths):
-        parts = path.split('.')
-        parts, key = parts[:-1], parts[-1]
-
-        # navigate to the part of the conf for preservation
-        cursor = config
-        newcursor = newconfig
-        skip = False
-        for part in parts:
-            if part not in cursor or part not in newcursor:
-                skip = True
-                break
-            if not isinstance(cursor[part], dict):
-                log.warn('path is invalid in the current config: %s', path)
-                skip = True
-                break
-            if not isinstance(newcursor[part], dict):
-                log.warn('path is invalid in the template config: %s', path)
-                skip = True
-                break
-            cursor = cursor[part]
-            newcursor = newcursor[part]
-        if skip:
-            continue
-
-        # copy the original conf back at that location
-        if key in cursor:
-            newcursor[key] = copy.deepcopy(cursor[key])
+    for pathStr in set(preservedpaths):
+        path = pathStr.split('.')
+        _CopyValueOfPath(config, newconfig, path)
 
     return newconfig
 
