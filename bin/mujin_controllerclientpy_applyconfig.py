@@ -17,38 +17,58 @@ def _PrettifyConfig(config):
     return json.dumps(config, ensure_ascii=False, indent=2, separators=(',', ': '), sort_keys=True) + '\n'
 
 
+def _MergeDicts(x, y):  # for python 2 compatibility
+    z = copy.deepcopy(x)
+    z.update(y)
+    return z
+
+
 def _ShowDiffInOneLine(oldconfig, newconfig, parentPath=None, useColours=True):
+    colourCodes = {'cc_restore': '\033[00m', 'cc_mod': '\033[01;34m', 'cc_add': '\033[01;32m', 'cc_del': '\033[01;31m'}
+    colourCodesDummy = zip([(key, '') for key in colourCodes.keys()])
+
     if not (isinstance(newconfig, dict) and isinstance(oldconfig, dict)) and not (isinstance(newconfig, list) and isinstance(oldconfig, list)):
         log.warn('Type of config needs to be either of dict or list.')
         return
 
     if isinstance(newconfig, list) and len(newconfig) != len(oldconfig):
         absolutePathStr = '.'.join(parentPath or [])
-        print(('[\033[01;96mMOD\033[00m] \033[01;%dm%s\033[00m=\033[01;32m%s\033[00m (old: \033[01;31m%s\033[00m) [size changed to %s from %s]' if useColours else '[MOD] %s=%s (old: %s) [size changed to %s from %s]') % (
-            absolutePathStr, newconfig, oldconfig, len(newconfig), len(oldconfig)))
+        print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [size changed to %(newsize)d from %(oldsize)d]' % _MergeDicts({
+            'path': absolutePathStr, 'newvalue': newconfig, 'oldvalue': oldconfig, 'newsize': len(newconfig), 'oldsize': len(oldconfig)
+        }, colourCodes if useColours else colourCodesDummy))
         return
 
     for key in sorted(newconfig) if isinstance(newconfig, dict) else range(len(newconfig)):
         absolutePathStr = '.'.join((parentPath or []) + [key if isinstance(newconfig, dict) else '[%d]'%key])
         if (isinstance(newconfig, dict) and key not in oldconfig):
-            print(('[\033[01;32mADD\033[00m] \033[01;32m%s\033[00m=\033[01;32m%s\033[00m' if useColours else '[ADD] %s=%s') % (absolutePathStr, newconfig[key]))
+            print('[%(cc_add)sADD%(cc_restore)s] %(cc_add)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s' % _MergeDicts({
+                'path': absolutePathStr, 'newvalue': newconfig[key]
+            }, colourCodes if useColours else colourCodesDummy))
+
         elif type(oldconfig[key]) != type(newconfig[key]):
             # key exists in both confs, but types don't match
-            print(('[\033[01;96mMOD\033[00m] \033[01;96m%s\033[00m=\033[01;32m%s\033[00m (old: \033[01;31m%s\033[00m) [type changed to %s from %s]' if useColours else '[MOD] %s=%s (old: %s) [type changed to %s from %s]') % (
-                absolutePathStr, newconfig[key], oldconfig[key], type(newconfig[key]), type(oldconfig[key])))
+            print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [type changed to %(newtype)s from %(oldtype)s]' % _MergeDicts({
+                'path': absolutePathStr, 'newvalue': newconfig[key], 'oldvalue': oldconfig[key], 'newtype': type(newconfig), 'oldtype': type(oldconfig)
+            }, colourCodes if useColours else colourCodesDummy))
+
         else:
             # key exists in both confs with same type values
             if isinstance(newconfig[key], dict) or isinstance(newconfig[key], list):
                 _ShowDiffInOneLine(oldconfig[key], newconfig[key], parentPath=(parentPath or [])+[key if isinstance(newconfig, dict) else '[%d]'%key], useColours=useColours)
             elif newconfig[key] != oldconfig[key]:
-                print(('[\033[01;96mMOD\033[00m] \033[01;96m%s\033[00m=\033[01;32m%s\033[00m (old: \033[01;31m%s\033[00m)' if useColours else '[MOD] %s=%s (old: %s)') % (absolutePathStr, newconfig[key], oldconfig[key]))
+                print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s)' % _MergeDicts({
+                    'path': absolutePathStr, 'newvalue': newconfig[key], 'oldvalue': oldconfig[key]
+                }, colourCodes if useColours else colourCodesDummy))
+
             else:
                 pass  # same value
 
     if isinstance(newconfig, dict):
         for key in list(set(oldconfig.keys()) - set(newconfig.keys())):
             absolutePathStr = '.'.join((parentPath or []) + [key])
-            print(('[\033[01;31mDEL\033[00m] \033[01;31m%s\033[00m (old: \033[01;31m%s\033[00m)' if useColours else '[DEL] %s (old: %s)') % (absolutePathStr, oldconfig[key]))
+            print('[%(cc_del)sDEL%(cc_restore)s] %(cc_del)s%(path)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s)' % _MergeDicts({
+                'path': absolutePathStr, 'oldvalue': oldconfig[key]
+            }, colourCodes if useColours else colourCodesDummy))
 
 
 def _DiffConfig(oldconfig, newconfig, showInOneLine=False):
