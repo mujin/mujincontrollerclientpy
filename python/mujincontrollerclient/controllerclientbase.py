@@ -516,28 +516,28 @@ class ControllerClient(object):
     # Attached sensors related
     #
 
-    def CreateRobotGripperInfo(self, robotpk, gripperinfodata, fields=None, usewebapi=True, timeout=5):
+    def CreateRobotGripperInfo(self, robotpk, gripperInfoData, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('POST', u'robot/%s/gripperinfo/' % robotpk, data=gripperinfodata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', u'robot/%s/gripperInfo/' % robotpk, data=gripperInfoData, fields=fields, timeout=timeout)
 
     def GetRobotGripperInfos(self, robotpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'robot/%s/gripperinfo/' % robotpk, timeout=timeout)['gripperinfos']
+        return self._webclient.APICall('GET', u'robot/%s/gripperInfo/' % robotpk, timeout=timeout)['gripperInfos']
 
     def GetRobotGripperInfo(self, robotpk, gripperid, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'robot/%s/gripperinfo/%s/' % (robotpk, gripperid), timeout=timeout)
+        return self._webclient.APICall('GET', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperid), timeout=timeout)
 
-    def SetRobotGripperInfo(self, robotpk, gripperid, gripperinfodata, fields=None, usewebapi=True, timeout=5):
+    def SetRobotGripperInfo(self, robotpk, gripperid, gripperInfoData, fields=None, usewebapi=True, timeout=5):
         """sets the gripper values via a WebAPI PUT call
-        :param gripperinfodata: key-value pairs of the data to modify on the gripper
+        :param gripperInfoData: key-value pairs of the data to modify on the gripper
         """
         assert(usewebapi)
-        return self._webclient.APICall('PUT', u'robot/%s/gripperinfo/%s/' % (robotpk, gripperid), data=gripperinfodata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperid), data=gripperInfoData, fields=fields, timeout=timeout)
 
     def DeleteRobotGripperInfo(self, robotpk, gripperid, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'robot/%s/gripperinfo/%s/' % (robotpk, gripperid), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperid), timeout=timeout)
 
     #
     # Task related
