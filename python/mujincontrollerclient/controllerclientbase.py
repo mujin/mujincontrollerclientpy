@@ -516,24 +516,24 @@ class ControllerClient(object):
     # Attached sensors related
     #
 
-    def CreateRobotAttachedGripperInfo(self, robotpk, attachedgripperinfodata, fields=None, usewebapi=True, timeout=5):
+    def CreateRobotGripper(self, robotpk, gripperdata, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('POST', u'robot/%s/attachedgripperinfo/' % robotpk, data=attachedgripperinfodata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', u'robot/%s/gripper/' % robotpk, data=gripperdata, fields=fields, timeout=timeout)
 
-    def GetRobotAttachedGripperInfos(self, robotpk, usewebapi=True, timeout=5):
+    def GetRobotGrippers(self, robotpk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'robot/%s/attachedgripperinfo/' % robotpk, timeout=timeout)['attachedgripperinfos']
+        return self._webclient.APICall('GET', u'robot/%s/gripper/' % robotpk, timeout=timeout)['grippers']
 
-    def SetRobotAttachedGripperInfo(self, robotpk, gripperid, attachedgripperinfodata, fields=None, usewebapi=True, timeout=5):
-        """sets the attachedgripperinfo values via a WebAPI PUT call
-        :param attachedgripperinfodata: key-value pairs of the data to modify on the attachedgripperinfo
+    def SetRobotGripper(self, robotpk, gripperid, gripperdata, fields=None, usewebapi=True, timeout=5):
+        """sets the gripper values via a WebAPI PUT call
+        :param gripperdata: key-value pairs of the data to modify on the gripper
         """
         assert(usewebapi)
-        return self._webclient.APICall('PUT', u'robot/%s/attachedgripperinfo/%s/' % (robotpk, gripperid), data=attachedgripperinfodata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', u'robot/%s/gripper/%s/' % (robotpk, gripperid), data=gripperdata, fields=fields, timeout=timeout)
 
-    def DeleteRobotAttachedGripperInfo(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
+    def DeleteRobotGripper(self, robotpk, gripperid, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'robot/%s/gripper/%s/' % (robotpk, gripperid), timeout=timeout)
 
     #
     # Task related
