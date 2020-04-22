@@ -524,6 +524,10 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('GET', u'robot/%s/gripper/' % robotpk, timeout=timeout)['grippers']
 
+    def GetRobotGripper(self, robotpk, gripperid, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/gripper/%s/' % (robotpk, gripperid), timeout=timeout)
+
     def SetRobotGripper(self, robotpk, gripperid, gripperdata, fields=None, usewebapi=True, timeout=5):
         """sets the gripper values via a WebAPI PUT call
         :param gripperdata: key-value pairs of the data to modify on the gripper
