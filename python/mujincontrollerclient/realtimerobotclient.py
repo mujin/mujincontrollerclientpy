@@ -16,8 +16,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     _robotspeed = None  # speed of the robot, e.g. 0.4
     _robotaccelmult = None  # current robot accel mult
     _envclearance = None  # environment clearance in milimeter, e.g. 20
+    _robotBridgeConnectionInfo = None # dict holding the connection info for the robot bridge.
     
-    def __init__(self, robotname, robotspeed=None, robotaccelmult=None, envclearance=10.0, **kwargs):
+    def __init__(self, robotname, robotspeed=None, robotaccelmult=None, envclearance=10.0, robotBridgeConnectionInfo=None, **kwargs):
         """
         :param robotspeed: speed of the robot, e.g. 0.4
         :param envclearance: environment clearance in milimeter, e.g. 20
@@ -27,7 +28,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
         self._envclearance = envclearance
+        self._robotBridgeConnectionInfo = robotBridgeConnectionInfo
 
+    def GetRobotConnectionInfo(self):
+        return self._robotBridgeConnectionInfo
+    
     def GetRobotName(self):
         return self._robotname
 
@@ -77,7 +82,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                 robotaccelmult = self._robotaccelmult
             if robotaccelmult is not None:
                 taskparameters['robotaccelmult'] = robotaccelmult
-
+        
+        if self._robotBridgeConnectionInfo is not None:
+            taskparameters['robotBridgeConnectionInfo'] = self._robotBridgeConnectionInfo
+        
         if 'envclearance' not in taskparameters or taskparameters['envclearance'] is None:
             if envclearance is None:
                 envclearance = self._envclearance
