@@ -274,7 +274,7 @@ class ControllerClient(object):
         """ returns the instance objects of the scene
         """
         assert(usewebapi)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
