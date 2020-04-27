@@ -354,11 +354,11 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def GetBinpickingState(self, timeout=10, usewebapi=None, robots=None, fireandforget=False, **kwargs):
+    def GetBinpickingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetBinpickingState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         taskparameters = {
             'command': 'SetStopPickPlaceAfterExecutionCycle',
