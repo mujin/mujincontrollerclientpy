@@ -190,6 +190,9 @@ class ControllerClient(object):
 
     def SetLogLevel(self, componentLevels, timeout=5):
         """ Set webstack log level
+        :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
+                                if component name is empty stirng, it sets the root logger
+                                if level name is empty string, it unsets the level previously set
         """
         response = self._webclient.Request('POST', '/loglevel/', json={'componentLevels': componentLevels}, timeout=timeout)
         if response.status_code != 200:

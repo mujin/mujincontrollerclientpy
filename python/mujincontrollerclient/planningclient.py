@@ -282,7 +282,13 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         configuration['command'] = 'configure'
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetPlanningLogLevel(self, componentLevels, fireandforget=None, timeout=5):
+    def SetLogLevel(self, componentLevels, fireandforget=None, timeout=5):
+        """ Set webstack and planning log level
+        :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
+                                if component name is empty stirng, it sets the root logger
+                                if level name is empty string, it unsets the level previously set
+        """
+        super(PlanningControllerClient, self).SetLogLevel(componentLevels, timeout=timeout)
         configuration = {
             'command': 'setloglevel',
             'componentLevels': componentLevels
