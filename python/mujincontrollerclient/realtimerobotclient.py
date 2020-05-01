@@ -33,6 +33,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def GetRobotConnectionInfo(self):
         return self._robotBridgeConnectionInfo
     
+    def SetRobotConnectionInfo(self, robotBridgeConnectionInfo):
+        self._robotBridgeConnectionInfo = robotBridgeConnectionInfo
+    
     def GetRobotName(self):
         return self._robotname
 
