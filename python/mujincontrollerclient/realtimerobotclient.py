@@ -366,41 +366,42 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def ChuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+    def ChuckGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         """chucks the manipulator
         :param toolname: name of the manipulator.
         """
-        taskparameters = {'command': 'ChuckGripper'}
+        taskparameters = {'command': 'ChuckGripper', 'toolname':toolname}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
-    def UnchuckGripper(self, robotname=None, timeout=10, usewebapi=None, **kwargs):
+    def UnchuckGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         """unchucks the manipulator and releases the target
         :param toolname: name of the manipulator.
         :param targetname: name of the target
         """
-        taskparameters = {'command': 'UnchuckGripper'}
+        taskparameters = {'command': 'UnchuckGripper', 'toolname':toolname}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
-    def CalibrateGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def CalibrateGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """goes through the gripper calibration procedure
         """
-        taskparameters = {'command': 'CalibrateGripper'}
+        taskparameters = {'command': 'CalibrateGripper', 'toolname':toolname}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def StopGripper(self, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        taskparameters = {'command': 'StopGripper'}
+    def StopGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'StopGripper', 'toolname':toolname}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def MoveGripper(self, grippervalues, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def MoveGripper(self, grippervalues, robotname=None, toolname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """chucks the manipulator
         :param toolname: name of the manipulator.
         """
         taskparameters = {
             'command': 'MoveGripper',
+            'toolname':toolname,
             'grippervalues': grippervalues,
         }
         taskparameters.update(kwargs)
