@@ -32,7 +32,7 @@ class ControllerWebClient(object):
     _isok = False  # flag to stop
     _session = None  # requests session object
 
-    def __init__(self, baseurl, username, password, locale=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -60,6 +60,9 @@ class ControllerWebClient(object):
         # set locale headers
         self.SetLocale(locale)
 
+        # set author header
+        self.SetAuthor(author)
+
     def __del__(self):
         self.Destroy()
 
@@ -80,6 +83,10 @@ class ControllerWebClient(object):
         if locale is not None and len(locale) > 0:
             language = locale.split('.', 1)[0].replace('_', '-').lower()
         self._headers['Accept-Language'] = language
+
+    def SetAuthor(self, author=None):
+        if author is not None and len(author) > 0:
+            self._headers['X-Author'] = author
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
