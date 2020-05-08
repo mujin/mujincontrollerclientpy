@@ -516,7 +516,7 @@ class ControllerClient(object):
         return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
 
     #
-    # Attached sensors related
+    # Gripper info related
     #
 
     def CreateRobotGripperInfo(self, robotpk, gripperInfoData, fields=None, usewebapi=True, timeout=5):
@@ -541,6 +541,33 @@ class ControllerClient(object):
     def DeleteRobotGripperInfo(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+
+    #
+    # Connected body related
+    #
+
+    def CreateRobotConnectedBody(self, robotpk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'robot/%s/connectedBody/' % robotpk, data=connectedBodyData, fields=fields, timeout=timeout)
+
+    def GetRobotConnectedBodies(self, robotpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/connectedBody/' % robotpk, timeout=timeout)['connectedBodies']
+
+    def GetRobotConnectedBody(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/connectedBody/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+
+    def SetRobotConnectedBody(self, robotpk, gripperinfopk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
+        """sets the gripper values via a WebAPI PUT call
+        :param connectedBodyData: key-value pairs of the data to modify on the gripper
+        """
+        assert(usewebapi)
+        return self._webclient.APICall('PUT', u'robot/%s/connectedBody/%s/' % (robotpk, gripperinfopk), data=connectedBodyData, fields=fields, timeout=timeout)
+
+    def DeleteRobotConnectedBody(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'robot/%s/connectedBody/%s/' % (robotpk, gripperinfopk), timeout=timeout)
 
     #
     # Task related
