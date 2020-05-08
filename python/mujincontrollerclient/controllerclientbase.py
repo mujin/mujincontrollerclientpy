@@ -554,20 +554,20 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('GET', u'robot/%s/connectedBody/' % robotpk, timeout=timeout)['connectedBodies']
 
-    def GetRobotConnectedBody(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
+    def GetRobotConnectedBody(self, robotpk, connectedBodyPk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('GET', u'robot/%s/connectedBody/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+        return self._webclient.APICall('GET', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
 
-    def SetRobotConnectedBody(self, robotpk, gripperinfopk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
-        """sets the gripper values via a WebAPI PUT call
-        :param connectedBodyData: key-value pairs of the data to modify on the gripper
+    def SetRobotConnectedBody(self, robotpk, connectedBodyPk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
+        """sets the connected body values via a WebAPI PUT call
+        :param connectedBodyData: key-value pairs of the data to modify on the connected body
         """
         assert(usewebapi)
-        return self._webclient.APICall('PUT', u'robot/%s/connectedBody/%s/' % (robotpk, gripperinfopk), data=connectedBodyData, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), data=connectedBodyData, fields=fields, timeout=timeout)
 
-    def DeleteRobotConnectedBody(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
+    def DeleteRobotConnectedBody(self, robotpk, connectedBodyPk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'robot/%s/connectedBody/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
 
     #
     # Task related
