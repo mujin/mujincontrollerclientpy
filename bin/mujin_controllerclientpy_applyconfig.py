@@ -45,7 +45,7 @@ def _ShowDiffInOneLine(oldconfig, newconfig, parentPath=None, useColours=True):
                 'path': absolutePathStr, 'newvalue': newconfig[key]
             }, colourCodes if useColours else colourCodesDummy))
 
-        elif type(oldconfig[key]) != type(newconfig[key]):
+        elif type(oldconfig[key]) != type(newconfig[key]): # noqa: E721
             # key exists in both confs, but types don't match
             print('[%(cc_mod)sMOD%(cc_restore)s] %(cc_mod)s%(path)s%(cc_restore)s=%(cc_add)s%(newvalue)s%(cc_restore)s (old: %(cc_del)s%(oldvalue)s%(cc_restore)s) [type changed to %(newtype)s from %(oldtype)s]' % _MergeDicts({
                 'path': absolutePathStr, 'newvalue': newconfig[key], 'oldvalue': oldconfig[key], 'newtype': type(newconfig), 'oldtype': type(oldconfig)
