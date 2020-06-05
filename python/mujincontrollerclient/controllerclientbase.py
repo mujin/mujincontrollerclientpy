@@ -188,10 +188,13 @@ class ControllerClient(object):
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
 
-    def SetLogLevel(self, level, timeout=5):
+    def SetLogLevel(self, componentLevels, timeout=5):
         """ Set webstack log level
+        :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
+                                if component name is empty stirng, it sets the root logger
+                                if level name is empty string, it unsets the level previously set
         """
-        response = self._webclient.Request('POST', '/loglevel/', data={'level': level}, timeout=timeout)
+        response = self._webclient.Request('POST', '/loglevel/', json={'componentLevels': componentLevels}, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to set webstack log level, status code is: %d') % response.status_code)
 
@@ -274,7 +277,7 @@ class ControllerClient(object):
         """ returns the instance objects of the scene
         """
         assert(usewebapi)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout))
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
         """ returns the instance objects of the scene
@@ -490,6 +493,10 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'robot/%s/attachedsensor/' % robotpk, data=attachedsensordata, fields=fields, timeout=timeout)
 
+    def GetRobotAttachedSensors(self, robotpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % robotpk, timeout=timeout)['attachedsensors']
+
     def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, fields=None, usewebapi=True, timeout=5):
         """sets the attachedsensor values via a WebAPI PUT call
         :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
@@ -507,6 +514,60 @@ class ControllerClient(object):
     def DeleteRobotAttachedSensor(self, robotpk, attachedsensorpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), timeout=timeout)
+
+    #
+    # Gripper info related
+    #
+
+    def CreateRobotGripperInfo(self, robotpk, gripperInfoData, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'robot/%s/gripperInfo/' % robotpk, data=gripperInfoData, fields=fields, timeout=timeout)
+
+    def GetRobotGripperInfos(self, robotpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/gripperInfo/' % robotpk, timeout=timeout)['gripperInfos']
+
+    def GetRobotGripperInfo(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+
+    def SetRobotGripperInfo(self, robotpk, gripperinfopk, gripperInfoData, fields=None, usewebapi=True, timeout=5):
+        """sets the gripper values via a WebAPI PUT call
+        :param gripperInfoData: key-value pairs of the data to modify on the gripper
+        """
+        assert(usewebapi)
+        return self._webclient.APICall('PUT', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), data=gripperInfoData, fields=fields, timeout=timeout)
+
+    def DeleteRobotGripperInfo(self, robotpk, gripperinfopk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
+
+    #
+    # Connected body related
+    #
+
+    def CreateRobotConnectedBody(self, robotpk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'robot/%s/connectedBody/' % robotpk, data=connectedBodyData, fields=fields, timeout=timeout)
+
+    def GetRobotConnectedBodies(self, robotpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/connectedBody/' % robotpk, timeout=timeout)['connectedBodies']
+
+    def GetRobotConnectedBody(self, robotpk, connectedBodyPk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
+
+    def SetRobotConnectedBody(self, robotpk, connectedBodyPk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
+        """sets the connected body values via a WebAPI PUT call
+        :param connectedBodyData: key-value pairs of the data to modify on the connected body
+        """
+        assert(usewebapi)
+        return self._webclient.APICall('PUT', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), data=connectedBodyData, fields=fields, timeout=timeout)
+
+    def DeleteRobotConnectedBody(self, robotpk, connectedBodyPk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
 
     #
     # Task related
@@ -537,6 +598,19 @@ class ControllerClient(object):
     def DeleteSceneTask(self, scenepk, taskpk, usewebapi=True, timeout=5):
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'scene/%s/task/%s/' % (scenepk, taskpk), timeout=timeout)
+
+    def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
+        """
+        :return: {'jobpk': 'xxx', 'msg': 'xxx'}
+        Notice: This function can be overwritted in subclass, like RunSceneTaskAsync in planningclient.py
+        """
+        assert(usewebapi)
+        data = {
+            'scenepk': scenepk,
+            'target_pk': taskpk,
+            'resource_type': 'task',
+        }
+        return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
 
     #
     # Result related
