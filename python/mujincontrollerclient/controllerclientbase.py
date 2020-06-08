@@ -776,15 +776,6 @@ class ControllerClient(object):
                 log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFiles(self, filenames, timeout=10):
-        response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, timeout=timeout)
-        if response.status_code in (200,):
-            try:
-                return response.json()['filenames']
-            except Exception as e:
-                log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
-
     def ListFiles(self, dirname='', timeout=2):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
         if response.status_code in (200, 404):
@@ -919,33 +910,28 @@ class ControllerClient(object):
     #
     # Reference Object PKs.
     #
-    def ModifySceneAddReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
-        return self.ModifySceneAddReferenceObjectPKs(scenepk, [referenceobjectpk], timeout=timeout)
 
-    def ModifySceneAddReferenceObjectPKs(self, scenepk, referenceobjectpks, timeout=5):
+    def ModifySceneAddReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
         """
-        Add multiple referenceobjectpks to the scene.
+        Add a referenceobjectpk to the scene.
         """
         response = self._webclient.Request('POST', '/referenceobjectpks/add/', data=json.dumps({
             'scenepk': scenepk,
-            'referenceobjectpks': referenceobjectpks,
+            'referenceobjectpk': referenceobjectpk,
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to add referenceobjectpks %r to scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code))
+            raise ControllerClientError(_('Failed to add referenceobjectpk %r to scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
 
     def ModifySceneRemoveReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
-        return self.ModifySceneRemoveReferenceObjectPKs(scenepk, [referenceobjectpk], timeout=timeout)
-
-    def ModifySceneRemoveReferenceObjectPKs(self, scenepk, referenceobjectpks, timeout=5):
         """
-        Remove multiple referenceobjectpks from the scene.
+        Remove a referenceobjectpk from the scene.
         """
         response = self._webclient.Request('POST', '/referenceobjectpks/remove/', data=json.dumps({
             'scenepk': scenepk,
-            'referenceobjectpks': referenceobjectpks,
+            'referenceobjectpk': referenceobjectpk,
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to remove referenceobjectpks %r from scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code))
+            raise ControllerClientError(_('Failed to remove referenceobjectpk %r from scene %r, status code is %d') % (referenceobjectpk, scenepk, response.status_code))
 
     #
     # ITL program related
