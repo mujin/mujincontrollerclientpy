@@ -98,7 +98,9 @@ class ControllerWebClient(object):
         headers = dict(headers or {})
         headers.update(self._headers)
 
-        return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+        response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+        response.raw.decode_content = True
+        return response
 
     # python port of the javascript API Call function
     def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, timeout=5):
