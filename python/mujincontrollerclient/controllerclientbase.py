@@ -975,3 +975,19 @@ class ControllerClient(object):
     def DeleteITLProgram(self, programName, usewebapi=True, timeout=5):
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
+
+    def ListDebugInfos(self, offset=0, limit=0, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'/debug/', timeout=timeout, params=params))
+
+    def GetDebugInfo(self, pk, usewebapi=True, timeout=60, **kwargs):
+        assert(usewebapi)
+        response = self._webclient.Request('GET', '/api/v1/debug/'+pk+'/download/', timeout=timeout, stream=True)
+        if response.status_code != 200:
+            raise ControllerClientError(_('failed to download debug from controller, status code is: %d') % response.status_code)
+        response.raw.decode_content = True
+        return response.raw
