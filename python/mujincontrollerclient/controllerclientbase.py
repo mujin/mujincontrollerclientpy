@@ -902,7 +902,8 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/backup/', stream=True, params=params, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to download backup from controller, status code is: %d') % response.status_code)
-        return response
+        response.raw.decode_content = True
+        return response.raw
 
     def RestoreBackup(self, f, media=True, config=True, timeout=30, **kwargs):
         params = {

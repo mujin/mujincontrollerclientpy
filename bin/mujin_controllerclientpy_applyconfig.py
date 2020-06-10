@@ -166,7 +166,7 @@ def _LoadConfigTar(tar):
     """Load a collection of configs from a tar file
     """
     config = {}
-    for member in tar.getmembers():
+    for member in tar:
         if not member.isfile():
             continue
         if not member.path.startswith('config/'):
@@ -335,7 +335,7 @@ def _RunMain():
 
         # download config backup from controller
         response = client.Backup(media=False, config=True)
-        with tarfile.open(fileobj=io.BytesIO(response.content), mode='r:*') as tar:
+        with tarfile.open(fileobj=response, mode='r|*') as tar:
             config = _LoadConfigTar(tar)
 
     elif options.config:
