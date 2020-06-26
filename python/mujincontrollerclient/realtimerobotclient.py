@@ -370,7 +370,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         taskparameters = {'command': 'ChuckGripper', 'toolname':toolname}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
     def UnchuckGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, **kwargs):
         """unchucks the manipulator and releases the target
@@ -379,7 +379,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         taskparameters = {'command': 'UnchuckGripper', 'toolname':toolname}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
     def CalibrateGripper(self, robotname=None, toolname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """goes through the gripper calibration procedure
@@ -875,3 +875,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def SetInstantaneousJointValues(self, objectName, jointvalues, timeout=10, usewebapi=True):
+        return self.ExecuteCommand({'command': 'SetInstantaneousJointValues', 'objectName': objectName, 'jointvalues':jointvalues}, timeout=timeout, usewebapi=usewebapi)
