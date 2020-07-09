@@ -125,14 +125,8 @@ def _ParseURIFast(uri, fragmentSeparator):
         # if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
         #     raise URIError(_('fragment separator %r not supported for current scheme: %s') % (fragmentSeparator, uri))
         r = urlparse.urlparse(uri, allow_fragments=bool(fragmentSeparator))
-        return urlparse.ParseResult(
-            scheme=_EnsureUnicode(r.scheme),
-            netloc=_EnsureUnicode(r.netloc),
-            path=_EnsureUnicode(r.path),
-            params=_EnsureUnicode(r.params),
-            query=_EnsureUnicode(r.query),
-            fragment=_EnsureUnicode(r.fragment),
-        )  # make all uri path, no matter what scheme it is, to be unicode.
+        # make all uri path, no matter what scheme it is, to be unicode.
+        return _EnsureUnicode(r.scheme), _EnsureUnicode(r.netloc), _EnsureUnicode(r.path), _EnsureUnicode(r.params), _EnsureUnicode(r.query), _EnsureUnicode(r.fragment)
     
     # it's a mujinuri
     if rest.startswith(u'//'):
