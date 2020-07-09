@@ -50,15 +50,15 @@ class ClientExceptionBase(Exception):
     """client base exception
     """
     _message = None  # the error message, should be unicode
-
+    
     def __init__(self, message=''):
         if message is not None and not isinstance(message, six.text_type):
             message = message.decode('utf-8', 'ignore')
         self._message = message
-
+    
     def __str__(self):
         return u'%s: %s' % (self.__class__.__name__, self._message)
-
+    
     def __repr__(self):
         return '<%s(message=%r)>' % (self.__class__.__name__, self._message)
 
@@ -67,34 +67,33 @@ class ClientExceptionBase(Exception):
 class APIServerError(ClientExceptionBase):
     _message = None  # the error. should be unicode
     _errorcode = None  # the error code coming from the server
-    _stacktrace = None  # the traceback from the error. should be unicode
+    _detailInfoType = None # str, the detailed error type given errorcode
+    _detailInfo = None # dcit, the detailed info
     _inputcommand = None  # the command sent to the server
-
-    def __init__(self, message, stacktrace=None, errorcode=None, inputcommand=None):
+    
+    def __init__(self, message, errorcode=None, inputcommand=None, detailInfoType=None, detailInfo=None):
         if message is not None and not isinstance(message, six.text_type):
             message = message.decode('utf-8', 'ignore')
-
-        if stacktrace is not None and not isinstance(stacktrace, six.text_type):
-            stacktrace = stacktrace.decode('utf-8', 'ignore')
-
         self._message = message
-        self._stacktrace = stacktrace
         self._errorcode = errorcode
         self._inputcommand = inputcommand
-
+        self._detailInfoType = detailInfoType
+        self._detailInfo = detailInfo
+    
     def __str__(self):
         if self._message is not None:
             return _('API Server Error: %s')%self._message
+        
         return _('API Server Error: Unknown')
-
+    
     def __repr__(self):
-        return '<%s(message=%r, stacktrace=%r, errorcode=%r, inputcommand=%r)>' % (self.__class__.__name__, self._message, self._stacktrace, self._errorcode, self._inputcommand)
-
+        return '<%s(message=%r, errorcode=%r, inputcommand=%r, detailInfoType=%r, detailInfo=%r)>' % (self.__class__.__name__, self._message, self._errorcode, self._inputcommand, self._detailInfoType, self._detailInfo)
+    
     @property
     def message(self):
         """The error message from server."""
         return self._message
-
+    
     @property
     def errorcode(self):
         """The error code from server. Could be None."""
@@ -102,14 +101,22 @@ class APIServerError(ClientExceptionBase):
     
     @property
     def stacktrace(self):
-        """Stacktrace from the error. Could be None."""
-        return self._stacktrace
+        return ''
     
     @property
     def inputcommand(self):
         """The command that was sent to the server. Could be None."""
         return self._inputcommand
-
+    
+    @property
+    def detailInfoType(self):
+        """string for the detai info type"""
+        return self._detailInfoType
+    
+    @property
+    def detailInfo(self):
+        """string for the detai info type"""
+        return self._detailInfo
 
 class TimeoutError(ClientExceptionBase):
     pass
