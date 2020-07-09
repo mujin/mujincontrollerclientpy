@@ -19,27 +19,25 @@ from . import zmq
 import logging
 log = logging.getLogger(__name__)
 
-
 def GetAPIServerErrorFromZMQ(response):
     """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
     """
     if response is None:
         return None
-
+    
     if 'error' in response:
         if isinstance(response['error'], dict):
-            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
-
+            return APIServerError(response['error']['description'], response['error']['errorcode'], response['error'].get('inputcommand',None), response['error'].get('detailInfoType',None), response['error'].get('detailInfo',None))
+        
         else:
             return APIServerError(response['error'])
-
+    
     elif 'exception' in response:
         return APIServerError(response['exception'])
-
+    
     elif 'status' in response and response['status'] != 'succeeded':
         # something happened so raise exception
         return APIServerError(u'Resulting status is %s' % response['status'])
-
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
     """mujin controller client for planning tasks

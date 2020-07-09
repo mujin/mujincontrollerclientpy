@@ -248,7 +248,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['quaternion'] = quaternion
         if rotationmat is None and quaternion is None:
             taskparameters['quaternion'] = [1, 0, 0, 0]
-            log.warn('no rotation is specified, using identity quaternion ', taskparameters['quaternion'])
+            log.warn('no rotation is specified, using identity quaternion')
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def GetOBB(self, targetname, unit='mm', timeout=10, **kwargs):
