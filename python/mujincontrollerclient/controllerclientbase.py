@@ -59,7 +59,6 @@ def GetUnicodeFromPrimaryKey(pk):
     """
     return uriutils.GetFilenameFromPrimaryKey(pk, primaryKeySeparator=uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
-
 def GetPrimaryKeyFromURI(uri):
     """
     example:
@@ -67,7 +66,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT)
+    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT)
 
 
 def _FormatHTTPDate(dt):

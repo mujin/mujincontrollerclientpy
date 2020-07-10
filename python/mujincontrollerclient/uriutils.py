@@ -210,7 +210,7 @@ def GetFragmentFromURI(uri, **kwargs):
     """
     return MujinResourceIdentifier(uri=uri, **kwargs).fragment
 
-def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT):
+def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT):
     u"""
     input:
         uri: a mujin scheme uri which is utf-8 decoded unicode.
@@ -237,7 +237,11 @@ def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT):
     else:
         raise URIError(_('scheme %s isn\'t supported from uri %r') % (scheme, uri))
     
-    return _Quote(filename)
+    primaryKey = _Quote(filename)
+    if fragment and primaryKeySeparator:
+        return primaryKey + primaryKeySeparator + _EnsureUTF8(fragment)
+    else:
+        return primaryKey
 
 def GetPrimaryKeyFromFilename(filename, **kwargs):
     """  extract primaryKey from filename .
