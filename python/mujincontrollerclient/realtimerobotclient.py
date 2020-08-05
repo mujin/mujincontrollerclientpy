@@ -867,11 +867,3 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
     
-    def SyncGrabbingTargetState(self, timeout=10, usewebapi=False, fireandforget=False, **kwargs):
-        """Syncs isGrabbingTarget signal from robotbridges with the internal planning grabbing client.
-        """
-        taskparameters = {
-            'command': 'SyncGrabbingTargetState',
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
