@@ -148,7 +148,8 @@ class ControllerWebClient(object):
 
         # first check error
         if content is not None and 'error_message' in content:
-            raise APIServerError(content['error_message'], stacktrace=content.get('stacktrace', None), errorcode=content.get('error_code', None))
+            raise APIServerError(content['error_message'], errorcode=content.get('error_code', None), inputcommand=path, detailInfoType=content.get('detailInfoType',None), detailInfo=content.get('detailInfo',None))
+        
         if response.status_code >= 400:
             raise APIServerError(raw)
 
