@@ -380,6 +380,19 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         viewercommand.update(kwargs)
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
+    def MoveCameraPointOfView(self, pointOfViewName, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        """
+        Sends a command that moves the camera to the one of the following point of view names:
+        +x, -x, +y, -y, +z, -z.
+        For each point of view, the camera will be aligned to the scene's bounding box center, and the whole scene will be visible. Camera will look at the 
+        scene using the oposite direction of the point of view name axis (for instance, the camera placed at +x will make it look at the scene in the -x direction).
+        """
+        viewercommand = {
+            'command': 'MoveCameraPointOfView',
+            'axis': pointOfViewName,
+        }
+        return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
     def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         """sets the camera transform
         :param transform: 4x4 matrix
