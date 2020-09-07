@@ -974,3 +974,37 @@ class ControllerClient(object):
     def DeleteITLProgram(self, programName, usewebapi=True, timeout=5):
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
+
+    #
+    # Backup restore
+    #
+
+    def Backup(self, saveconfig=True, savemedia=True, timeout=600):
+        """downloads a backup file
+
+        :return: a streaming response
+        """
+
+        response = self._webclient.Request('GET', '/backup/', stream=True, params={
+            'media': 'true' if savemedia else 'false',
+            'config': 'true' if saveconfig else 'false',
+        }, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
+
+    def Restore(self, f, restoreconfig=True, restoremedia=True, timeout=600):
+        """uploads a previously downlaoded backup file to restore
+
+        :return: (dict) json response
+        """
+        response = self._webclient.Request('POST', '/backup/', files={'file': f}, params={
+            'media': 'true' if restoremedia else 'false',
+            'config': 'true' if restoreconfig else 'false',
+        }, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return response.json()
+            except Exception as e:
+                log.exception('failed to restore: %s', e)
+        raise ControllerClientError(response.content.decode('utf-8'))
