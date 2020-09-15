@@ -334,6 +334,22 @@ class ControllerClient(object):
         return self._webclient.APICall('DELETE', u'object/%s/graspset/%s/' % (objectpk, graspsetpk), timeout=timeout)
 
     #
+    # PositionConfiguration related
+    #
+
+    def CreateObjectPositionConfiguration(self, objectpk, positionconfigurationdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'object/%s/positionconfiguration/' % objectpk, data=positionconfigurationdata, fields=fields, timeout=timeout)
+
+    def SetObjectPositionConfiguration(self, objectpk, positionconfigurationpk, positionconfigurationdata, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('PUT', u'object/%s/positionconfiguration/%s/' % (objectpk, positionconfigurationpk), data=positionconfigurationdata, fields=fields, timeout=timeout)
+
+    def DeleteObjectPositionConfiguration(self, objectpk, positionconfigurationpk, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'object/%s/positionconfiguration/%s/' % (objectpk, positionconfigurationpk), timeout=timeout)
+
+    #
     # Link related
     #
 
