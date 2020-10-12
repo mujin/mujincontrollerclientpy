@@ -593,3 +593,13 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         ret = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
         return ret 
+
+    def ComputeSamePartPackResultBySimulation(self, timeout=100, usewebapi=None, **kwargs):
+        """
+        Compute pack formation for single part type.
+        """
+        taskparameters = {
+            'command': 'ComputeSamePartPackResultBySimulation',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
