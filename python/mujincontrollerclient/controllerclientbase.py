@@ -18,6 +18,8 @@ from . import json
 from . import urlparse
 from . import uriutils
 
+from requests.utils import guess_filename
+
 # logging
 import logging
 log = logging.getLogger(__name__)
@@ -750,8 +752,14 @@ class ControllerClient(object):
             (dict) json response
         """
         data = {}
-        if filename:
-            data['filename'] = filename
+        if filename is None:
+            if isinstance(f, (list, tuple)):
+                filename = f[0]
+            else:
+                filename = guess_filename(f)
+        if filename is None:
+            raise ControllerClientError(_('Could not guess filename from file argument'))
+        data['filename'] = filename
         response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
