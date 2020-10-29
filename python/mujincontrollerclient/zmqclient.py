@@ -99,9 +99,9 @@ class ZmqSocketPool(object):
 
         socket = self._ctx.socket(zmq.REQ)
         socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # turn on tcp keepalive, do these configuration before connect
-        socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 1) # the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-        socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 1) # the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-        socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 1) # the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
+        socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 2) # the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+        socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 2) # the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+        socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 2) # the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         socket.connect(self._url)
         assert(socket not in self._sockets)
         self._sockets[socket] = True
