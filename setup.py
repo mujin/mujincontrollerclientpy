@@ -15,7 +15,11 @@ setup(
     version=version['__version__'],
     packages=['mujincontrollerclient'],
     package_dir={'mujincontrollerclient': 'python/mujincontrollerclient'},
-    scripts=['bin/mujin_controllerclientpy_registerscene.py', 'bin/mujin_controllerclientpy_applyconfig.py'],
+    data_files=[
+        # using scripts= will cause the first line of the script being modified for python2 or python3
+        # put the scripts in data_files will copy them as-is
+        ('bin', ['bin/mujin_controllerclientpy_registerscene.py', 'bin/mujin_controllerclientpy_applyconfig.py']),
+    ],
     locale_dir='locale',
     license='Apache License, Version 2.0',
     long_description=open('README.rst').read(),
