@@ -152,3 +152,13 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def CheckITLProgramExists(self, programName, usewebapi=True, timeout=1):
+        """checks existence of itl program
+        returns true if exists, exception is thrown otherwise
+        """
+        assert(usewebapi)
+
+        # not doing try-except to let user decide how to handle different exceptions
+        self._webclient.APICall('GET', u'itl/%s/' % programName, timeout=timeout)
+        return True
