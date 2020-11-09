@@ -225,7 +225,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True, respawnopts=None):
+    def _ExecuteCommandViaZMQRaw(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True, respawnopts=None):
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -254,7 +254,11 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             log.warn(u'got no response from task %r', taskparameters)
             return None
 
-        return response['output']
+        return response
+
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True, respawnopts=None):
+        response = self._ExecuteCommandViaZMQRaw(taskparameters=taskparameters, slaverequestid=slaverequestid, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt, respawnopts=respawnopts)
+        return response['output'] if response is not None else response
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None):
         """executes command with taskparameters
@@ -276,6 +280,16 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
             return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget, respawnopts=respawnopts)
+
+    def RespawnPlanningProcess(self, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None):
+        """respawns a planning process
+        :return: True if the planning process was respawned, otherwise false.
+        """
+        if slaverequestid is None:
+            slaverequestid = self._slaverequestid
+
+        response = self._ExecuteCommandViaZMQRaw(taskparameters={'command': 'Ping'}, slaverequestid=slaverequestid, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
+        return response.get('wasProcessRespawned', False)
 
     #
     # Config
