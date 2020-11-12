@@ -147,6 +147,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         while self._isok and self._isokheartbeat:
             log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket = self._ctx.socket(zmq.SUB)
+            socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # turn on tcp keepalive, do these configuration before connect
+            socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 2) # the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+            socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 2) # the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+            socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 2) # the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket.setsockopt(zmq.SUBSCRIBE, '')
             poller = zmq.Poller()
@@ -221,7 +225,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True):
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True, respawnopts=None):
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -232,6 +236,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
             'stamp': time.time(),
+            'respawnopts': respawnopts,
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
@@ -251,7 +256,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
         return response['output']
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
@@ -270,7 +275,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if usewebapi:
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
-            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget)
+            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget, respawnopts=respawnopts)
 
     #
     # Config
