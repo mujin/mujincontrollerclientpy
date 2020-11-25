@@ -94,7 +94,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
 
-    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=None, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=None, toolname=None, robotspeed=None, timeout=10, usewebapi=None, resetIgnoreObjectsFromUpdateWithPrefix=True, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -125,6 +125,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
 
         :param forceStartRobotValues: planning loop should always start from these values rather than reading from robot
         :param initiallyDisableRobotBridge: if True, stops any communication with the robotbridge until robot bridge is enabled
+        :param resetIgnoreObjectsFromUpdateWithPrefix: if True, will reset ignoreObjectsFromUpdateWithPrefix which were set before. usually False for preparation cycles.
         """
         if worksteplength is None:
             worksteplength = 0.01
@@ -143,6 +144,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'containername': regionname,
             'deletetarget': deletetarget,
             'debuglevel': debuglevel,
+            'resetIgnoreObjectsFromUpdateWithPrefix': resetIgnoreObjectsFromUpdateWithPrefix,
         }
         if goals is not None:
             taskparameters['orderedgoals'] = goals
@@ -150,11 +152,12 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
 
-    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, finishCode=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, finishCode=None, resetIgnoreObjectsFromUpdateWithPrefix=True, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         :param resetExecutionState: if True, then reset the order state variables. By default True
         :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
         :param finishCode: optional finish code to end the cycle with (if it doesn't end with something else beforehand)
+        :param resetIgnoreObjectsFromUpdateWithPrefix: if True, resets ignoreObjectsFromUpdateWithPrefix used to ignore some objects updates.
         """
         taskparameters = {
             'command': 'StopPickPlaceThread',
