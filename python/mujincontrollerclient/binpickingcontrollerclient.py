@@ -603,3 +603,14 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+
+
+    def ComputeBestContainerOrientation(self, timeout=100, usewebapi=None, **kwargs):
+        """
+        Compute best container orientation from containerMetadata
+        """
+        taskparameters = {
+            'command': 'ComputeBestContainerOrientation'
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
