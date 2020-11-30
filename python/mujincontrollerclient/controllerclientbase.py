@@ -692,7 +692,7 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields='attachedsensors,connectedBodies,object_pk,name', timeout=timeout)['objects']
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields='attachedsensors,connectedBodies,object_pk,name', params={'limit': 0}, timeout=timeout)['objects']
         sensormapping = {}
         for instobject in instobjects:
             if len(instobject.get('attachedsensors', [])) > 0:
@@ -708,7 +708,7 @@ class ControllerClient(object):
                 connectedBodies = self._webclient.APICall('GET', u'robot/%s/connectedBody/' % instobject['object_pk'])['connectedBodies']
                 for connectedBody in connectedBodies:
                     connectedBodyScenePk = GetPrimaryKeyFromURI(connectedBody['url'])
-                    connectedBodyInstObjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % connectedBodyScenePk, fields='attachedsensors,object_pk,name', timeout=timeout)['objects']
+                    connectedBodyInstObjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % connectedBodyScenePk, fields='attachedsensors,object_pk,name', params={'limit': 0}, timeout=timeout)['objects']
                     for connectedBodyInstObject in connectedBodyInstObjects:
                         if len(connectedBodyInstObject.get('attachedsensors', [])) == 0:
                             continue
