@@ -716,7 +716,7 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, timeout=timeout)['objects']
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, timeout=timeout)['objects']
         sensormapping = {}
         for instobject in instobjects:
             if len(instobject['attachedsensors']) > 0:
