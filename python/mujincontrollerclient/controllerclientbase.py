@@ -337,17 +337,17 @@ class ControllerClient(object):
     # PositionConfiguration related
     #
 
-    def CreateObjectPositionConfiguration(self, objectpk, positionconfigurationdata, fields=None, usewebapi=True, timeout=5):
+    def CreateObjectPositionConfiguration(self, objectpk, positionConfigurationData, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('POST', u'object/%s/positionconfiguration/' % objectpk, data=positionconfigurationdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('POST', u'object/%s/positionConfiguration/' % objectpk, data=positionConfigurationData, fields=fields, timeout=timeout)
 
-    def SetObjectPositionConfiguration(self, objectpk, positionconfigurationpk, positionconfigurationdata, fields=None, usewebapi=True, timeout=5):
+    def SetObjectPositionConfiguration(self, objectpk, positionConfigurationPk, positionConfigurationData, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('PUT', u'object/%s/positionconfiguration/%s/' % (objectpk, positionconfigurationpk), data=positionconfigurationdata, fields=fields, timeout=timeout)
+        return self._webclient.APICall('PUT', u'object/%s/positionConfiguration/%s/' % (objectpk, positionConfigurationPk), data=positionConfigurationData, fields=fields, timeout=timeout)
 
-    def DeleteObjectPositionConfiguration(self, objectpk, positionconfigurationpk, usewebapi=True, timeout=5):
+    def DeleteObjectPositionConfiguration(self, objectpk, positionConfigurationPk, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('DELETE', u'object/%s/positionconfiguration/%s/' % (objectpk, positionconfigurationpk), timeout=timeout)
+        return self._webclient.APICall('DELETE', u'object/%s/positionConfiguration/%s/' % (objectpk, positionConfigurationPk), timeout=timeout)
 
     #
     # Link related
