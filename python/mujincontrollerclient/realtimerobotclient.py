@@ -313,7 +313,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, doRemoveGrabbedObjects=False, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, doRemoveGrabbedObjects=False, **kwargs):
         """removes objects with prefix
         
         :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
@@ -328,8 +328,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['prefixes'] = prefixes
         if objectPrefixesExpectingFromSlaveTrigger is not None:
             taskparameters['objectPrefixesExpectingFromSlaveTrigger'] = objectPrefixesExpectingFromSlaveTrigger
-        if removeRegionNames is not None:
-            taskparameters['removeRegionNames'] = removeRegionNames
+        if removeLocationNames is not None:
+            taskparameters['removeLocationNames'] = removeLocationNames
         if doRemoveGrabbedObjects is not None:
             taskparameters['doRemoveGrabbedObjects'] = doRemoveGrabbedObjects
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
