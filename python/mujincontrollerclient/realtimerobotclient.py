@@ -454,6 +454,28 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
+    def MoveJointsToJointStates(self, jointStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointStates=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        """moves the robot to desired joint angles specified in jointStates
+        :param jointStates: List[{'jointName':str, 'jointValue':float}]
+        :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
+        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
+        :param envclearance: environment clearance in milimeter
+        """
+        taskparameters = {
+            'command': 'MoveJointsToJointStates',
+            'goalJointStates': jointStates,
+            'execute': execute,
+        }
+
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+
+        if startvalues is not None:
+            taskparameters['startJointStates'] = startJointStates
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
     def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param jointvalues: list of joint values
@@ -476,11 +498,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
-        
+
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
 
     def MoveJointsToPositionConfiguration(self, positionConfigurationName, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        # DEPRECATED: Use MoveJointsToJointStates #
         """moves the robot to desired position configuration specified in positionConfigurationName
         :param positionConfigurationName: name of goal position configuration name
         :param robotspeed: value in [0,1] of the percentage of robot speed to move at
