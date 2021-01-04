@@ -470,7 +470,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         if envclearance is not None:
             taskparameters['envclearance'] = envclearance
 
-        if startvalues is not None:
+        if startJointStates is not None:
             taskparameters['startJointStates'] = startJointStates
 
         taskparameters.update(kwargs)
