@@ -454,7 +454,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def MoveJointsToJointStates(self, jointStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointStates=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+    def MoveJointsToJointConfigurationStates(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointStates
         :param jointStates: List[{'jointName':str, 'jointValue':float}]
         :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
@@ -462,16 +462,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param envclearance: environment clearance in milimeter
         """
         taskparameters = {
-            'command': 'MoveJointsToJointStates',
-            'goalJointStates': jointStates,
+            'command': 'MoveJointsToJointConfigurationStates',
+            'goalJointConfigurationStates': jointConfigurationStates,
             'execute': execute,
         }
 
         if envclearance is not None:
             taskparameters['envclearance'] = envclearance
 
-        if startvalues is not None:
-            taskparameters['startJointStates'] = startJointStates
+        if startJointConfigurationStates is not None:
+            taskparameters['startJointConfigurationStates'] = startJointConfigurationStates
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
