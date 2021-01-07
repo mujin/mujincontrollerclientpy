@@ -870,4 +870,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Stop profiling planning
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
-    
+
+    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
+        """replaces bodies
+        """
+        taskparameters = {
+            'command': 'ReplaceBodies',
+            'bodieslist': bodieslist,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
