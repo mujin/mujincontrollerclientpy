@@ -451,11 +451,13 @@ class MujinResourceIdentifier(object):
             self._InitFromFilename(_EnsureUnicode(kwargs.pop('filename')))
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
-
-        # guess suffix based on primary key
-        if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
-            self._suffix = u'.mujin.dae'
-
+        
+        # guess suffix based on primary key. look for last occurance of .mujin.
+        if not self._suffix:
+            index = self._primaryKey.rfind('.mujin.')
+            if index >= 0:
+                self._suffix = self._primaryKey[index:]
+        
         if kwargs:
             log.warn('left over arguments to MujinResourceIdentifier constructor are ignored: %r', kwargs)
 
