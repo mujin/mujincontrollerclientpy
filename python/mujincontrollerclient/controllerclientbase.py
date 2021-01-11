@@ -699,14 +699,6 @@ class ControllerClient(object):
         return geometries
 
     #
-    # Instobject related
-    #
-
-    def GetSceneInstanceObjectsViaWebapi(self, scenepk, fields=None, usewebapi=True, timeout=5):
-        assert(usewebapi)
-        return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, timeout=timeout))
-
-    #
     # Sensor mappings related
     #
 
@@ -716,18 +708,34 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, timeout=timeout)['objects']
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields='attachedsensors,connectedBodies,object_pk,name', params={'limit': 0}, timeout=timeout)['objects']
         sensormapping = {}
         for instobject in instobjects:
-            if len(instobject['attachedsensors']) > 0:
+            if len(instobject.get('attachedsensors', [])) > 0:
                 attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])['attachedsensors']
                 for attachedsensor in attachedsensors:
-                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
+                    camerafullname = '%s/%s' % (instobject['name'], attachedsensor['name'])
                     if 'hardware_id' in attachedsensor['sensordata']:
                         sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
                     else:
                         sensormapping[camerafullname] = None
-                        log.warn(u'attached sensor %s/%s does not have hardware_id', instobject['name'], attachedsensor.get('name', None))
+                        log.warn(u'attached sensor %s does not have hardware_id', camerafullname)
+            if len(instobject.get('connectedBodies', [])) > 0:
+                connectedBodies = self._webclient.APICall('GET', u'robot/%s/connectedBody/' % instobject['object_pk'])['connectedBodies']
+                for connectedBody in connectedBodies:
+                    connectedBodyScenePk = GetPrimaryKeyFromURI(connectedBody['url'])
+                    connectedBodyInstObjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % connectedBodyScenePk, fields='attachedsensors,object_pk,name', params={'limit': 0}, timeout=timeout)['objects']
+                    for connectedBodyInstObject in connectedBodyInstObjects:
+                        if len(connectedBodyInstObject.get('attachedsensors', [])) == 0:
+                            continue
+                        attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % connectedBodyInstObject['object_pk'])['attachedsensors']
+                        for attachedsensor in attachedsensors:
+                            camerafullname = '%s/%s_%s' % (instobject['name'], connectedBody['name'], attachedsensor['name'])
+                            if 'hardware_id' in attachedsensor['sensordata']:
+                                sensormapping[camerafullname] = attachedsensor['sensordata']['hardware_id']
+                            else:
+                                sensormapping[camerafullname] = None
+                                log.warn(u'attached sensor %s does not have hardware_id', camerafullname)
         return sensormapping
 
     def SetSceneSensorMapping(self, sensormapping, scenepk=None, usewebapi=True, timeout=5):
@@ -737,21 +745,37 @@ class ControllerClient(object):
         assert(usewebapi)
         if scenepk is None:
             scenepk = self.scenepk
-        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, fields='attachedsensors,object_pk,name', timeout=timeout)['objects']
-        cameracontainernames = set([camerafullname.split('/')[0] for camerafullname in sensormapping.keys()])
+        instobjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, params={'limit': 0}, fields='attachedsensors,connectedBodies,object_pk,name', timeout=timeout)['objects']
+        cameracontainernames = set([camerafullname.split('/', 1)[0] for camerafullname in sensormapping.keys()])
         sensormapping = dict(sensormapping)
         for instobject in instobjects:
-            if len(instobject['attachedsensors']) > 0 and instobject['name'] in cameracontainernames:
-                cameracontainerpk = instobject['object_pk']
-                attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % cameracontainerpk)['attachedsensors']
+            if instobject['name'] not in cameracontainernames:
+                continue
+            if len(instobject.get('attachedsensors', [])) > 0:
+                attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % instobject['object_pk'])['attachedsensors']
                 for attachedsensor in attachedsensors:
-                    camerafullname = instobject['name'] + '/' + attachedsensor['name']
-                    cameraid = attachedsensor['sensordata'].get('hardware_id', None)
-                    sensorpk = attachedsensor['pk']
+                    camerafullname = '%s/%s' % (instobject['name'], attachedsensor['name'])
                     if camerafullname in sensormapping.keys():
-                        if cameraid != sensormapping[camerafullname]:
-                            self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (cameracontainerpk, sensorpk), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
+                        hardwareId = attachedsensor['sensordata'].get('hardware_id', None)
+                        if hardwareId != sensormapping[camerafullname]:
+                            self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (instobject['object_pk'], attachedsensor['pk']), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
                         del sensormapping[camerafullname]
+            if len(instobject.get('connectedBodies', [])) > 0:
+                connectedBodies = self._webclient.APICall('GET', u'robot/%s/connectedBody/' % instobject['object_pk'])['connectedBodies']
+                for connectedBody in connectedBodies:
+                    connectedBodyScenePk = GetPrimaryKeyFromURI(connectedBody['url'])
+                    connectedBodyInstObjects = self._webclient.APICall('GET', u'scene/%s/instobject/' % connectedBodyScenePk, params={'limit': 0}, fields='attachedsensors,object_pk,name', timeout=timeout)['objects']
+                    for connectedBodyInstObject in connectedBodyInstObjects:
+                        if len(connectedBodyInstObject.get('attachedsensors', [])) == 0:
+                            continue
+                        attachedsensors = self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % connectedBodyInstObject['object_pk'])['attachedsensors']
+                        for attachedsensor in attachedsensors:
+                            camerafullname = '%s/%s_%s' % (instobject['name'], connectedBody['name'], attachedsensor['name'])
+                            if camerafullname in sensormapping.keys():
+                                hardwareId = attachedsensor['sensordata'].get('hardware_id', None)
+                                if hardwareId != sensormapping[camerafullname]:
+                                    self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s' % (connectedBodyInstObject['object_pk'], attachedsensor['pk']), data={'sensordata': {'hardware_id': str(sensormapping[camerafullname])}})
+                                del sensormapping[camerafullname]
         if sensormapping:
             raise ControllerClientError(_('some sensors are not found in scene: %r') % sensormapping.keys())
 
@@ -984,3 +1008,37 @@ class ControllerClient(object):
     def DeleteITLProgram(self, programName, usewebapi=True, timeout=5):
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
+
+    #
+    # Backup restore
+    #
+
+    def Backup(self, saveconfig=True, savemedia=True, timeout=600):
+        """downloads a backup file
+
+        :return: a streaming response
+        """
+
+        response = self._webclient.Request('GET', '/backup/', stream=True, params={
+            'media': 'true' if savemedia else 'false',
+            'config': 'true' if saveconfig else 'false',
+        }, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
+
+    def Restore(self, f, restoreconfig=True, restoremedia=True, timeout=600):
+        """uploads a previously downlaoded backup file to restore
+
+        :return: (dict) json response
+        """
+        response = self._webclient.Request('POST', '/backup/', files={'file': f}, params={
+            'media': 'true' if restoremedia else 'false',
+            'config': 'true' if restoreconfig else 'false',
+        }, timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return response.json()
+            except Exception as e:
+                log.exception('failed to restore: %s', e)
+        raise ControllerClientError(response.content.decode('utf-8'))
