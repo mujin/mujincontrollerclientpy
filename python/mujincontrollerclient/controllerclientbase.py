@@ -188,12 +188,11 @@ class ControllerClient(object):
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
         return response
 
-    def GetServerVersion(self, usewebapi=True, timeout=5):
+    def GetServerVersion(self, timeout=5):
         """Pings server and gets version
         :return: server version in tuple (major, minor, patch, commit)
         """
-        assert(usewebapi)
-        response = self.Ping()
+        response = self.Ping(timeout=timeout)
         serverString = response.headers.get('Server', '')
         if not serverString.startswith('mujinwebstack/'):
             return (0, 0, 0, 'unknown')
