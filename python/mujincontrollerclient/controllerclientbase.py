@@ -186,6 +186,7 @@ class ControllerClient(object):
         response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
+        return response
 
     def SetLogLevel(self, componentLevels, timeout=5):
         """ Set webstack log level
