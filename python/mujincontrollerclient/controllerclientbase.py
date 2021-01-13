@@ -188,6 +188,19 @@ class ControllerClient(object):
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
         return response
 
+    def GetServerVersion(self, usewebapi=True, timeout=5):
+        """Pings server and gets version
+        :return: server version in tuple (major, minor, patch, commit)
+        """
+        assert(usewebapi)
+        response = self.Ping()
+        serverString = response.headers.get('Server', '')
+        if not serverString.startswith('mujinwebstack/'):
+            return (0, 0, 0, 'unknown')
+        serverVersion = serverString[len('mujinwebstack/'):]
+        serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersion.split('.', 4)
+        return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
+
     def SetLogLevel(self, componentLevels, timeout=5):
         """ Set webstack log level
         :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
