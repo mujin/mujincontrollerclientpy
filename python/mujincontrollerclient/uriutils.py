@@ -454,9 +454,10 @@ class MujinResourceIdentifier(object):
         
         # guess suffix based on primary key. look for last occurance of .mujin.
         if not self._suffix:
-            index = self._primaryKey.rfind('.mujin.')
+            primaryKey = _EnsureUnicode(self._primaryKey)
+            index = primaryKey.rfind('.mujin.')
             if index >= 0:
-                self._suffix = self._primaryKey[index:]
+                self._suffix = primaryKey[index:]
         
         if kwargs:
             log.warn('left over arguments to MujinResourceIdentifier constructor are ignored: %r', kwargs)
