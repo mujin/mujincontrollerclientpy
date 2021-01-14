@@ -186,6 +186,19 @@ class ControllerClient(object):
         response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
+        return response
+
+    def GetServerVersion(self, timeout=5):
+        """Pings server and gets version
+        :return: server version in tuple (major, minor, patch, commit)
+        """
+        response = self.Ping(timeout=timeout)
+        serverString = response.headers.get('Server', '')
+        if not serverString.startswith('mujinwebstack/'):
+            return (0, 0, 0, 'unknown')
+        serverVersion = serverString[len('mujinwebstack/'):]
+        serverVersionMajor, serverVersionMinor, serverVersionPatch, serverVersionCommit = serverVersion.split('.', 4)
+        return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
 
     def SetLogLevel(self, componentLevels, timeout=5):
         """ Set webstack log level
