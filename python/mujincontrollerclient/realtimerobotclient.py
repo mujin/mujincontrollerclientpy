@@ -880,3 +880,16 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+
+    def PopulateTargetInContainer(self, locationName, populateTargetUri, populateFnName, containerMetaData=None, timeout=20, **kwargs):
+        """Populate targets in container using populateFn
+        """
+        taskparameters = {
+            'command': 'PopulateTargetInContainer',
+            'locationName': locationName,
+            'populateTargetUri': populateTargetUri,
+            'populateFnName': populateFnName,
+            'containerMetaData': containerMetaData,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
