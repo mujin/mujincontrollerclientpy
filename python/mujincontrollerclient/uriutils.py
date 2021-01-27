@@ -451,11 +451,14 @@ class MujinResourceIdentifier(object):
             self._InitFromFilename(_EnsureUnicode(kwargs.pop('filename')))
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
-
-        # guess suffix based on primary key
-        if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
-            self._suffix = u'.mujin.dae'
-
+        
+        # guess suffix based on primary key. look for last occurance of .mujin.
+        if not self._suffix:
+            primaryKey = _EnsureUnicode(self._primaryKey)
+            index = primaryKey.rfind('.mujin.')
+            if index >= 0:
+                self._suffix = primaryKey[index:]
+        
         if kwargs:
             log.warn('left over arguments to MujinResourceIdentifier constructor are ignored: %r', kwargs)
 
@@ -468,8 +471,10 @@ class MujinResourceIdentifier(object):
         filename = EMPTY_STRING_UNICODE
         if self._scheme == 'file':
             if os.path.commonprefix([self._mujinPath, parts.path]) != self._mujinPath:
-                raise URIError(_('scheme is file, but file absolute path is different from given mujinPath: %s') % uri)
-            filename = parts.path[len(self._mujinPath):]
+                log.debug('scheme is file, but file absolute path is different from given mujinPath: %s', uri)
+                filename = parts.path # path might be relative
+            else:
+                filename = parts.path[len(self._mujinPath):] # is logic really necessary?
         elif self._scheme == 'mujin':
             filename = parts.path[1:]
         else:

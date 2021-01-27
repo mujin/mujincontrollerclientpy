@@ -215,14 +215,18 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GetTransform(self, targetname, unit='mm', timeout=10, **kwargs):
+    def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryName='', unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
         :param targetname: name of the object
+        :param targetpath: string path of object separated by /, e.g. GP7/calibration_board, see realtimerobottask3.py::GetTransform(...); this parameter takes precedence over targetname
         :param unit: unit of the result translation
         :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
         """
         taskparameters = {'command': 'GetTransform',
                           'targetname': targetname,
+                          'connectedBodyName': connectedBodyName,
+                          'linkName': linkName,
+                          'geometryName': geometryName,
                           'unit': unit,
                           }
         taskparameters.update(kwargs)
@@ -313,7 +317,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeRegionNames=None, doRemoveGrabbedObjects=False, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, doRemoveGrabbedObjects=False, **kwargs):
         """removes objects with prefix
         
         :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
@@ -328,8 +332,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['prefixes'] = prefixes
         if objectPrefixesExpectingFromSlaveTrigger is not None:
             taskparameters['objectPrefixesExpectingFromSlaveTrigger'] = objectPrefixesExpectingFromSlaveTrigger
-        if removeRegionNames is not None:
-            taskparameters['removeRegionNames'] = removeRegionNames
+        if removeLocationNames is not None:
+            taskparameters['removeLocationNames'] = removeLocationNames
         if doRemoveGrabbedObjects is not None:
             taskparameters['doRemoveGrabbedObjects'] = doRemoveGrabbedObjects
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -866,4 +870,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Stop profiling planning
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
-    
+
+    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
+        """replaces bodies
+        """
+        taskparameters = {
+            'command': 'ReplaceBodies',
+            'bodieslist': bodieslist,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
