@@ -15,7 +15,7 @@ logging.basicConfig(format='%(levelname)s %(name)s: %(funcName)s, %(message)s', 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get joint values of the robot and return ipython terminal.')
     parser.add_argument('--url', action='store', type=str, dest='url', default=None, help="URL to the controller to override the conf file and communicate with another controller. Format is: http://testuser:pass@controller100")
-    parser.add_argument('--slaverequestid', action='store', type=str, dest='slaverequestid', default=None, help="salve request id to create/connect on Mujin motino controller. For pickworker the slaverequestId template is the following: 'c%(controllernumber)_pw%(index)', so if you have controller100 and want to connect to the pickworker slave 0 then slaverequestId should be 'c100_pw0'. (by default Mujin pendant scene viewer to pickworker slave 0)")
+    parser.add_argument('--slaverequestid', action='store', type=str, dest='slaverequestid', default=None, help="salve request id to create/connect on Mujin motino controller. For pickworker the slaverequestId template is the following: 'c(controllernumber)_pw(index)', so if you have controller100 and want to connect to the pickworker slave 0 then slaverequestId should be 'c100_pw0'. (by default Mujin pendant scene viewer to pickworker slave 0)")
     (options, args) = parser.parse_known_args()
     slaverequestid=options.slaverequestid
     if slaverequestid is None:
@@ -51,3 +51,22 @@ if __name__ == "__main__":
     log.info('currentjointvalues=%r', currentjointvalues)
 
     from IPython.terminal import embed; ipshell=embed.InteractiveShellEmbed(config=embed.load_default_config())(local_ns=locals(), global_ns=globals())
+
+    params = {}
+    params.update(userconf['binpickingparameters'])
+    params['destcontainernames'] = userconf['destcontainernames']
+    params['numTargetsToPlace'] = 1
+    params['robotStartPosition'] = userconf['binpickingparameters']['robotPositions']['home']
+    params['robotFinishPosition'] = userconf['binpickingparameters']['robotPositions'].get('finish', list(params['robotStartPosition']))
+    params['robotRecoveryPosition'] = userconf['binpickingparameters']['robotPositions'].get('recovery', list(params['robotStartPosition']))
+    params['robotaccelmult'] = userconf['robotaccelmult']
+    params['robotname'] = userconf['robotname']
+    params['robotspeed'] = userconf['robotspeed']
+
+    params['sourcecontainername'] = userconf['sourcecontainername']
+    params['targetnamepattern'] =  'detected_%s_\\d+'%params['sourcecontainername']
+    params['targeturi'] = 'mujin:/%s.mujin.dae'%userconf['selectedtargetnames'] 
+    params['toolname'] = userconf['toolname'] 
+    # 'pickLocationInfo', 'placeLocationInfos'
+    # binpickingclient.StartPickAndPlaceThread(**params)
+    
