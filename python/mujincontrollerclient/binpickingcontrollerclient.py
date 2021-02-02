@@ -163,7 +163,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'StopPickPlaceThread',
             'resetExecutionState': resetExecutionState,
             'resetStatusPickPlace': resetStatusPickPlace,
-            'finishCode': finishCode
+            'finishCode': finishCode,
+            'resetIgnoreObjectsFromUpdateWithPrefix': resetIgnoreObjectsFromUpdateWithPrefix
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
