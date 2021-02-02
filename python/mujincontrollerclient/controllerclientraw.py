@@ -149,6 +149,9 @@ class ControllerWebClient(object):
         # first check error
         if content is not None and 'error_message' in content:
             raise APIServerError(content['error_message'], errorcode=content.get('error_code', None), inputcommand=path, detailInfoType=content.get('detailInfoType',None), detailInfo=content.get('detailInfo',None))
+
+        if content is not None and 'error' in content:
+            raise APIServerError(content['error'].get('message', raw), inputcommand=path)
         
         if response.status_code >= 400:
             raise APIServerError(raw)
@@ -165,7 +168,7 @@ class ControllerWebClient(object):
 
         # check expected status code
         if response.status_code != expectedStatusCode:
-            log.error('response status code is %d, expecting %d: %s', response.status_code, expectedStatusCode, raw)
+            log.error('response status code is %d, expecting %d for %s %s: %s', response.status_code, expectedStatusCode, method, path, raw)
             raise APIServerError(raw)
 
         return content
