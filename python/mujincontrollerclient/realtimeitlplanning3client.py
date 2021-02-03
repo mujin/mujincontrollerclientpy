@@ -162,3 +162,16 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         # not doing try-except to let user decide how to handle different exceptions
         self._webclient.APICall('GET', u'itl/%s/' % programName, timeout=timeout)
         return True
+    
+    def PopulateTargetInContainer(self, locationName, populateTargetUri, populateFnName, containerMetaData=None, timeout=20, **kwargs):
+        """Populate targets in container using populateFn
+        """
+        taskparameters = {
+            'command': 'PopulateTargetInContainer',
+            'locationName': locationName,
+            'populateTargetUri': populateTargetUri,
+            'populateFnName': populateFnName,
+            'containerMetaData': containerMetaData,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
