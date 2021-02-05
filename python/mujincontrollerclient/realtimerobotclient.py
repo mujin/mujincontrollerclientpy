@@ -501,28 +501,29 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
-
-    def MoveJointsToPositionConfiguration(self, positionConfigurationName, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        # DEPRECATED: Use MoveJointsToJointStates #
+    
+    def MoveJointsToPositionConfiguration(self, positionConfigurationName=None, positionConfigurationCandidateNames=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired position configuration specified in positionConfigurationName
-        :param positionConfigurationName: name of goal position configuration name
+        :param positionConfigurationName: optional, if specified the name of position configuration to move to. If does not exist, will raise an error
+        :param positionConfigurationCandidateNames: optional, go to the first position that is defined by the robot. If no positions exist, just return without moving the robot.
         :param robotspeed: value in [0,1] of the percentage of robot speed to move at
         :param envclearance: environment clearance in milimeter
         """
         taskparameters = {
             'command': 'MoveJointsToPositionConfiguration',
-            'positionConfigurationName': positionConfigurationName,
             'execute': execute,
         }
+        if positionConfigurationName:
+            taskparameters['positionConfigurationName'] = positionConfigurationName
+        if positionConfigurationCandidateNames:
+            taskparameters['positionConfigurationCandidateNames'] = positionConfigurationCandidateNames
         if envclearance is not None:
             taskparameters['envclearance'] = envclearance
-
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
-
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
-
+    
     def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """moves the robot to desired joint angles specified in jointvalues
         :param robotspeed: value in [0,1] of the percentage of robot speed to move at
