@@ -422,7 +422,7 @@ class MujinResourceIdentifier(object):
     def __init__(self, **kwargs):
         # scheme=SCHEME_MUJIN, fragment=EMPTY_STRING_UNICODE, uri=EMPTY_STRING_UNICODE, primaryKey=EMPTY_STRING_UTF8, partType=EMPTY_STRING_UNICODE, filename=EMPTY_STRING_UNICODE, suffix=EMPTY_STRING_UNICODE, mujinPath=EMPTY_STRING_UNICODE, fragmentSeparator=FRAGMENT_SEPARATOR_EMPTY, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_EMPTY
 
-        self.mujinPath = kwargs.pop('mujinPath', EMPTY_STRING_UNICODE)
+        self.mujinPath = kwargs.pop('mujinPath', None) or EMPTY_STRING_UNICODE
         self.scheme = kwargs.pop('scheme', SCHEME_MUJIN)
         self.fragment = kwargs.pop('fragment', EMPTY_STRING_UNICODE)
         self.suffix = kwargs.pop('suffix', EMPTY_STRING_UNICODE)
