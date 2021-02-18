@@ -213,13 +213,17 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
         # execute task
-        return self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
-            'tasktype': tasktype,
-            'taskparameters': taskparameters,
-            'slaverequestid': slaverequestid,
-            'timeout': timeout,
-        }, timeout=timeout)
-
+        try:
+            return self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
+                'tasktype': tasktype,
+                'taskparameters': taskparameters,
+                'slaverequestid': slaverequestid,
+                'timeout': timeout,
+            }, timeout=timeout)
+        except Exception as e:
+            log.warn('Failed in executing sync command on webstack, perhaps another sync command is going on? scenepk=%r, tasktype=%r, taskparameters=%r, slaverequestid=%r', scenepk, tasktype, taskparameters, slaverequestid)
+            raise
+    
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
         """executes command via web api
         """
