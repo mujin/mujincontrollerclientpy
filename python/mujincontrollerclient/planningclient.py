@@ -221,7 +221,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                 'timeout': timeout,
             }, timeout=timeout)
         except Exception as e:
-            log.warn('Failed in executing sync command on webstack, perhaps another sync command is going on? scenepk=%r, tasktype=%r, taskparameters=%r, slaverequestid=%r', scenepk, tasktype, taskparameters, slaverequestid)
+            import traceback
+            log.warn('Failed in executing sync command on webstack, perhaps another sync command is going on? scenepk=%r, tasktype=%r, taskparameters=%r, slaverequestid=%r. Coming from:\n%s', scenepk, tasktype, taskparameters, slaverequestid, ''.join(traceback.format_stack()))
             raise
     
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
