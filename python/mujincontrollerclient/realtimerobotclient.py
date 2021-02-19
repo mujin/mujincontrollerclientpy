@@ -425,6 +425,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param preserveexternalrefs: If True, any bodies currently that are being externally referenced from the environment will be saved as external references.
         :param externalref: If '*', then will save each of the objects as externally referencing their original filename. Otherwise will force saving specific bodies as external references
         :param saveclone: If 1, will save the scenes for all the cloned environments
+        :param saveReferenceUriAsHint: if True, use save the reference uris as referenceUriHint so that webstack does not get confused and deletes content
         :return: the actual filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
         """
         taskparameters = {'command': 'SaveScene'}
