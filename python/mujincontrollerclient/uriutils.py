@@ -92,7 +92,7 @@ def _Quote(primaryKey):
         return _EnsureUTF8(quote(_EnsureUTF8(primaryKey), safe=''))
 
 
-def _ParseURI(uri, fragmentSeparator):
+def _ParseURIFast(uri, fragmentSeparator):
     u""" Mujin uri is unicode and special characters like  #, ? and @ will be part of the path
 
     input:
@@ -120,40 +120,38 @@ def _ParseURI(uri, fragmentSeparator):
         # TODO: simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please     verify, maybe remove this case
         if scheme != SCHEME_FILE:
             raise URIError(_('scheme not supported %r: %s') % (scheme, uri))
+        
         # for rfc urlparse, make sure fragment_separator is #
         # if fragmentSeparator != FRAGMENT_SEPARATOR_SHARP:
         #     raise URIError(_('fragment separator %r not supported for current scheme: %s') % (fragmentSeparator, uri))
         r = urlparse.urlparse(uri, allow_fragments=bool(fragmentSeparator))
-        return urlparse.ParseResult(
-            scheme=_EnsureUnicode(r.scheme),
-            netloc=_EnsureUnicode(r.netloc),
-            path=_EnsureUnicode(r.path),
-            params=_EnsureUnicode(r.params),
-            query=_EnsureUnicode(r.query),
-            fragment=_EnsureUnicode(r.fragment),
-        )  # make all uri path, no matter what scheme it is, to be unicode.
-
+        # make all uri path, no matter what scheme it is, to be unicode.
+        return _EnsureUnicode(r.scheme), _EnsureUnicode(r.netloc), _EnsureUnicode(r.path), _EnsureUnicode(r.params), _EnsureUnicode(r.query), _EnsureUnicode(r.fragment)
+    
     # it's a mujinuri
     if rest.startswith(u'//'):
         # usually we need to split hostname from url
         # for now mujin uri doesn't have definition of hostname in uri
         raise URIError(_('mujin scheme has no hostname defined %s') % uri)
-
+    
     path = rest
     fragment = EMPTY_STRING_UNICODE
     if fragmentSeparator and fragmentSeparator in rest:
         # split by the last appeared fragmentSeparator
         path, fragment = rest.rsplit(fragmentSeparator, 1)
+    
+    return scheme, EMPTY_STRING_UNICODE, path, EMPTY_STRING_UNICODE, EMPTY_STRING_UNICODE, fragment
 
+def _ParseURI(uri, fragmentSeparator):
+    scheme, netloc, path, params, query, fragment = _ParseURIFast(uri, fragmentSeparator)
     return urlparse.ParseResult(
         scheme=scheme,
-        netloc=EMPTY_STRING_UNICODE,
+        netloc=netloc,
         path=path,
-        params=EMPTY_STRING_UNICODE,
-        query=EMPTY_STRING_UNICODE,
+        params=params,
+        query=query,
         fragment=fragment,
     )
-
 
 def _UnparseURI(parts, fragmentSeparator):
     u""" compose a uri. This function will call urlunparse if scheme is not mujin.
@@ -212,24 +210,38 @@ def GetFragmentFromURI(uri, **kwargs):
     """
     return MujinResourceIdentifier(uri=uri, **kwargs).fragment
 
-
-def GetPrimaryKeyFromURI(uri, **kwargs):
+def GetPrimaryKeyFromURI(uri, fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT):
     u"""
     input:
         uri: a mujin scheme uri which is utf-8 decoded unicode.
     output:
         primaryKey is utf-8 encoded and quoted.
 
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT)
+    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_AT)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion'
-    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_AT)
+    >>> GetPrimaryKeyFromURI(u'mujin:/测试_test..mujin.dae@body0_motion', fragmentSeparator=FRAGMENT_SEPARATOR_SHARP)
     '%E6%B5%8B%E8%AF%95_test..mujin.dae%40body0_motion'
     """
     if uri is None or len(uri) == 0:
         return EMPTY_STRING_UTF8
-
-    return MujinResourceIdentifier(uri=uri, **kwargs).primaryKey
-
+    
+    scheme, netloc, path, params, query, fragment = _ParseURIFast(uri, fragmentSeparator)
+    #filename = EMPTY_STRING_UNICODE
+    if scheme == 'file':
+        # _mujinPath is empty...
+        #if os.path.commonprefix([self._mujinPath, parts.path]) != self._mujinPath:
+        #    raise URIError(_('scheme is file, but file absolute path is different from given mujinPath: %s') % uri)
+        filename = path#[len(self._mujinPath):]
+    elif scheme == 'mujin':
+        filename = path[1:]
+    else:
+        raise URIError(_('scheme %s isn\'t supported from uri %r') % (scheme, uri))
+    
+    primaryKey = _Quote(filename)
+    if fragment and primaryKeySeparator:
+        return primaryKey + primaryKeySeparator + _EnsureUTF8(fragment)
+    else:
+        return primaryKey
 
 def GetPrimaryKeyFromFilename(filename, **kwargs):
     """  extract primaryKey from filename .
@@ -410,7 +422,7 @@ class MujinResourceIdentifier(object):
     def __init__(self, **kwargs):
         # scheme=SCHEME_MUJIN, fragment=EMPTY_STRING_UNICODE, uri=EMPTY_STRING_UNICODE, primaryKey=EMPTY_STRING_UTF8, partType=EMPTY_STRING_UNICODE, filename=EMPTY_STRING_UNICODE, suffix=EMPTY_STRING_UNICODE, mujinPath=EMPTY_STRING_UNICODE, fragmentSeparator=FRAGMENT_SEPARATOR_EMPTY, primaryKeySeparator=PRIMARY_KEY_SEPARATOR_EMPTY
 
-        self.mujinPath = kwargs.pop('mujinPath', EMPTY_STRING_UNICODE)
+        self.mujinPath = kwargs.pop('mujinPath', None) or EMPTY_STRING_UNICODE
         self.scheme = kwargs.pop('scheme', SCHEME_MUJIN)
         self.fragment = kwargs.pop('fragment', EMPTY_STRING_UNICODE)
         self.suffix = kwargs.pop('suffix', EMPTY_STRING_UNICODE)
@@ -439,11 +451,14 @@ class MujinResourceIdentifier(object):
             self._InitFromFilename(_EnsureUnicode(kwargs.pop('filename')))
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
-
-        # guess suffix based on primary key
-        if not self._suffix and self._primaryKey.endswith(b'.mujin.dae'):
-            self._suffix = u'.mujin.dae'
-
+        
+        # guess suffix based on primary key. look for last occurance of .mujin.
+        if not self._suffix:
+            primaryKey = _EnsureUnicode(self._primaryKey)
+            index = primaryKey.rfind('.mujin.')
+            if index >= 0:
+                self._suffix = primaryKey[index:]
+        
         if kwargs:
             log.warn('left over arguments to MujinResourceIdentifier constructor are ignored: %r', kwargs)
 
@@ -456,8 +471,10 @@ class MujinResourceIdentifier(object):
         filename = EMPTY_STRING_UNICODE
         if self._scheme == 'file':
             if os.path.commonprefix([self._mujinPath, parts.path]) != self._mujinPath:
-                raise URIError(_('scheme is file, but file absolute path is different from given mujinPath: %s') % uri)
-            filename = parts.path[len(self._mujinPath):]
+                log.debug('scheme is file, but file absolute path is different from given mujinPath: %s', uri)
+                filename = parts.path # path might be relative
+            else:
+                filename = parts.path[len(self._mujinPath):] # is logic really necessary?
         elif self._scheme == 'mujin':
             filename = parts.path[1:]
         else:
