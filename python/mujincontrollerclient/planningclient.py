@@ -19,27 +19,25 @@ from . import zmq
 import logging
 log = logging.getLogger(__name__)
 
-
 def GetAPIServerErrorFromZMQ(response):
     """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
     """
     if response is None:
         return None
-
+    
     if 'error' in response:
         if isinstance(response['error'], dict):
-            return APIServerError(response['error']['description'], response['error']['stacktrace'], response['error']['errorcode'])
-
+            return APIServerError(response['error']['description'], response['error']['errorcode'], response['error'].get('inputcommand',None), response['error'].get('detailInfoType',None), response['error'].get('detailInfo',None))
+        
         else:
             return APIServerError(response['error'])
-
+    
     elif 'exception' in response:
         return APIServerError(response['exception'])
-
+    
     elif 'status' in response and response['status'] != 'succeeded':
         # something happened so raise exception
         return APIServerError(u'Resulting status is %s' % response['status'])
-
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
     """mujin controller client for planning tasks
@@ -149,6 +147,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         while self._isok and self._isokheartbeat:
             log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket = self._ctx.socket(zmq.SUB)
+            socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # turn on tcp keepalive, do these configuration before connect
+            socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 2) # the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
+            socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 2) # the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
+            socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 2) # the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
             socket.setsockopt(zmq.SUBSCRIBE, '')
             poller = zmq.Poller()
@@ -192,6 +194,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def RunSceneTaskAsync(self, scenepk, taskpk, slaverequestid=None, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
+        Notice: overwrite function in controllerclientbase. This function with additional slaverequestid
         """
         assert(usewebapi)
         if slaverequestid is None:
@@ -210,19 +213,24 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         :param forcecancel: if True, then cancel all previously running jobs before running this one
         '''
         # execute task
-        return self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
-            'tasktype': tasktype,
-            'taskparameters': taskparameters,
-            'slaverequestid': slaverequestid,
-            'timeout': timeout,
-        }, timeout=timeout)
-
+        try:
+            return self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
+                'tasktype': tasktype,
+                'taskparameters': taskparameters,
+                'slaverequestid': slaverequestid,
+                'timeout': timeout,
+            }, timeout=timeout)
+        except Exception as e:
+            import traceback
+            log.warn('Failed in executing sync command on webstack, perhaps another sync command is going on? scenepk=%r, tasktype=%r, taskparameters=%r, slaverequestid=%r. Coming from:\n%s', scenepk, tasktype, taskparameters, slaverequestid, ''.join(traceback.format_stack()))
+            raise
+    
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
         """executes command via web api
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
-    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True):
+    def _ExecuteCommandViaZMQ(self, taskparameters, slaverequestid='', timeout=None, fireandforget=None, checkpreempt=True, respawnopts=None):
         command = {
             'fnname': 'RunCommand',
             'taskparams': {
@@ -233,6 +241,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
             'stamp': time.time(),
+            'respawnopts': respawnopts,
         }
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
@@ -252,7 +261,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
         return response['output']
 
-    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None):
+    def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None):
         """executes command with taskparameters
         :param taskparameters: task parameters in json format
         :param timeout: timeout in seconds for web api call
@@ -271,7 +280,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         if usewebapi:
             return self._ExecuteCommandViaWebAPI(taskparameters, timeout=timeout, slaverequestid=slaverequestid)
         else:
-            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget)
+            return self._ExecuteCommandViaZMQ(taskparameters, timeout=timeout, slaverequestid=slaverequestid, fireandforget=fireandforget, respawnopts=respawnopts)
 
     #
     # Config
@@ -281,10 +290,16 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         configuration['command'] = 'configure'
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
-    def SetPlanningLogLevel(self, level, fireandforget=None, timeout=5):
+    def SetLogLevel(self, componentLevels, fireandforget=None, timeout=5):
+        """ Set webstack and planning log level
+        :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
+                                if component name is empty stirng, it sets the root logger
+                                if level name is empty string, it unsets the level previously set
+        """
+        super(PlanningControllerClient, self).SetLogLevel(componentLevels, timeout=timeout)
         configuration = {
             'command': 'setloglevel',
-            'level': level
+            'componentLevels': componentLevels
         }
         return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget)
 
@@ -373,6 +388,19 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'ispan': bool(ispan),
         }
         viewercommand.update(kwargs)
+        return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
+
+    def MoveCameraPointOfView(self, pointOfViewName, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
+        """
+        Sends a command that moves the camera to the one of the following point of view names:
+        +x, -x, +y, -y, +z, -z.
+        For each point of view, the camera will be aligned to the scene's bounding box center, and the whole scene will be visible. Camera will look at the 
+        scene using the oposite direction of the point of view name axis (for instance, the camera placed at +x will make it look at the scene in the -x direction).
+        """
+        viewercommand = {
+            'command': 'MoveCameraPointOfView',
+            'axis': pointOfViewName,
+        }
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):

@@ -339,9 +339,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
-    def ResetCachedRobotValues(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def ResetCachedRobotConfigurationState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {
-            'command': 'ResetCachedRobotValues',
+            'command': 'ResetCachedRobotConfigurationState',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
@@ -354,11 +354,11 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def GetBinpickingState(self, timeout=10, usewebapi=None, robots=None, fireandforget=False, **kwargs):
+    def GetBinpickingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetBinpickingState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robots=robots, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         taskparameters = {
             'command': 'SetStopPickPlaceAfterExecutionCycle',
@@ -379,16 +379,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['grippervalues'] = grippervalues
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
-        """replaces bodies
-        """
-        taskparameters = {
-            'command': 'ReplaceBodies',
-            'bodieslist': bodieslist,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=True,
                                        timeout=10, **kwargs):
@@ -593,3 +583,13 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         ret = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
         return ret 
+
+    def ComputeSamePartPackResultBySimulation(self, timeout=100, usewebapi=None, **kwargs):
+        """
+        Compute pack formation for single part type.
+        """
+        taskparameters = {
+            'command': 'ComputeSamePartPackResultBySimulation',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
