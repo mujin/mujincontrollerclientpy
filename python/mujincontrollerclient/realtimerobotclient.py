@@ -317,9 +317,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, objectPrefixesExpectingFromSlaveTrigger=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, doRemoveGrabbedObjects=False, **kwargs):
+    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, stateTriggerMissingInfo=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, doRemoveGrabbedObjects=False, **kwargs):
         """removes objects with prefix
         
+        :param stateTriggerMissingInfo: keys are: prefixes, checkStateTrigger. If checkStateTrigger is not present, also add prefixes to the remove list
         :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
         :param doRemoveGrabbedObjects: if True, then also removed objects even if they are grabbed by the robot.
         """
@@ -330,8 +331,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             taskparameters['prefix'] = prefix
         if prefixes is not None:
             taskparameters['prefixes'] = prefixes
-        if objectPrefixesExpectingFromSlaveTrigger is not None:
-            taskparameters['objectPrefixesExpectingFromSlaveTrigger'] = objectPrefixesExpectingFromSlaveTrigger
+        if stateTriggerMissingInfo is not None:
+            taskparameters['stateTriggerMissingInfo'] = stateTriggerMissingInfo
         if removeLocationNames is not None:
             taskparameters['removeLocationNames'] = removeLocationNames
         if doRemoveGrabbedObjects is not None:
