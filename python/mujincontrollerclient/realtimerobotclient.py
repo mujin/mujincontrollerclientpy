@@ -317,26 +317,58 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def RemoveObjectsWithPrefix(self, prefix=None, prefixes=None, stateTriggerMissingInfo=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, doRemoveGrabbedObjects=False, **kwargs):
+    def SetLocationTracking(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """resets the tracking of specific containers
+        
+        :param cycleIndex: the cycle index to track the locations for
+        :param locationReplaceInfos: 
+        :param removeLocationNames:
+        :param doRemoveOnlyDynamic:
+        """
+        taskparameters = {'command': 'SetLocationTracking'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
+    def ResetLocationTracking(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """resets tracking updates for locations
+        
+        :param resetAllLocations: if True, then will reset all the locations
+        :param resetLocationName: resets only locations with matching name
+        :param checkIdAndResetLocationName: (locationName, containerId) - only reset the location if the container id matches
+        
+        :return: clearedLocationNames
+        """
+        taskparameters = {'command': 'ResetLocationTracking' }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['clearedLocationNames']
+
+    def GetLocationTrackingInfos(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """gets the active tracked locations
+
+        :return: activeLocationTrackingInfos
+        """
+        taskparameters = {'command': 'GetLocationTrackingInfos' }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['activeLocationTrackingInfos']
+    
+    def RemoveObjectsWithPrefix(self, prefix=None, removeNamePrefixes=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, **kwargs):
         """removes objects with prefix
         
-        :param stateTriggerMissingInfo: keys are: prefixes, checkStateTrigger. If checkStateTrigger is not present, also add prefixes to the remove list
+        :param removeNamePrefixes: names of prefixes to match with when removing items
         :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
-        :param doRemoveGrabbedObjects: if True, then also removed objects even if they are grabbed by the robot.
+
+        :return: dict with key 'removedBodyNames' for the removed object names
         """
         taskparameters = {'command': 'RemoveObjectsWithPrefix',
                           }
         taskparameters.update(kwargs)
         if prefix is not None:
+            log.warn('prefix is deprecated')
             taskparameters['prefix'] = prefix
-        if prefixes is not None:
-            taskparameters['prefixes'] = prefixes
-        if stateTriggerMissingInfo is not None:
-            taskparameters['stateTriggerMissingInfo'] = stateTriggerMissingInfo
+        if removeNamePrefixes is not None:
+            taskparameters['removeNamePrefixes'] = removeNamePrefixes
         if removeLocationNames is not None:
             taskparameters['removeLocationNames'] = removeLocationNames
-        if doRemoveGrabbedObjects is not None:
-            taskparameters['doRemoveGrabbedObjects'] = doRemoveGrabbedObjects
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def GetTrajectoryLog(self, timeout=10, **kwargs):
@@ -917,12 +949,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
 
-    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
-        """replaces bodies
+    def ReplaceBodies(self, replaceInfos, timeout=10, **kwargs):
+        """replaces bodies in the environment with new uris
+        
+        :param replaceInfos: list of dicts with keys: name, uri, containerDynamicProperties
         """
         taskparameters = {
             'command': 'ReplaceBodies',
-            'bodieslist': bodieslist,
+            'replaceInfos': replaceInfos,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
