@@ -948,14 +948,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Stop profiling planning
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
-
-    def ReplaceBodies(self, replaceInfos, timeout=10, **kwargs):
+    
+    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
         """replaces bodies in the environment with new uris
         
         :param replaceInfos: list of dicts with keys: name, uri, containerDynamicProperties
         """
         taskparameters = {
             'command': 'ReplaceBodies',
+            'bodieslist': bodieslist, # for back compat for now
             'replaceInfos': replaceInfos,
         }
         taskparameters.update(kwargs)
