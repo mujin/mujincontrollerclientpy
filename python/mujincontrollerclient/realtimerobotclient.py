@@ -957,7 +957,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {
             'command': 'ReplaceBodies',
             'bodieslist': bodieslist, # for back compat for now
-            'replaceInfos': replaceInfos,
+            'replaceInfos': bodieslist,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
