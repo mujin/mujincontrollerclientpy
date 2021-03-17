@@ -3,7 +3,7 @@
 from distutils.core import setup
 try:
     from mujincommon.setuptools import Distribution
-except ImportError:
+except (ImportError, SyntaxError):
     from distutils.dist import Distribution
 
 version = {}
