@@ -66,7 +66,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT)
+    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT).decode('utf-8')
 
 
 def _FormatHTTPDate(dt):
@@ -954,16 +954,30 @@ class ControllerClient(object):
     # Config.
     #
 
-    def GetConfig(self, timeout=5):
-        response = self._webclient.Request('GET', '/config/', timeout=timeout)
+    def GetConfig(self, filename=None, timeout=5):
+        """Retrieve configuration file content from controller.
+        :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
+        :return: configuration file content dictionary 
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('GET', path, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code)
         return response.json()
 
-    def SetConfig(self, data, timeout=5):
-        response = self._webclient.Request('PUT', '/config/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
-        if response.status_code != 202:
-            raise ControllerClientError(_('Failed to set configuration fron controller, status code is %d') % response.status_code)
+    def SetConfig(self, data, filename=None, timeout=5):
+        """Set configruation file content to controller.
+        :param data: content dictionary in its entirety
+        :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('PUT', path, data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code not in (200, 202):
+            raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code)
 
     #
     # Reference Object PKs.
