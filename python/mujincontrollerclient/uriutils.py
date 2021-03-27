@@ -31,16 +31,21 @@ log = logging.getLogger(__name__)
 
 
 def _EnsureUnicode(data):
-    assert(isinstance(data, (six.text_type, six.binary_type)))
+    if not isinstance(data, (six.text_type, six.binary_type)):
+        raise URIError(_('data %r is not a text or binary')%data)
+    
     if not isinstance(data, six.text_type):
         return data.decode('utf-8')
+    
     return data
 
-
 def _EnsureUTF8(data):
-    assert(isinstance(data, (six.text_type, six.binary_type)))
+    if not isinstance(data, (six.text_type, six.binary_type)):
+        raise URIError(_('data %r is not a text or binary')%data)
+    
     if isinstance(data, six.text_type):
         return data.encode('utf-8')
+    
     return data
 
 
