@@ -398,36 +398,37 @@ class ZmqClient(object):
         :return: returns the recv or recv_json response
         """
         self._CheckCallerThread('ReceiveCommand')
-
+        
         # should have called SendCommand with blockwait=False first
         assert(self._socket is not None)
-
+        
         try:
             # receive phase
             starttime = GetMonotonicTime()
+            pollms = 1 if timeout else 0 # if timeout is 0, then return immediately. 1ms poll time for faster response
             while self._isok:
-                # timeout checking
-                elapsedtime = GetMonotonicTime() - starttime
-                if timeout is not None and elapsedtime > timeout:
-                    raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
-
-                if checkpreempt and self._checkpreemptfn is not None:
-                    self._checkpreemptfn()
-
                 # poll to see if something has been received, if received nothing, loop
                 startpolltime = GetMonotonicTime()
-                waitingevents = self._socket.poll(50, zmq.POLLIN)
+                waitingevents = self._socket.poll(pollms, zmq.POLLIN)
                 endpolltime = GetMonotonicTime()
                 if endpolltime - startpolltime > 0.2:  # due to python delays sometimes this can be 0.11s
                     log.critical('polling time took %fs!', endpolltime - startpolltime)
                 if (waitingevents & zmq.POLLIN) != zmq.POLLIN:
                     continue
-
+                
                 if recvjson:
                     return self._socket.recv_json(zmq.NOBLOCK)
                 else:
                     return self._socket.recv(zmq.NOBLOCK)
-
+                
+                # do timeout checking at the end
+                elapsedtime = GetMonotonicTime() - starttime
+                if timeout is not None and elapsedtime > timeout:
+                    raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
+                
+                if checkpreempt and self._checkpreemptfn is not None:
+                    self._checkpreemptfn()
+        
         finally:
             # release socket
             self._ReleaseSocket()
