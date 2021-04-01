@@ -413,15 +413,13 @@ class ZmqClient(object):
                 endpolltime = GetMonotonicTime()
                 if endpolltime - startpolltime > 0.2:  # due to python delays sometimes this can be 0.11s
                     log.critical('polling time took %fs!', endpolltime - startpolltime)
-                if (waitingevents & zmq.POLLIN) != zmq.POLLIN:
-                    continue
-                
-                if recvjson:
-                    releaseSocket = True
-                    return self._socket.recv_json(zmq.NOBLOCK)
-                else:
-                    releaseSocket = True
-                    return self._socket.recv(zmq.NOBLOCK)
+                if (waitingevents & zmq.POLLIN) == zmq.POLLIN:
+                    if recvjson:
+                        releaseSocket = True
+                        return self._socket.recv_json(zmq.NOBLOCK)
+                    else:
+                        releaseSocket = True
+                        return self._socket.recv(zmq.NOBLOCK)
                 
                 # do timeout checking at the end
                 elapsedtime = GetMonotonicTime() - starttime
