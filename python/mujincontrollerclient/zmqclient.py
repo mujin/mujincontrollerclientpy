@@ -401,7 +401,7 @@ class ZmqClient(object):
         
         # should have called SendCommand with blockwait=False first
         assert(self._socket is not None)
-        
+        releaseSocket = False
         try:
             # receive phase
             starttime = GetMonotonicTime()
@@ -417,8 +417,10 @@ class ZmqClient(object):
                     continue
                 
                 if recvjson:
+                    releaseSocket = True
                     return self._socket.recv_json(zmq.NOBLOCK)
                 else:
+                    releaseSocket = True
                     return self._socket.recv(zmq.NOBLOCK)
                 
                 # do timeout checking at the end
@@ -430,7 +432,8 @@ class ZmqClient(object):
                     self._checkpreemptfn()
         
         finally:
-            # release socket
-            self._ReleaseSocket()
-
+            if releaseSocket:
+                # release socket
+                self._ReleaseSocket()
+        
         raise UserInterrupt(u'Interrupted while waiting for response, ZMQ client is stopping')
