@@ -405,7 +405,7 @@ class ZmqClient(object):
         try:
             # receive phase
             starttime = GetMonotonicTime()
-            pollms = 1 if timeout else 0 # if timeout is 0, then return immediately. 1ms poll time for faster response
+            pollms = max(1,min(50,int(timeout*1000))) if timeout else 0 # if timeout is None or 0, then pollms is 0. Otherwise, try to have a good polling time with max 50ms. If timeout is small, polling time should be <= the timeout.. 1ms poll time for faster response
             while self._isok:
                 # poll to see if something has been received, if received nothing, loop
                 startpolltime = GetMonotonicTime()
