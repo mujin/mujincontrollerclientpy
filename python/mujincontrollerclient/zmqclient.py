@@ -398,38 +398,40 @@ class ZmqClient(object):
         :return: returns the recv or recv_json response
         """
         self._CheckCallerThread('ReceiveCommand')
-
+        
         # should have called SendCommand with blockwait=False first
         assert(self._socket is not None)
-
+        releaseSocket = False
         try:
             # receive phase
             starttime = GetMonotonicTime()
+            pollms = max(1,min(50,int(timeout*1000))) if timeout else 0 # if timeout is None or 0, then pollms is 0. Otherwise, try to have a good polling time with max 50ms. If timeout is small, polling time should be <= the timeout.. 1ms poll time for faster response
             while self._isok:
-                # timeout checking
-                elapsedtime = GetMonotonicTime() - starttime
-                if timeout is not None and elapsedtime > timeout:
-                    raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
-
-                if checkpreempt and self._checkpreemptfn is not None:
-                    self._checkpreemptfn()
-
                 # poll to see if something has been received, if received nothing, loop
                 startpolltime = GetMonotonicTime()
-                waitingevents = self._socket.poll(50, zmq.POLLIN)
+                waitingevents = self._socket.poll(pollms, zmq.POLLIN)
                 endpolltime = GetMonotonicTime()
                 if endpolltime - startpolltime > 0.2:  # due to python delays sometimes this can be 0.11s
                     log.critical('polling time took %fs!', endpolltime - startpolltime)
-                if (waitingevents & zmq.POLLIN) != zmq.POLLIN:
-                    continue
-
-                if recvjson:
-                    return self._socket.recv_json(zmq.NOBLOCK)
-                else:
-                    return self._socket.recv(zmq.NOBLOCK)
-
+                if (waitingevents & zmq.POLLIN) == zmq.POLLIN:
+                    if recvjson:
+                        releaseSocket = True
+                        return self._socket.recv_json(zmq.NOBLOCK)
+                    else:
+                        releaseSocket = True
+                        return self._socket.recv(zmq.NOBLOCK)
+                
+                # do timeout checking at the end
+                elapsedtime = GetMonotonicTime() - starttime
+                if timeout is not None and elapsedtime > timeout:
+                    raise TimeoutError(u'Timed out to get response from %s after %f seconds (timeout=%f)' % (self._url, elapsedtime, timeout))
+                
+                if checkpreempt and self._checkpreemptfn is not None:
+                    self._checkpreemptfn()
+        
         finally:
-            # release socket
-            self._ReleaseSocket()
-
+            if releaseSocket:
+                # release socket
+                self._ReleaseSocket()
+        
         raise UserInterrupt(u'Interrupted while waiting for response, ZMQ client is stopping')
