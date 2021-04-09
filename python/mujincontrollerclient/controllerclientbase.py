@@ -693,6 +693,35 @@ class ControllerClient(object):
             self._webclient.APICall('DELETE', u'job/', timeout=timeout)
 
     #
+    # Cycle Log
+    #
+
+    def GetCycleLogs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        params.update(kwargs)
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
+
+    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'cycleLog/', data={
+            'cycleLogs': cycleLogs,
+            'reporterControllerId': reporterControllerId,
+            'reporterDateCreated': reporterDateCreated,
+        }, fields=fields, timeout=timeout)
+
+    #
+    # Controller State
+    #
+
+    def GetControllerState(self, controllerId, fields=None, usewebapi=True, timeout=3):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'controllerState/%s/' % controllerId, fields=fields, timeout=timeout)
+
+    #
     # Geometry related
     #
 
@@ -979,6 +1008,12 @@ class ControllerClient(object):
         if response.status_code not in (200, 202):
             raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code)
 
+    def GetSystemInfo(self, timeout=3):
+        response = self._webclient.Request('GET', '/systeminfo/')
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code)
+        return response.json()
+
     #
     # Reference Object PKs.
     #
@@ -1021,7 +1056,7 @@ class ControllerClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
 
     def GetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
