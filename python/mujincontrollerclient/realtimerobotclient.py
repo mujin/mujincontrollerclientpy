@@ -321,7 +321,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """resets the tracking of specific containers
         
         :param cycleIndex: the cycle index to track the locations for
-        :param locationReplaceInfos: 
+        :param locationReplaceInfos: should have keys: name, containerDynamicProperties, rejectContainerIds, uri, pose, cycleIndex
         :param removeLocationNames:
         :param doRemoveOnlyDynamic:
         """
