@@ -949,3 +949,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def GetState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        taskparameters = {'command': 'GetState'}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
