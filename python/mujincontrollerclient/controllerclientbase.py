@@ -66,7 +66,7 @@ def GetPrimaryKeyFromURI(uri):
       GetPrimaryKeyFromURI(u'mujin:/\u691c\u8a3c\u52d5\u4f5c1_121122.mujin.dae')
       returns u'%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122'
     """
-    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT)
+    return uriutils.GetPrimaryKeyFromURI(uri, uriutils.FRAGMENT_SEPARATOR_AT, uriutils.PRIMARY_KEY_SEPARATOR_AT).decode('utf-8')
 
 
 def _FormatHTTPDate(dt):
@@ -693,6 +693,35 @@ class ControllerClient(object):
             self._webclient.APICall('DELETE', u'job/', timeout=timeout)
 
     #
+    # Cycle Log
+    #
+
+    def GetCycleLogs(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        params.update(kwargs)
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
+
+    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('POST', u'cycleLog/', data={
+            'cycleLogs': cycleLogs,
+            'reporterControllerId': reporterControllerId,
+            'reporterDateCreated': reporterDateCreated,
+        }, fields=fields, timeout=timeout)
+
+    #
+    # Controller State
+    #
+
+    def GetControllerState(self, controllerId, fields=None, usewebapi=True, timeout=3):
+        assert(usewebapi)
+        return self._webclient.APICall('GET', u'controllerState/%s/' % controllerId, fields=fields, timeout=timeout)
+
+    #
     # Geometry related
     #
 
@@ -954,16 +983,36 @@ class ControllerClient(object):
     # Config.
     #
 
-    def GetConfig(self, timeout=5):
-        response = self._webclient.Request('GET', '/config/', timeout=timeout)
+    def GetConfig(self, filename=None, timeout=5):
+        """Retrieve configuration file content from controller.
+        :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
+        :return: configuration file content dictionary 
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('GET', path, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve configuration fron controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code)
         return response.json()
 
-    def SetConfig(self, data, timeout=5):
-        response = self._webclient.Request('PUT', '/config/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
-        if response.status_code != 202:
-            raise ControllerClientError(_('Failed to set configuration fron controller, status code is %d') % response.status_code)
+    def SetConfig(self, data, filename=None, timeout=5):
+        """Set configruation file content to controller.
+        :param data: content dictionary in its entirety
+        :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
+        """
+        path = '/config/'
+        if filename:
+            path = '/config/%s/' % filename
+        response = self._webclient.Request('PUT', path, data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
+        if response.status_code not in (200, 202):
+            raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code)
+
+    def GetSystemInfo(self, timeout=3):
+        response = self._webclient.Request('GET', '/systeminfo/')
+        if response.status_code != 200:
+            raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code)
+        return response.json()
 
     #
     # Reference Object PKs.
@@ -1007,7 +1056,7 @@ class ControllerClient(object):
             'limit': limit,
         }
         params.update(kwargs)
-        return self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params)['objects']
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'itl/', fields=fields, timeout=timeout, params=params))
 
     def GetITLProgram(self, programName, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)

@@ -18,7 +18,7 @@ setup(
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
         # put the scripts in data_files will copy them as-is
-        ('bin', ['bin/mujin_controllerclientpy_registerscene.py', 'bin/mujin_controllerclientpy_applyconfig.py']),
+        ('bin', ['bin/mujin_controllerclientpy_registerscene.py', 'bin/mujin_controllerclientpy_applyconfig.py', 'bin/mujin_controllerclientpy_runshell.py']),
     ],
     locale_dir='locale',
     license='Apache License, Version 2.0',
