@@ -849,6 +849,28 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
+    def RunMotorControlTuningFilteredMaximumLengthSequence(self, jointName, amplitude, timeout=15, usewebapi=False, **kwargs):
+        """runs low-pass-filtered maximum length sequence test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningFilteredMaximumLengthSequence',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningFilteredWhiteNoise(self, jointName, amplitude, timeout=15, usewebapi=False, **kwargs):
+        """runs low-pass-filtered white noise test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningFilteredWhiteNoise',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
     def RunDynamicsIdentificationTest(self, timeout, usewebapi=False, **kwargs):
         taskparameters = dict()
         taskparameters['command'] = 'RunDynamicsIdentificationTest'
