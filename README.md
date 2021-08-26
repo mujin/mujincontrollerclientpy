@@ -1,18 +1,11 @@
-MUJIN Controller Python Client Library
---------------------------------------
+# MUJIN Controller Python Client Library
 
-.. image:: https://travis-ci.org/mujin/mujincontrollerclientpy.svg?branch=master
-    :target: https://travis-ci.org/mujin/mujincontrollerclientpy
-
-TODO: python api documentation
+![Build status](https://github.com/mujin/mujincontrollerclientpy/actions/workflows/python.yml/badge.svg)
 
 This is an open-source client library communicating with the MUJIN Controller WebAPI.
 
-`C++ API Documentation <http://mujin.github.com/controllerclientcpp/>`_
 
-
-Releases and Versioning
------------------------
+## Releases and Versioning
 
 - The latest stable build is managed by the **latest_stable** branch, please use it.  It is tested on Linux with python 2.6.5.
   
@@ -25,26 +18,13 @@ Releases and Versioning
   
 - There are `git tags <https://github.com/mujin/mujincontrollerclientpy/tags>`_ for official release like v0.2.4.
 
-Running on Windows
-------------------
 
-TODO: test on windows
-
-
-Building on Windows
--------------------
-
-TODO: test on windows
-
-
-Running on Linux
-----------------
+## Running on Linux
 
 Load mujincontrollerclient as a module in python.
 
 
-Install on Linux
------------------
+## Install on Linux
 
 .. code-block:: bash
 
@@ -56,16 +36,14 @@ Install on Linux
   python -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1,prefix='$INSTALL_DIR')" | xargs -I {} python -c "import sys; print 'Is {} on PYTHONPATH?',sys.path.count('{}')>0"
 
 
-Uninstall on Linux
--------------------
+## Uninstall on Linux
 
 .. code-block:: bash
 
   cat $BUILD_DIR/installedfiles.txt | xargs rm -rf
 
 
-Licenses
---------
+## Licenses
 
 MUJIN Controller Python Client is Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
@@ -80,8 +58,7 @@ Since OpenSSL is included, have to insert the following statement in commercial 
   This product includes software developed by the OpenSSL Project for use in the OpenSSL Toolkit. (http://www.openssl.org/)
 
 
-For Maintainers
----------------
+## For Maintainers
 
 TODO
 
