@@ -158,8 +158,9 @@ class ControllerClient(object):
             self._webclient = None
 
     def SetDestroy(self):
-        if self._webclient is not None:
-            self._webclient.SetDestroy()
+        webclient = self._webclient
+        if webclient is not None:
+            webclient.SetDestroy()
 
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
