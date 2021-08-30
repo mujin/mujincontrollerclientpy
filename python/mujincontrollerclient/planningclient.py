@@ -121,10 +121,12 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def SetDestroy(self):
         self._isok = False
         self._isokheartbeat = False
-        if self._commandsocket is not None:
-            self._commandsocket.SetDestroy()
-        if self._configsocket is not None:
-            self._configsocket.SetDestroy()
+        commandsocket = self._commandsocket
+        if commandsocket is not None:
+            commandsocket.SetDestroy()
+        configsocket = self._configsocket
+        if configsocket is not None:
+            configsocket.SetDestroy()
         super(PlanningControllerClient, self).SetDestroy()
 
     def GetSlaveRequestId(self):
@@ -220,9 +222,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                 'slaverequestid': slaverequestid,
                 'timeout': timeout,
             }, timeout=timeout)
-        except Exception:
+        except Exception as e:
             import traceback
-            log.warn('Failed in executing sync command on webstack, perhaps another sync command is going on? scenepk=%r, tasktype=%r, taskparameters=%r, slaverequestid=%r. Coming from:\n%s', scenepk, tasktype, taskparameters, slaverequestid, ''.join(traceback.format_stack()))
+            log.warn('Failed in executing sync command through webstack, exception was %s, perhaps planning server or planning slave is not responding, or another sync command is going on? scenepk=%r, tasktype=%r, taskparameters=%r, slaverequestid=%r. Coming from:\n%s', e, scenepk, tasktype, taskparameters, slaverequestid, ''.join(traceback.format_stack()))
             raise
     
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):

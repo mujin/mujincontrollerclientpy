@@ -929,7 +929,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         return self.ExecuteCommand({'command': 'IsProfilingRunning'}, usewebapi=usewebapi, timeout=timeout)
 
-    def StartProfiling(self, timeout=10, usewebapi=False, clocktype='cpu'):
+    def StartProfiling(self, clocktype='cpu', timeout=10, usewebapi=False):
         """Start profiling planning
         """
         return self.ExecuteCommand({'command': 'StartProfiling', 'clocktype': clocktype}, usewebapi=usewebapi, timeout=timeout)

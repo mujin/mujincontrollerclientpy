@@ -264,8 +264,9 @@ class ZmqClient(object):
 
     def SetDestroy(self):
         self._isok = False
-        if self._pool is not None:
-            self._pool.SetDestroy()
+        pool = self._pool
+        if pool is not None:
+            pool.SetDestroy()
 
     def GetHostname(self):
         """returns the hostname given when constructing the client
