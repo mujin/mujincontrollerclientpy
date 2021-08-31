@@ -258,8 +258,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def GetOBB(self, targetname, unit='mm', timeout=10, **kwargs):
         """ Get the oriented bounding box of object
         :param targetname: name of the object
+        :param linkname: name of link to target for AABB. If not specified, uses entire target
         :param unit: unit of the OBB
-        :return: OBB of the object
+        :return: A dict describing the OBB of the object with keys: extents, boxLocalTranslation, originalBodyTranslation, quaternion, rotationmat, translation
         """
         taskparameters = {'command': 'GetOBB',
                           'targetname': targetname,
@@ -307,6 +308,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def GetAABB(self, targetname, unit='mm', timeout=10, **kwargs):
         """Gets the axis aligned bounding box of object
         :param targetname: name of the object
+        :param linkname: name of link to target for AABB. If not specified, uses entire target
         :param unit: unit of the AABB
         :return: AABB of the object, e.g. {'pos': [1000,400,100], 'extents': [100,200,50]}
         """

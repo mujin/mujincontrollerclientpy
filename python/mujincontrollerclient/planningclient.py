@@ -121,10 +121,12 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def SetDestroy(self):
         self._isok = False
         self._isokheartbeat = False
-        if self._commandsocket is not None:
-            self._commandsocket.SetDestroy()
-        if self._configsocket is not None:
-            self._configsocket.SetDestroy()
+        commandsocket = self._commandsocket
+        if commandsocket is not None:
+            commandsocket.SetDestroy()
+        configsocket = self._configsocket
+        if configsocket is not None:
+            configsocket.SetDestroy()
         super(PlanningControllerClient, self).SetDestroy()
 
     def GetSlaveRequestId(self):
