@@ -215,18 +215,20 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryName='', unit='mm', timeout=10, **kwargs):
+    def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryPk='', unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
+
         :param targetname: name of the object
         :param targetpath: string path of object separated by /, e.g. GP7/calibration_board, see realtimerobottask3.py::GetTransform(...); this parameter takes precedence over targetname
         :param unit: unit of the result translation
         :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
         """
+
         taskparameters = {'command': 'GetTransform',
                           'targetname': targetname,
                           'connectedBodyName': connectedBodyName,
                           'linkName': linkName,
-                          'geometryName': geometryName,
+                          'geometryPk': geometryPk,
                           'unit': unit,
                           }
         taskparameters.update(kwargs)
