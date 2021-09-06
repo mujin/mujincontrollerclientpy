@@ -218,8 +218,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryPk='', unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
 
-        :param targetname: name of the object
-        :param targetpath: string path of object separated by /, e.g. GP7/calibration_board, see realtimerobottask3.py::GetTransform(...); this parameter takes precedence over targetname
+        :param targetname: OpenRave kinbody name
+        :param connectedBodyName: OpenRave connected body name
+        :param linkName: OpenRave link name
+        :param geometryPk: OpenRave geometry id name
         :param unit: unit of the result translation
         :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
         """
