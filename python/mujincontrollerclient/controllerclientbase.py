@@ -1084,7 +1084,6 @@ class ControllerClient(object):
 
         :return: a streaming response
         """
-
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
             'media': 'true' if savemedia else 'false',
             'config': 'true' if saveconfig else 'false',
@@ -1108,3 +1107,29 @@ class ControllerClient(object):
             except Exception as e:
                 log.exception('failed to restore: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
+
+    #
+    # Debugging related
+    #
+
+    def ListDebugPk(self, timeout=5):
+        """returns available debug pks from controller
+
+        :param timeout: Amount of time in seconds to wait before failing, defaults to 5
+        :return: Available debug pks
+        """
+        return self._webclient.APICall('GET', u'debug/', timeout=timeout)
+
+    def GetDebugPk(self, pk, timeout=10):
+        """downloads contents of the given pk
+
+        :param pk: Exact name of the pk to download
+        :param timeout: Amount of time in seconds to wait before failing, defaults to 10
+        :raises ControllerClientError: If request wasn't successful
+        :return: Contents of the requested pk
+        """
+        # custom http call because APICall currently only supports json
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download' % pk, stream=True, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
