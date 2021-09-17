@@ -1079,22 +1079,23 @@ class ControllerClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, scenePks=None, timeout=600):
+    def Backup(self, saveconfig=True, savemedia='all', currentscenepk=None, timeout=600):
         """downloads a backup file
 
-        Leaving scenePks as `None` would result in including all scenes in the backup
-
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
-        :param savemedia: Whether we want to include media data in the backup, defaults to True
-        :param scenePks: Specific scenes to include in the backup, defaults to None
+        :param savemedia: Whether we want to include all, current, or none of the media in the backup, defaults to 'all'
+        :param currentscenepk: Pk of the current scene in use, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
+        :raises ControllerClientError: If set savemedia to `current` but didn't provide currentscenepk
         :raises ControllerClientError: If request wasn't successful
-        :return: A streaming response
+        :return: A streaming response to the backup file
         """
+        if savemedia == 'current' and currentscenepk is None:
+            raise ControllerClientError(_('Cannot save the current scene if current scene is not provided'))
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
-            'media': 'true' if savemedia else 'false',
+            'media': savemedia,
+            'currentscenepk': currentscenepk,
             'config': 'true' if saveconfig else 'false',
-            'scenePks': scenePks,
         }, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
