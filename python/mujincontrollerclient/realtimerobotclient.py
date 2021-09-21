@@ -849,7 +849,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorControlTuningFilteredMaximumLengthSequence(self, jointName, amplitude, timeout=15, usewebapi=False, **kwargs):
+    def RunMotorControlTuningFilteredMaximumLengthSequence(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
         """runs low-pass-filtered maximum length sequence test on specified joint and returns result
         """
         taskparameters = {
@@ -860,7 +860,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorControlTuningFilteredWhiteNoise(self, jointName, amplitude, timeout=15, usewebapi=False, **kwargs):
+    def RunMotorControlTuningFilteredWhiteNoise(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
         """runs low-pass-filtered white noise test on specified joint and returns result
         """
         taskparameters = {
@@ -871,7 +871,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorControlTuningFilteredStep(self, jointName, amplitude, timeout=15, usewebapi=False, **kwargs):
+    def RunMotorControlTuningFilteredStep(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
         """runs low-pass-filtered white noise test on specified joint and returns result
         """
         taskparameters = {
@@ -882,7 +882,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def RunMotorControlTuningDecayingChirp(self, jointName, amplitude, freqMax, timeout=15, usewebapi=False, **kwargs):
+    def RunMotorControlTuningDecayingChirp(self, jointName, amplitude, freqMax, timeout=120, usewebapi=False, **kwargs):
         """runs low-pass-filtered white noise test on specified joint and returns result
         """
         taskparameters = {
