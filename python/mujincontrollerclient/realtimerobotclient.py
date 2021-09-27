@@ -356,11 +356,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """resets the tracking of specific containers
         """
-        taskparameters = {'command': 'UpdateLocationContainerIdType',
-                          'locationName':locationName,
-                          'containerName':containerName,
-                          'containerId':containerId,
-                          'containerType':containerType
+        taskparameters = {
+            'command': 'UpdateLocationContainerIdType',
+            'locationName': locationName,
+            'containerName': containerName,
+            'containerId': containerId,
+            'containerType': containerType,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
