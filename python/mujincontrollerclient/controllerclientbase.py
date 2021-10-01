@@ -1079,12 +1079,12 @@ class ControllerClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia='all', backupScenePks=None, timeout=600):
+    def Backup(self, saveconfig=True, savemedia='all', backupscenepks=None, timeout=600):
         """downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
         :param savemedia: Whether we want to include media files in the backup, defaults to True
-        :param backupScenePks: List of scenes to backup, defaults to None
+        :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises ControllerClientError: If set savemedia to `current` but didn't provide currentscenename
         :raises ControllerClientError: If request wasn't successful
@@ -1093,7 +1093,7 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
             'media': 'true' if savemedia else 'false',
             'config': 'true' if saveconfig else 'false',
-            'backupScenePks': ','.join(backupScenePks) if backupScenePks else None,
+            'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
