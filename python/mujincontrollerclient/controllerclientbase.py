@@ -1123,24 +1123,24 @@ class ControllerClient(object):
     # Debugging related
     #
 
-    def ListDebugPk(self, timeout=5):
-        """returns available debug pks from controller
+    def GetDebugResources(self, timeout=5):
+        """returns available debug resources from controller
 
         :param timeout: Amount of time in seconds to wait before failing, defaults to 5
-        :return: Available debug pks
+        :return: Available debug resources
         """
-        return self._webclient.APICall('GET', u'debug/', timeout=timeout)
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
 
-    def GetDebugPk(self, pk, timeout=10):
-        """downloads contents of the given pk
+    def DownloadDebugResource(self, debugresource, timeout=10):
+        """downloads contents of the given debug resource
 
-        :param pk: Exact name of the pk to download
+        :param debugresource: Exact name of the debug resource to download
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
         :raises ControllerClientError: If request wasn't successful
-        :return: Contents of the requested pk
+        :return: Contents of the requested resource
         """
         # custom http call because APICall currently only supports json
-        response = self._webclient.Request('GET', '/api/v1/debug/%s/download' % pk, stream=True, timeout=timeout)
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresource, stream=True, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
