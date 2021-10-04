@@ -1131,16 +1131,16 @@ class ControllerClient(object):
         """
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
 
-    def DownloadDebugResource(self, debugresource, timeout=10):
+    def DownloadDebugResource(self, debugresourcepk, timeout=10):
         """downloads contents of the given debug resource
 
-        :param debugresource: Exact name of the debug resource to download
+        :param debugresourcepk: Exact name of the debug resource to download
         :param timeout: Amount of time in seconds to wait before failing, defaults to 10
         :raises ControllerClientError: If request wasn't successful
         :return: Contents of the requested resource
         """
         # custom http call because APICall currently only supports json
-        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresource, stream=True, timeout=timeout)
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
