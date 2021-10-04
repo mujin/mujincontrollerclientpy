@@ -1079,26 +1079,36 @@ class ControllerClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, timeout=600):
         """downloads a backup file
 
-        :return: a streaming response
+        :param saveconfig: Whether we want to include configs in the backup, defaults to True
+        :param savemedia: Whether we want to include media files in the backup, defaults to True
+        :param backupscenepks: List of scenes to backup, defaults to None
+        :param timeout: Amount of time in seconds to wait before failing, defaults to 600
+        :raises ControllerClientError: If request wasn't successful
+        :return: A streaming response to the backup file
         """
-
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
             'media': 'true' if savemedia else 'false',
             'config': 'true' if saveconfig else 'false',
+            'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
             raise ControllerClientError(response.content.decode('utf-8'))
         return response
 
-    def Restore(self, f, restoreconfig=True, restoremedia=True, timeout=600):
-        """uploads a previously downlaoded backup file to restore
+    def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
+        """uploads a previously downloaded backup file to restore
 
-        :return: (dict) json response
+        :param file: Backup filer in tarball format
+        :param restoreconfig: Whether we want to restore the configs, defaults to True
+        :param restoremedia: Whether we want to restore the media data, defaults to True
+        :param timeout: Amount of time in seconds to wait before failing, defaults to 600
+        :raises ControllerClientError: If request wasn't successful
+        :return: JSON response
         """
-        response = self._webclient.Request('POST', '/backup/', files={'file': f}, params={
+        response = self._webclient.Request('POST', '/backup/', files={'file': file}, params={
             'media': 'true' if restoremedia else 'false',
             'config': 'true' if restoreconfig else 'false',
         }, timeout=timeout)
@@ -1108,3 +1118,29 @@ class ControllerClient(object):
             except Exception as e:
                 log.exception('failed to restore: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
+
+    #
+    # Debugging related
+    #
+
+    def GetDebugResources(self, timeout=5):
+        """returns available debug resources from controller
+
+        :param timeout: Amount of time in seconds to wait before failing, defaults to 5
+        :return: Available debug resources
+        """
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'debug/', timeout=timeout))
+
+    def DownloadDebugResource(self, debugresourcepk, timeout=10):
+        """downloads contents of the given debug resource
+
+        :param debugresourcepk: Exact name of the debug resource to download
+        :param timeout: Amount of time in seconds to wait before failing, defaults to 10
+        :raises ControllerClientError: If request wasn't successful
+        :return: Contents of the requested resource
+        """
+        # custom http call because APICall currently only supports json
+        response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
+        if response.status_code != 200:
+            raise ControllerClientError(response.content.decode('utf-8'))
+        return response
