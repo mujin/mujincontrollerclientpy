@@ -215,7 +215,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryPk='', unit='mm', timeout=10, **kwargs):
+    def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryName='', geometryPk='', unit='mm', timeout=10, **kwargs):
         """gets the transform of an object
 
         :param targetname: OpenRave kinbody name
@@ -230,6 +230,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           'targetname': targetname,
                           'connectedBodyName': connectedBodyName,
                           'linkName': linkName,
+                          'geometryName': geometryName,
                           'geometryPk': geometryPk,
                           'unit': unit,
                           }
