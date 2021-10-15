@@ -918,6 +918,17 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
+    def RunMotorControlTuningBangBangResponse(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
+        """runs bangbang trajectory in acc space or jer space and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningBangBangResponse',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
     def RunDynamicsIdentificationTest(self, timeout, usewebapi=False, **kwargs):
         taskparameters = dict()
         taskparameters['command'] = 'RunDynamicsIdentificationTest'
