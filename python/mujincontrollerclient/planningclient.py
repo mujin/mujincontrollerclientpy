@@ -4,23 +4,23 @@
 Planning client
 """
 
-# system imports
+# System imports
 import threading
 import weakref
 import os
 import time
 
-# mujin imports
+# Mujin imports
 from . import APIServerError, GetMonotonicTime
 from . import controllerclientbase, zmqclient
 from . import zmq
 
-# logging
+# Logging
 import logging
 log = logging.getLogger(__name__)
 
 def GetAPIServerErrorFromZMQ(response):
-    """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
+    """If response is an error, return the APIServerError instantiated from the response's error field. Otherwise return None
     """
     if response is None:
         return None
@@ -40,38 +40,38 @@ def GetAPIServerErrorFromZMQ(response):
         return APIServerError(u'Resulting status is %s' % response['status'])
 
 class PlanningControllerClient(controllerclientbase.ControllerClient):
-    """mujin controller client for planning tasks
+    """Mujin controller client for planning tasks
     """
     _usewebapi = True  # if True use the HTTP webapi, otherwise the zeromq webapi (internal use only)
     _sceneparams = None
-    scenepk = None  # the scenepk this controller is configured for
+    scenepk = None  # The scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
     _ctxown = None  # zmq context owned by this class
-    _isok = False  # if False, client is about to be destroyed
-    _heartbeatthread = None  # thread for monitoring controller heartbeat
-    _isokheartbeat = False  # if False, then stop heartbeat monitor
-    _taskstate = None  # latest task status from heartbeat message
+    _isok = False  # If False, client is about to be destroyed
+    _heartbeatthread = None  # Thread for monitoring controller heartbeat
+    _isokheartbeat = False  # If False, then stop heartbeat monitor
+    _taskstate = None  # Latest task status from heartbeat message
     _commandsocket = None  # zmq client to the command port
     _configsocket = None  # zmq client to the config port
 
     def __init__(self, taskzmqport, taskheartbeatport, taskheartbeattimeout, tasktype, scenepk, usewebapi=True, ctx=None, slaverequestid=None, **kwargs):
-        """logs into the mujin controller and initializes the task's zmq connection
-        :param taskzmqport: port of the task's zmq server, e.g. 7110
-        :param taskheartbeatport: port of the task's zmq server's heartbeat publisher, e.g. 7111
-        :param taskheartbeattimeout: seconds until reinitializing task's zmq server if no hearbeat is received, e.g. 7
-        :param tasktype: type of the task
-        :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
+        """Logs into the mujin controller and initializes the task's zmq connection
+        :param taskzmqport: Port of the task's zmq server, e.g. 7110
+        :param taskheartbeatport: Port of the task's zmq server's heartbeat publisher, e.g. 7111
+        :param taskheartbeattimeout: Seconds until reinitializing task's zmq server if no heartbeat is received, e.g. 7
+        :param tasktype: Type of the task
+        :param scenepk: Primary key (pk) of the bin picking task scene, e.g. irex2013.mujin.dae
         """
         super(PlanningControllerClient, self).__init__(**kwargs)
         self._slaverequestid = slaverequestid
         self._sceneparams = {}
         self._isok = True
 
-        # task
+        # Task
         self.tasktype = tasktype
         self._usewebapi = usewebapi
 
-        # connects to task's zmq server
+        # Connects to task's zmq server
         self._commandsocket = None
         self._configsocket = None
         if taskzmqport is not None:
@@ -136,12 +136,12 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         return self._commandsocket
 
     def DeleteJobs(self, usewebapi=True, timeout=5):
-        """ cancels all jobs
+        """Cancels all jobs
         """
         if usewebapi:
             super(PlanningControllerClient, self).DeleteJobs(usewebapi, timeout)
         else:
-            # cancel on the zmq configure
+            # Cancel on the zmq configure
             if self._configsocket is not None:
                 self._SendConfigViaZMQ({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
 
@@ -175,10 +175,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                 log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
     
     def GetPublishedTaskState(self):
-        """return most recent published state. if publishing is disabled, then will return None
+        """Return most recent published state. If publishing is disabled, then will return None
         """
         if self._heartbeatthread is None or not self._isokheartbeat:
-            log.warn('heartbeat thread not running taskheartbeatport=%s, so cannot get latest taskstate', self.taskheartbeatport)
+            log.warn('Heartbeat thread not running taskheartbeatport=%s, so cannot get latest taskstate', self.taskheartbeatport)
         return self._taskstate
     
     def SetScenePrimaryKey(self, scenepk):
@@ -196,7 +196,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def RunSceneTaskAsync(self, scenepk, taskpk, slaverequestid=None, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
-        Notice: overwrite function in controllerclientbase. This function with additional slaverequestid
+        Notice: This overwrites the base in controllerclientbase, to accept slaverequestid.
         """
         assert(usewebapi)
         if slaverequestid is None:
@@ -210,11 +210,11 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
 
     def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=None):
-        '''executes task with a particular task type without creating a new task
-        :param taskparameters: a dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
-        :param forcecancel: if True, then cancel all previously running jobs before running this one
+        '''Executes task with a particular task type without creating a new task
+        :param taskparameters: A dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
+        :param forcecancel: If True, cancel all previously running jobs before running this one
         '''
-        # execute task
+        # Execute task
         try:
             return self._webclient.APICall('GET', u'scene/%s/resultget' % (scenepk), data={
                 'tasktype': tasktype,
@@ -228,7 +228,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             raise
     
     def _ExecuteCommandViaWebAPI(self, taskparameters, slaverequestid='', timeout=None):
-        """executes command via web api
+        """Executes command via web api
         """
         return self.ExecuteTaskSync(self.scenepk, self.tasktype, taskparameters, slaverequestid=slaverequestid, timeout=timeout)
 
@@ -250,7 +250,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
 
         if fireandforget:
-            # for fire and forget commands, no response will be available
+            # For fire and forget commands, no response will be available
             return None
 
         error = GetAPIServerErrorFromZMQ(response)
@@ -264,11 +264,11 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         return response['output']
 
     def ExecuteCommand(self, taskparameters, usewebapi=None, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None):
-        """executes command with taskparameters
-        :param taskparameters: task parameters in json format
-        :param timeout: timeout in seconds for web api call
-        :param fireandforget: whether we should return immediately after sending the command
-        :return: return the server response in json format
+        """Executes command with taskparameters
+        :param taskparameters: Task parameters in json format
+        :param timeout: Timeout in seconds for web api call
+        :param fireandforget: Whether we should return immediately after sending the command
+        :return: Server response in json format
         """
         if 'stamp' not in taskparameters:
             taskparameters['stamp'] = time.time()
@@ -293,10 +293,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         return self.SendConfig(configuration, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def SetLogLevel(self, componentLevels, fireandforget=None, timeout=5):
-        """ Set webstack and planning log level
-        :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
-                                if component name is empty stirng, it sets the root logger
-                                if level name is empty string, it unsets the level previously set
+        """Set webstack and planning log level
+        :param componentLevels: Mapping from component name to level name, for example {"some.specific.component": "DEBUG"}
+                                If component name is empty string, it sets the root logger
+                                If level name is empty string, it unsets the level previously set
         """
         super(PlanningControllerClient, self).SetLogLevel(componentLevels, timeout=timeout)
         configuration = {
@@ -316,7 +316,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         command['slaverequestid'] = slaverequestid
         response = self._configsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
         if fireandforget:
-            # for fire and forget commands, no response will be available
+            # For fire and forget commands, no response will be available
             return None
 
         error = GetAPIServerErrorFromZMQ(response)
@@ -394,10 +394,10 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
     def MoveCameraPointOfView(self, pointOfViewName, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         """
-        Sends a command that moves the camera to the one of the following point of view names:
+        Sends a command that moves the camera to one of the following point of view names:
         +x, -x, +y, -y, +z, -z.
-        For each point of view, the camera will be aligned to the scene's bounding box center, and the whole scene will be visible. Camera will look at the 
-        scene using the oposite direction of the point of view name axis (for instance, the camera placed at +x will make it look at the scene in the -x direction).
+        For each point of view, the camera will be aligned to the scene's bounding box center, and the whole scene will be visible. The camera will look at the 
+        scene from the opposite direction of the point of view's name's axis (for instance, the camera placed at +x will look at the scene from the -x direction).
         """
         viewercommand = {
             'command': 'MoveCameraPointOfView',
@@ -406,7 +406,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         return self.Configure({'viewercommand': viewercommand}, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
-        """sets the camera transform
+        """Sets the camera transform
         :param transform: 4x4 matrix
         """
         viewercommand = {

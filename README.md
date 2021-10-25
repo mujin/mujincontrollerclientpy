@@ -1,8 +1,8 @@
-# MUJIN Controller Python Client Library
+# Mujin Controller Python Client Library
 
 ![Build status](https://github.com/mujin/mujincontrollerclientpy/actions/workflows/python.yml/badge.svg)
 
-This is an open-source client library communicating with the MUJIN Controller WebAPI.
+This is an open-source client library communicating with the Mujin Controller WebAPI.
 
 
 ## Releases and Versioning
@@ -30,5 +30,5 @@ pip install .
 
 ## Licenses
 
-MUJIN Controller Python Client is Licensed under the Apache License, Version 2.0 (the "License"). See [LICENSE](LICENSE)
+Mujin Controller Python Client is Licensed under the Apache License, Version 2.0 (the "License"). See [LICENSE](LICENSE)
 
