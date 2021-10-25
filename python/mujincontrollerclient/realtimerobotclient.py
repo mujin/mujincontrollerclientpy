@@ -18,8 +18,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def __init__(self, robotname, robotspeed=None, robotaccelmult=None, envclearance=10.0, robotBridgeConnectionInfo=None, **kwargs):
         """
-        :param robotspeed: speed of the robot, e.g. 0.4
-        :param envclearance: environment clearance in milimeter, e.g. 20
+        :param robotname: (Optional) Name of the robot selected
+        :param robotspeed: Speed of the robot, e.g. 0.4. Default: None
+        :param robotaccelmult: Current robot acceleration multiplication. Default: None
+        :param envclearance: Environment clearance in millimeter, e.g. 20
+        :param robotBridgeConnectionInfo: dict holding the connection info for the robot bridge. Default: None
         """
         super(RealtimeRobotControllerClient, self).__init__(**kwargs)
         self._robotname = robotname
@@ -115,9 +118,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def MoveJointStraight(self, deltagoalvalue, jointName, timeout=10, robotspeed=None, **kwargs):
-        """moves joint straight
-        :param jointName: name of the joint to move
-        :param deltagoalvalue: how much to move joint in delta
+        """Moves a single joint by a given amount
+        
+        :param jointName: Name of the joint to move
+        :param deltagoalvalue: How much to move joint (delta)
         """
         taskparameters = {'command': 'MoveJointStraight',
                           'deltagoalvalue': deltagoalvalue,
@@ -223,9 +227,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param targetname: OpenRave kinbody name
         :param connectedBodyName: OpenRave connected body name
         :param linkName: OpenRave link name
-        :param geometryPk: OpenRave geometry id name
-        :param unit: unit of the result translation
-        :return: transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
+        :param geometryName: OpenRave geometry id name
+        :param geometryPk: OpenRave geometry primary key (pk)
+        :param unit: Unit of the result translation
+        :return: Transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
         """
 
         taskparameters = {'command': 'GetTransform',
@@ -457,8 +462,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def MoveGripper(self, grippervalues, robotname=None, grippername=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """chucks the manipulator
-        :param grippername: name of the manipulator.
+        """Moves the chuck of the manipulator to a given value.
+        :param grippername: Name of the manipulator.
+        :param grippervalues: Target value of the chuck
         """
         taskparameters = {
             'command': 'MoveGripper',
@@ -514,11 +520,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
     def MoveJointsToJointConfigurationStates(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        """moves the robot to desired joint angles specified in jointStates
+        """Moves the robot to desired joint angles specified in jointStates
         :param jointStates: List[{'jointName':str, 'jointValue':float}]
-        :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
-        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
-        :param envclearance: environment clearance in milimeter
+        :param jointindices: List of corresponding joint indices, default is range(len(jointvalues))
+        :param robotspeed: Value in (0,1] setting the percentage of robot speed to move at
+        :param robotaccelmult: Value in (0,1] setting the percentage of robot acceleration to move at
+        :param envclearance: Environment clearance in millimeters
         """
         taskparameters = {
             'command': 'MoveJointsToJointConfigurationStates',
@@ -536,11 +543,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
 
     def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        """moves the robot to desired joint angles specified in jointvalues
-        :param jointvalues: list of joint values
-        :param jointindices: list of corresponding joint indices, default is range(len(jointvalues))
-        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
-        :param envclearance: environment clearance in milimeter
+        """Moves the robot to desired joint angles specified in jointvalues
+        :param jointvalues: List of joint values
+        :param jointindices: List of corresponding joint indices, default is range(len(jointvalues))
+        :param robotspeed: Value in (0,1] setting the percentage of robot speed to move at
+        :param robotaccelmult: Value in (0,1] setting the percentage of robot acceleration to move at
+        :param envclearance: Environment clearance in millimeters
         """
         if jointindices is None:
             jointindices = range(len(jointvalues))
@@ -562,11 +570,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
     def MoveJointsToPositionConfiguration(self, positionConfigurationName=None, positionConfigurationCandidateNames=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        """moves the robot to desired position configuration specified in positionConfigurationName
-        :param positionConfigurationName: optional, if specified the name of position configuration to move to. If does not exist, will raise an error
-        :param positionConfigurationCandidateNames: optional, go to the first position that is defined by the robot. If no positions exist, just return without moving the robot.
-        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
-        :param envclearance: environment clearance in milimeter
+        """Moves the robot to desired position configuration specified in positionConfigurationName
+
+        :param positionConfigurationName: (optional) If specified, the name of position configuration to move to. If it does not exist, will raise an error.
+        :param positionConfigurationCandidateNames: (optional) If specified, goes to the first position that is defined for the robot. If no positions exist, returns without moving the robot.
+        :param robotspeed: Value in (0,1] setting the percentage of robot speed to move at
+        :param robotaccelmult: Value in (0,1] setting the percentage of robot acceleration to move at
+        :param envclearance: Environment clearance in millimeters
         """
         taskparameters = {
             'command': 'MoveJointsToPositionConfiguration',
@@ -584,9 +594,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
     def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        """moves the robot to desired joint angles specified in jointvalues
-        :param robotspeed: value in [0,1] of the percentage of robot speed to move at
-        :param envclearance: environment clearance in milimeter
+        """Moves the robot to desired joint angles.
+        :param robotspeed: Value in (0,1] setting the percentage of robot speed to move at
+        :param robotaccelmult: Value in (0,1] setting the percentage of robot acceleration to move at
+        :param envclearance: Environment clearance in millimeters
         """
         taskparameters = {
             'command': 'MoveToDropOff',
@@ -738,8 +749,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param force:
         :param robotname:
         :param toolname:
-        :param robotspeed:
-        :param robotaccelmult:
+        :param robotspeed: Value in (0,1] setting the percentage of robot speed to move at
+        :param robotaccelmult: Value in (0,1] setting the percentage of robot acceleration to move at
         """
         taskparameters = {
             'command': 'SetJogModeVelocities',

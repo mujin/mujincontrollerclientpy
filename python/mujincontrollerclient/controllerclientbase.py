@@ -38,8 +38,7 @@ def GetFilenameFromURI(uri, mujinpath):
 
 def GetURIFromPrimaryKey(pk):
     """Given the encoded primary key (has to be str object), returns the unicode URL.
-    If pk is a unicode object, will use inside url as is, otherwise will decode
-
+    If pk is a unicode object, will use inside url as is. Otherwise it will be decoded.
     example:
 
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
@@ -130,7 +129,7 @@ class ControllerClient(object):
             creds, netloc = netloc.rsplit('@', 1)
             self.controllerusername, self.controllerpassword = creds.split(':', 1)
 
-        # parse ip (hostname really) and port
+        # Parse IP (better: hostname) and port
         self.controllerIp = netloc.split(':', 1)[0]
         self.controllerPort = 80
         if ':' in netloc:
@@ -628,7 +627,7 @@ class ControllerClient(object):
     def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
-        Notice: This function can be overwritted in subclass, like RunSceneTaskAsync in planningclient.py
+        Notice: This function can be overwritted in the child class, like RunSceneTaskAsync in planningclient.py
         """
         assert(usewebapi)
         data = {
@@ -727,7 +726,7 @@ class ControllerClient(object):
     #
 
     def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
-        """Return list of geometries (a dictionary with key: positions, indices) of the given object
+        """Return list of geometries (a dictionary with keys: positions, indices) of the given object
         """
         import numpy
         assert(usewebapi)
@@ -945,7 +944,7 @@ class ControllerClient(object):
     #
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
-        """ restarts controller
+        """Get the user log from the controller.
         """
         params = {
             'keyword': (keyword or '').strip(),

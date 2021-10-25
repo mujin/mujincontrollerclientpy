@@ -115,7 +115,7 @@ class ControllerWebClient(object):
         if fields is not None:
             params['fields'] = fields
 
-        # implicit order by pk, is this necessary?
+        # TODO(ziyan): implicit order by pk, is this necessary?
         # if 'order_by' not in params:
         #     params['order_by'] = 'pk'
 
@@ -157,10 +157,10 @@ class ControllerWebClient(object):
         if response.status_code >= 400:
             raise APIServerError(raw)
 
-        # figure out the expected status code from method
-        # some api were mis-implemented to not return standard status code
+        # TODO(ziyan): Figure out the expected status code from method
+        #              Some APIs were mis-implemented to not return standard status code.
         if not expectedStatusCode:
-            expectedStatusCode = {
+            expectedStatusCode = {  
                 'GET': 200,
                 'POST': 201,
                 'DELETE': 204,

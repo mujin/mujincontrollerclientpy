@@ -119,9 +119,9 @@ def _ParseURIFast(uri, fragmentSeparator):
     uri = _EnsureUnicode(uri)
     scheme, rest = uri.split(u':', 1)
     if scheme != SCHEME_MUJIN:
-        # if scheme is not mujin specified, use the standard uri parse
-        # TODO: figure out who calls this with non-mujin scheme
-        # TODO: simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please     verify, maybe remove this case
+        # If scheme is not mujin specified, use the standard uri parse
+        # TODO (binbin): figure out who calls this with non-mujin scheme
+        # TODO (ziyan): simon claim that there is conversion between mujin scheme and file scheme, all of them are done inside openrave, please verify, maybe remove in this case
         if scheme != SCHEME_FILE:
             raise URIError(_('scheme not supported %r: %s') % (scheme, uri))
         
@@ -169,7 +169,7 @@ def _UnparseURI(parts, fragmentSeparator):
     """
     scheme = parts.scheme
     if scheme != SCHEME_MUJIN:
-        # TODO: also verify who calls this with non-mujin scheme
+        # TODO(binbin): also verify who calls this with non-mujin scheme
         if scheme != SCHEME_FILE:
             raise URIError(_('scheme not supported %r: %r') % (scheme, parts))
         # For rfc urlparse, make sure fragment_separator is  #
