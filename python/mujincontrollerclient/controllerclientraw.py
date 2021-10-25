@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import os
 import requests
 import requests.auth
@@ -25,12 +26,12 @@ log = logging.getLogger(__name__)
 
 class ControllerWebClient(object):
 
-    _baseurl = None  # base url of the controller
-    _username = None  # username to login with
-    _password = None  # password to login with
-    _headers = None  # prepared headers for all requests
-    _isok = False  # flag to stop
-    _session = None  # requests session object
+    _baseurl = None  # Base URL of the controller
+    _username = None  # Username to login with
+    _password = None  # Password to login with
+    _headers = None  # Prepared headers for all requests
+    _isok = False  # Flag to stop
+    _session = None  # Requests session object
 
     def __init__(self, baseurl, username, password, locale=None, author=None):
         self._baseurl = baseurl
@@ -39,28 +40,28 @@ class ControllerWebClient(object):
         self._headers = {}
         self._isok = True
 
-        # create session
+        # Create session
         self._session = requests.Session()
 
-        # use basic auth
+        # Use basic auth
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
 
-        # set referer
+        # Set referer
         self._headers['Referer'] = baseurl
 
-        # set csrftoken
-        # any string can be the csrftoken
+        # Set csrftoken
+        # Any string can be the csrftoken
         self._headers['X-CSRFToken'] = 'csrftoken'
         self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'], path='/')
 
-        # add retry to deal with closed keep alive connections
+        # Add retry to deal with closed keep alive connections
         self._session.mount('https://', requests.adapters.HTTPAdapter(max_retries=3))
         self._session.mount('http://', requests.adapters.HTTPAdapter(max_retries=3))
 
-        # set locale headers
+        # Set locale headers
         self.SetLocale(locale)
 
-        # set author header
+        # Set author header
         self.SetAuthor(author)
 
     def __del__(self):
@@ -75,7 +76,7 @@ class ControllerWebClient(object):
     def SetLocale(self, locale=None):
         locale = locale or os.environ.get('LANG', None)
 
-        # convert locale to language code for http requests
+        # Convert locale to language code for http requests
         # en_US.UTF-8 => en-us
         # en_US => en-us
         # en => en
@@ -94,13 +95,13 @@ class ControllerWebClient(object):
 
         url = self._baseurl + path
 
-        # set all the headers prepared for this client
+        # Set all the headers prepared for this client
         headers = dict(headers or {})
         headers.update(self._headers)
 
         return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
-    # python port of the javascript API Call function
+    # Python port of the javascript API Call function
     def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, timeout=5):
         path = '/api/v1/' + path.lstrip('/')
         if not path.endswith('/'):
@@ -124,7 +125,7 @@ class ControllerWebClient(object):
         if headers is None:
             headers = {}
 
-        # default to json content type
+        # Default to json content type
         if 'Content-Type' not in headers:
             headers['Content-Type'] = 'application/json'
             data = json.dumps(data)
@@ -137,7 +138,7 @@ class ControllerWebClient(object):
         # log.debug('%s %s', method, self._baseurl + path)
         response = self.Request(method, path, params=params, data=data, headers=headers, timeout=timeout)
 
-        # try to parse response
+        # Try to parse response
         raw = response.content.decode('utf-8', 'replace').strip()
         content = None
         if len(raw) > 0:
@@ -146,7 +147,7 @@ class ControllerWebClient(object):
             except ValueError as e:
                 log.exception('caught exception parsing json response: %s: %s', e, raw)
 
-        # first check error
+        # First check error
         if content is not None and 'error_message' in content:
             raise APIServerError(content['error_message'], errorcode=content.get('error_code', None), inputcommand=path, detailInfoType=content.get('detailInfoType',None), detailInfo=content.get('detailInfo',None))
 
@@ -166,7 +167,7 @@ class ControllerWebClient(object):
                 'PUT': 202,
             }.get(method, 200)
 
-        # check expected status code
+        # Check expected status code
         if response.status_code != expectedStatusCode:
             log.error('response status code is %d, expecting %d for %s %s: %s', response.status_code, expectedStatusCode, method, path, raw)
             raise APIServerError(raw)
