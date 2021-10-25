@@ -22,12 +22,12 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param controllerpassword: password of the mujin controller
         :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7110
         :param binpickingheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
-        :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no hearbeat is received, e.g. 7
+        :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no heartbeat is received, e.g. 7
         :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
         :param robotname: name of the robot, e.g. VP-5243I
         :param regionname: name of the bin, e.g. container1
         :param toolname: name of the manipulator, e.g. 2BaseZ
-        :param envclearance: environment clearance in milimeter, e.g. 20
+        :param envclearance: environment clearance in millimeters, e.g. 20
         :param usewebapi: whether to use webapi for controller commands
         :param robotaccelmult: optional multiplier for forcing the acceleration
         """
@@ -47,7 +47,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param destikparamnames: A list of lists of ikparam names for the destinations of the target. Only destikparamnames[0] is looked at and tells the system to place the part in any of the ikparams in destikparamnames[0]
 
         :param targetnamepattern: regular expression describing the name of the object, no default will be provided, caller must set this. See https://docs.python.org/2/library/re.html
-        :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
+        :param approachoffset: distance in millimeters to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
         :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
         :param leaveoffsetintool: If 1, destdepartoffsetdir is in the tool coordinate system. If 0, destdepartoffsetdir is in the global coordinate system. By default this is 0.
@@ -55,7 +55,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param toolname: name of the manipulator
         :param regionname: name of the region of the objects
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
-        :param envclearance: environment clearance in milimeter
+        :param envclearance: environment clearance in millimeters
 
         Low level planning parameters:
         :param debuglevel: sets debug level of the task
@@ -102,7 +102,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param cycledests: When finished cycling through all destikparamnames, will delete all the targets and start from the first index again doing this for cycledests times. By default it is 1.
 
         :param targetnamepattern: regular expression describing the name of the object, no default will be provided, caller must set this. See https://docs.python.org/2/library/re.html
-        :param approachoffset: distance in milimeter to move straight to the grasp point, e.g. 30 mm
+        :param approachoffset: distance in millimeters to move straight to the grasp point, e.g. 30 mm
         :param departoffsetdir: the direction and distance in mm to move the part in global frame (usually along negative gravity) after it is grasped, e.g. [0,0,50]
         :param destdepartoffsetdir: the direction and distance in mm to move away from the object after it is placed, e.g. [0,0,30]. Depending on leaveoffsetintool parameter, this can in the global coordinate system or tool coordinate system.
         :param leaveoffsetintool: If 1, destdepartoffsetdir is in the tool coordinate system. If 0, destdepartoffsetdir is in the global coordinate system. By default this is 0.
@@ -110,7 +110,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param toolname: name of the manipulator
         :param regionname: name of the region of the objects
         :param cameranames: the names of the cameras to avoid occlusions with the robot, list of strings
-        :param envclearance: environment clearance in milimeter
+        :param envclearance: environment clearance in millimeters
         Low level planning parameters:
         :param debuglevel: sets debug level of the task
         :param movetodestination: planning parameter

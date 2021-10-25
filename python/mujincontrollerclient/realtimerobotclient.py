@@ -8,13 +8,13 @@ import logging
 log = logging.getLogger(__name__)
 
 class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
-    """mujin controller client for realtimerobot task
+    """Mujin controller client for realtimerobot task
     """
-    _robotname = None  # optional name of the robot selected
-    _robotspeed = None  # speed of the robot, e.g. 0.4
-    _robotaccelmult = None  # current robot accel mult
-    _envclearance = None  # environment clearance in milimeter, e.g. 20
-    _robotBridgeConnectionInfo = None # dict holding the connection info for the robot bridge.
+    _robotname = None  # Optional name of the robot selected
+    _robotspeed = None  # Speed of the robot, e.g. 0.4
+    _robotaccelmult = None  # Current robot accel mult
+    _envclearance = None  # Environment clearance in millimeters, e.g. 20
+    _robotBridgeConnectionInfo = None  # dict holding the connection info for the robot bridge.
     
     def __init__(self, robotname, robotspeed=None, robotaccelmult=None, envclearance=10.0, robotBridgeConnectionInfo=None, **kwargs):
         """
@@ -47,12 +47,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         self._robotaccelmult = robotaccelmult
 
     def ExecuteCommand(self, taskparameters, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, envclearance=None, usewebapi=None, timeout=10, fireandforget=False, respawnopts=None):
-        """wrapper to ExecuteCommand with robot info set up in taskparameters
+        """Wrapper to ExecuteCommand with robot info set up in taskparameters
 
-        executes a command on the task.
+        Executes A command on the task.
 
-        :return: a dictionary that contains:
-        - robottype: robot type,string
+        :return: A dictionary that contains:
+        - robottype: robot type, string
         - currentjointvalues: current joint values, DOF floats
         - elapsedtime: elapsed time in seconds, float
         - numpoints: the number of points, int
@@ -105,8 +105,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
 
     def GetJointValues(self, timeout=10, **kwargs):
-        """gets the current robot joint values
-        :return: current joint values in a json dictionary with
+        """Gets the current robot joint values
+
+        :return: Current joint values in a json dictionary with
         - currentjointvalues: [0,0,0,0,0,0]
         """
         taskparameters = {'command': 'GetJointValues'}
@@ -126,20 +127,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
 
     def MoveToolLinear(self, goaltype, goals, toolname=None, timeout=10, robotspeed=None, **kwargs):
-        """moves the tool linear
-        :param goaltype: type of the goal, e.g. translationdirection5d
-        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-        :param toolname: name of the manipulator, default is self.toolname
+        """Moves the tool linear
 
-        :param maxdeviationangle: how much the tool tip can rotationally deviate from the linear path
+        :param goaltype: Type of the goal, e.g. translationdirection5d
+        :param goals: Flat list of goals, e.g. two 5D ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+        :param toolname: Name of the manipulator, default is self.toolname
+
+        :param maxdeviationangle: How much the tool tip can rotationally deviate from the linear path
         :param plannername:
 
         :param workspeed: [anglespeed, transspeed] in deg/s and mm/s
         :param workaccel: [angleaccel, transaccel] in deg/s^2 and mm/s^2
-        :param worksteplength: discretization for planning MoveHandStraight, in seconds.
-        :param workminimumcompletetime: set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
-        :param workminimumcompleteratio: in case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything
-        :param numspeedcandidates: if speed/accel are not specified, the number of candiates to consider
+        :param worksteplength: Discretization for planning MoveHandStraight, in seconds.
+        :param workminimumcompletetime: Set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
+        :param workminimumcompleteratio: In case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything
+        :param numspeedcandidates: If speed/accel are not specified, the number of candiates to consider
         :param workignorefirstcollisionee: time, necessary in case initial is in collision, has to be multiples of step length?
         :param workignorelastcollisionee: time, necessary in case goal is in collision, has to be multiples of step length?
         :param workignorefirstcollision:
@@ -154,11 +156,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
     def MoveToHandPosition(self, goaltype, goals, toolname=None, envclearance=None, closegripper=0, robotspeed=None, robotaccelmult=None, timeout=10, **kwargs):
         """Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
-        :param goaltype: type of the goal, e.g. translationdirection5d
-        :param goals: flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-        :param toolname: name of the manipulator, default is self.toolname
-        :param envclearance: clearance in milimeter, default is self.envclearance
-        :param closegripper: whether to close gripper once the goal is reached, default is 0
+        :param goaltype: Type of the goal, e.g. translationdirection5d
+        :param goals: Flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+        :param toolname: Name of the manipulator. Default: self.toolname
+        :param envclearance: Clearance in millimeter. Default: self.envclearances
+        :param closegripper: Whether to close gripper once the goal is reached. Default: 0
         """
         taskparameters = {'command': 'MoveToHandPosition',
                           'goaltype': goaltype,
@@ -169,9 +171,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, envclearance=envclearance, toolname=toolname, timeout=timeout)
     
     def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
-        """updates objects in the scene with the envstate
-        :param envstate: a list of dictionaries for each instance object in world frame. quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0], 'object_uri':'mujin:/asdfas.mujin.dae'}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
-        :param unit: unit of envstate
+        """Updates objects in the scene with the envstate
+        :param envstate: A list of dictionaries for each instance object in world frame. Quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0], 'object_uri':'mujin:/asdfas.mujin.dae'}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
+        :param unit: Unit of envstate. Default: mm
         """
         taskparameters = {'command': 'UpdateObjects',
                           'envstate': envstate,
@@ -186,9 +188,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def Grab(self, targetname, toolname=None, timeout=10, **kwargs):
-        """grabs an object with tool
-        :param targetname: name of the object
-        :param toolname: name of the manipulator, default is self.toolname
+        """Grabs an object with tool
+        :param targetname: Name of the object
+        :param toolname: Name of the manipulator, Default: self.toolname
         """
         taskparameters = {'command': 'Grab',
                           'targetname': targetname,
@@ -197,8 +199,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
     def Release(self, targetname, timeout=10, **kwargs):
-        """releases an object already grabbed
-        :param targetname: name of the object
+        """Releases a grabbed object.
+        :param targetname: Name of the object
         """
         taskparameters = {'command': 'Release',
                           'targetname': targetname,
@@ -207,8 +209,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def GetGrabbed(self, timeout=10, **kwargs):
-        """gets the names of the grabbed objects
-        :return: names of the grabbed object in a json dictionary, e.g. {'names': ['target_0']}
+        """Gets the names of the objects currently grabbed
+        :return: Names of the grabbed object in a json dictionary, e.g. {'names': ['target_0']}
         """
         taskparameters = {'command': 'GetGrabbed',
                           }
@@ -216,7 +218,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def GetTransform(self, targetname, connectedBodyName='', linkName='', geometryName='', geometryPk='', unit='mm', timeout=10, **kwargs):
-        """gets the transform of an object
+        """Gets the transform of an object
 
         :param targetname: OpenRave kinbody name
         :param connectedBodyName: OpenRave connected body name
@@ -238,12 +240,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
-        """sets the transform of an object
-        :param targetname: name of the object
-        :param translation: list of x,y,z value of the object in milimeter
-        :param unit: unit of translation
-        :param rotationmat: list specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
-        :param quaternion: list specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0]
+        """Sets the transform of an object
+        :param targetname: Name of the object
+        :param translation: List of x,y,z value of the object in millimeters
+        :param unit: Unit of translation
+        :param rotationmat: List specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
+        :param quaternion: List specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0]
         """
         taskparameters = {'command': 'SetTransform',
                           'targetname': targetname,
@@ -261,10 +263,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def GetOBB(self, targetname, unit='mm', timeout=10, **kwargs):
-        """ Get the oriented bounding box of object
-        :param targetname: name of the object
-        :param linkname: name of link to target for AABB. If not specified, uses entire target
-        :param unit: unit of the OBB
+        """Get the oriented bounding box (OBB) of object. 
+        :param targetname: Name of the object
+        :param linkname: Name of link to target for AABB. If not specified, uses entire target.
+        :param unit: Unit of the OBB. Default: mm
         :return: A dict describing the OBB of the object with keys: extents, boxLocalTranslation, originalBodyTranslation, quaternion, rotationmat, translation
         """
         taskparameters = {'command': 'GetOBB',
@@ -275,10 +277,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def GetInnerEmptyRegionOBB(self, targetname, linkname=None, unit='mm', timeout=10, **kwargs):
-        """ Get the inner empty oriented bounding box of a container
-        :param targetname: name of the object
-        :param linkname: can target a specific link
-        :param unit: unit of the OBB
+        """ Get the inner empty oriented bounding box (OBB) of a container.
+        :param targetname: Name of the object
+        :param linkname: Can target a specific link
+        :param unit: Unit of the OBB. Default: mm
         :return: OBB of the object
         """
         taskparameters = {'command': 'GetInnerEmptyRegionOBB',
@@ -291,7 +293,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def GetInstObjectAndSensorInfo(self, instobjectnames=None, sensornames=None, unit='mm', timeout=10, **kwargs):
-        """returns information about the inst objects and sensors part of those inst objects
+        """Returns information about the inst objects and sensors that are a part of those inst objects.
         """
         taskparameters = {'command': 'GetInstObjectAndSensorInfo', 'unit':unit}
         if instobjectnames is not None:
@@ -302,7 +304,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def GetInstObjectInfoFromURI(self, instobjecturi=None, unit='mm', timeout=10, **kwargs):
-        """opens a URI and returns info about the internal/external and geometry info from it
+        """Opens a URI and returns info about the internal/external and geometry info from it.
         """
         taskparameters = {'command': 'GetInstObjectInfoFromURI', 'unit':unit}
         if instobjecturi is not None:
@@ -311,10 +313,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def GetAABB(self, targetname, unit='mm', timeout=10, **kwargs):
-        """Gets the axis aligned bounding box of object
-        :param targetname: name of the object
-        :param linkname: name of link to target for AABB. If not specified, uses entire target
-        :param unit: unit of the AABB
+        """Gets the axis-aligned bounding box (AABB) of an object.
+        :param targetname: Name of the object
+        :param linkname: Name of link to target for AABB. If not specified, uses entire target
+        :param unit: Unit of the AABB. Default: mm
         :return: AABB of the object, e.g. {'pos': [1000,400,100], 'extents': [100,200,50]}
         """
         taskparameters = {'command': 'GetAABB',
@@ -325,10 +327,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
     def SetLocationTracking(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """resets the tracking of specific containers
+        """Resets the tracking of specific containers
         
-        :param cycleIndex: the cycle index to track the locations for
-        :param locationReplaceInfos: should have keys: name, containerDynamicProperties, rejectContainerIds, uri, pose, cycleIndex
+        :param cycleIndex: The cycle index to track the locations for
+        :param locationReplaceInfos: A dict that should have the keys: name, containerDynamicProperties, rejectContainerIds, uri, pose, cycleIndex
         :param removeLocationNames:
         :param doRemoveOnlyDynamic:
         """
@@ -337,10 +339,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def ResetLocationTracking(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """resets tracking updates for locations
+        """Resets tracking updates for locations
         
-        :param resetAllLocations: if True, then will reset all the locations
-        :param resetLocationName: resets only locations with matching name
+        :param resetAllLocations: If True, then will reset all the locations
+        :param resetLocationName: Resets only locations with matching name
         :param checkIdAndResetLocationName: (locationName, containerId) - only reset the location if the container id matches
         
         :return: clearedLocationNames
@@ -350,7 +352,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['clearedLocationNames']
     
     def GetLocationTrackingInfos(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """gets the active tracked locations
+        """Gets the active tracked locations
 
         :return: activeLocationTrackingInfos
         """
@@ -359,7 +361,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['activeLocationTrackingInfos']
     
     def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """resets the tracking of specific containers
+        """Resets the tracking of specific containers
         """
         taskparameters = {
             'command': 'UpdateLocationContainerIdType',
@@ -372,10 +374,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def RemoveObjectsWithPrefix(self, prefix=None, removeNamePrefixes=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, **kwargs):
-        """removes objects with prefix
+        """Removes objects with prefix.
         
-        :param removeNamePrefixes: names of prefixes to match with when removing items
-        :param doRemoveOnlyDynamic: if True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
+        :param removeNamePrefixes: Names of prefixes to match with when removing items
+        :param doRemoveOnlyDynamic: If True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
 
         :return: dict with key 'removedBodyNames' for the removed object names
         """
@@ -394,9 +396,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     def GetTrajectoryLog(self, timeout=10, **kwargs):
         """Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
 
-        :param startindex: int, start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last element.
-        :param num: int, number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
-        :param includejointvalues: bool, If True will include timedjointvalues, if False will just give back the trajectories. Defautl is False
+        :param startindex: int, Start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last element.
+        :param num: int, Number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
+        :param includejointvalues: bool, If True will include timedjointvalues, if False will just give back the trajectories. Default: False
 
         :return:
 
@@ -422,25 +424,25 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def ChuckGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, **kwargs):
-        """chucks the manipulator
-        :param grippername: name of the gripper
+        """Chucks the manipulator
+        :param grippername: Name of the gripper
         """
         taskparameters = {'command': 'ChuckGripper', 'grippername':grippername}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def UnchuckGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, **kwargs):
-        """unchucks the manipulator and releases the target
-        :param grippername: name of the gripper
-        :param targetname: name of the target
+        """Unchucks the manipulator and releases the target
+        :param grippername: Name of the gripper
+        :param targetname: Name of the target
         """
         taskparameters = {'command': 'UnchuckGripper', 'grippername':grippername}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
 
     def CalibrateGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """goes through the gripper calibration procedure
-        :param grippername: name of the gripper
+        """Goes through the gripper calibration procedure
+        :param grippername: Name of the gripper
         """
         taskparameters = {'command': 'CalibrateGripper', 'grippername':grippername}
         taskparameters.update(kwargs)
@@ -448,7 +450,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
     def StopGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """
-        :param grippername: name of the gripper
+        :param grippername: Name of the gripper
         """
         taskparameters = {'command': 'StopGripper', 'grippername':grippername}
         taskparameters.update(kwargs)
@@ -467,7 +469,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def ExecuteRobotProgram(self, robotProgramName, robotname=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """execute a robot specific program by name
+        """Execute a robot specific program by name
         """
         taskparameters = {
             'command': 'ExecuteRobotProgram',
@@ -477,21 +479,20 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def SaveScene(self, timeout=10, **kwargs):
-        """saves the current scene to file
+        """Saves the current scene to file
         :param filename: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
-        :param preserveexternalrefs: If True, any bodies currently that are being externally referenced from the environment will be saved as external references.
-        :param externalref: If '*', then will save each of the objects as externally referencing their original filename. Otherwise will force saving specific bodies as external references
+        :param preserveexternalrefs: If True, any bodies that are currently being externally referenced from the environment will be saved as external references.
+        :param externalref: If '*', then each of the objects will be saved as externally referencing their original filename. Otherwise will force saving specific bodies as external references.
         :param saveclone: If 1, will save the scenes for all the cloned environments
-        :param saveReferenceUriAsHint: if True, use save the reference uris as referenceUriHint so that webstack does not get confused and deletes content
-        :return: the actual filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
+        :param saveReferenceUriAsHint: If True, use save the reference uris as referenceUriHint so that webstack does not get confused and deletes content
+        :return: The filename the scene is saved to in a json dictionary, e.g. {'filename': '2013-11-01-17-10-00-UTC.dae'}
         """
         taskparameters = {'command': 'SaveScene'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def SaveGripper(self, timeout=10, robotname=None, **kwargs):
-        """
-        Separate gripper from a robot in a scene and save it.
+        """Separate gripper from a robot in a scene and save it.
         :param filename: str. File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
         :param robotname: str. Name of robot waiting for extracting hand from.
         :param manipname: str. Name of manipulator.
@@ -504,7 +505,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
 
     def ResetRobotBridges(self, timeout=10, usewebapi=True, **kwargs):
-        """resets the robot bridge states
+        """Resets the robot bridge states
         """
         taskparameters = {
             'command': 'ResetRobotBridges'
@@ -543,7 +544,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         if jointindices is None:
             jointindices = range(len(jointvalues))
-            log.warn(u'no jointindices specified, moving joints with default jointindices: %s', jointindices)
+            log.warn(u'No jointindices specified. Moving joints with default jointindices: %s', jointindices)
 
         taskparameters = {
             'command': 'MoveJoints',
@@ -601,10 +602,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
     def GetRobotBridgeIOVariables(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """returns the data of the IO in ascii hex as a string
+        """Returns the data of the IO in ascii hex as a string
 
         :param ioname: One IO name to read
-        :param ionames: a list of the IO names to read
+        :param ionames: A list of the IO names to read
         """
         taskparameters = {
             'command': 'GetRobotBridgeIOVariables'
@@ -635,10 +636,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
     def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """returns the data of the IO in ascii hex as a string
+        """Returns the data of the IO in ascii hex as a string
 
         :param ioname: One IO name to read
-        :param ionames: a list of the IO names to read
+        :param ionames: A list of the IO names to read
         """
         taskparameters = {
             'command': 'GetRobotBridgeIOVariableAsciiHex16'
@@ -652,10 +653,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
     def GetRobotBridgeIOVariableString(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """returns the data of the IO in ascii hex as a string
+        """Returns the data of the IO in ascii hex as a string
 
         :param ioname: One IO name to read
-        :param ionames: a list of the IO names to read
+        :param ionames: A list of the IO names to read
         """
         taskparameters = {
             'command': 'GetRobotBridgeIOVariableString'
@@ -678,12 +679,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
     def ComputeIKFromParameters(self, toolname=None, timeout=10, **kwargs):
         """
-        :param toolname: tool name, string
-        :param limit: number of solutions to return, int
-        :param ikparamnames: the ikparameter names, also contains information about the grasp like the preshape
-        :param targetname: the target object name that the ikparamnames belong to
-        :param freeincvalue: float, the discretization of the free joints of the robot when computing ik.
-        :param filteroptionslist: A list of filter option strings can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions
+        :param toolname: string, Tool name
+        :param limit: int, Number of solutions to return
+        :param ikparamnames: The ikparameter names, also contains information about the grasp like the preshape
+        :param targetname: The target object name that the ikparamnames belong to
+        :param freeincvalue: float, The discretization of the free joints of the robot when computing ik.
+        :param filteroptionslist: A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions
         :param filteroptions: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked, int
 
         :return: A dictionary of:
@@ -793,7 +794,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, robotname=None, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
-        '''returns robot configs for grasp visualization
+        '''Returns robot configs for grasp visualization
         '''
         taskparameters = {
             'command': 'ComputeRobotConfigsForGraspVisualization',
@@ -806,7 +807,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
 
     def ResetCacheTemplates(self, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
-        """resets any cached templates
+        """Resets any cached templates
         """
         taskparameters = {
             'command': 'ResetCacheTemplates',
@@ -815,7 +816,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
 
     def SetRobotBridgeExternalIOPublishing(self, enable, usewebapi=False, timeout=2, fireandforget=False, **kwargs):
-        """enables publishing collision data to the robotbridge
+        """Enables publishing collision data to the robotbridge
         """
         taskparameters = {
             'command': 'SetRobotBridgeExternalIOPublishing',
@@ -825,7 +826,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget)
     
     def RestoreSceneInitialState(self, usewebapi=None, timeout=1, **kwargs):
-        """restore scene to the state on filesystem
+        """Restore scene to the state on filesystem
         """
         taskparameters = {
             'command': 'RestoreSceneInitialState',
@@ -836,9 +837,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # Motor test related.
     #
-
+    
     def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
-        """runs frequency test on specified joint and returns result
+        """Runs frequency test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningFrequencyTest',
@@ -851,7 +852,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
-        """runs step response test on specified joint and returns result
+        """Runs step response test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningStepTest',
@@ -863,7 +864,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
-        """runs maximum length sequence test on specified joint and returns result
+        """Runs maximum length sequence test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningMaximulLengthSequence',
@@ -945,7 +946,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
+    
     def IsProfilingRunning(self, timeout=10, usewebapi=False):
         """Queries if profiling is running on planning
         """
@@ -962,13 +963,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
     
     def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
-        """replaces bodies in the environment with new uris
+        """Replaces bodies in the environment with new uris
         
         :param replaceInfos: list of dicts with keys: name, uri, containerDynamicProperties
         """
         taskparameters = {
             'command': 'ReplaceBodies',
-            'bodieslist': bodieslist, # for back compat for now
+            'bodieslist': bodieslist, # for back compatibility for now
             'replaceInfos': bodieslist,
         }
         taskparameters.update(kwargs)
