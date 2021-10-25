@@ -837,19 +837,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     # Motor test related.
     #
 
-    def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
-        """runs frequency test on specified joint and returns result
-        """
-        taskparameters = {
-            'command': 'RunMotorControlTuningFrequencyTest',
-            'jointName': jointName,
-            'freqMin': freqMin,
-            'freqMax': freqMax,
-            'amplitude': amplitude,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
     def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs step response test on specified joint and returns result
         """
@@ -867,39 +854,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         taskparameters = {
             'command': 'RunMotorControlTuningMaximulLengthSequence',
-            'jointName': jointName,
-            'amplitude': amplitude,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def RunMotorControlTuningFilteredMaximumLengthSequence(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
-        """runs low-pass-filtered maximum length sequence test on specified joint and returns result
-        """
-        taskparameters = {
-            'command': 'RunMotorControlTuningFilteredMaximumLengthSequence',
-            'jointName': jointName,
-            'amplitude': amplitude,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def RunMotorControlTuningFilteredWhiteNoise(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
-        """runs low-pass-filtered white noise test on specified joint and returns result
-        """
-        taskparameters = {
-            'command': 'RunMotorControlTuningFilteredWhiteNoise',
-            'jointName': jointName,
-            'amplitude': amplitude,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
-    def RunMotorControlTuningFilteredStep(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
-        """runs low-pass-filtered white noise test on specified joint and returns result
-        """
-        taskparameters = {
-            'command': 'RunMotorControlTuningFilteredStep',
             'jointName': jointName,
             'amplitude': amplitude,
         }
