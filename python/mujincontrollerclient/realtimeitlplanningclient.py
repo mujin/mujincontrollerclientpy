@@ -11,27 +11,26 @@ log = logging.getLogger(__name__)
 
 
 class RealtimeITLPlanningControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
-    """mujin controller client for realtimeitlplanning task
+    """Mujin controller client for realtimeitlplanning task
     """
 
     def __init__(self, **kwargs):
-
-        """logs into the mujin controller, initializes realtimeitlplanning task, and sets up parameters
-        :param controllerurl: url of the mujin controller, e.g. http://controller13
-        :param controllerusername: username of the mujin controller, e.g. testuser
-        :param controllerpassword: password of the mujin controller
-        :param taskzmqport: port of the realtimeitlplanning task's zmq server, e.g. 7110
-        :param taskheartbeatport: port of the realtimeitlplanning task's zmq server's heartbeat publisher, e.g. 7111
-        :param taskheartbeattimeout: seconds until reinitializing realtimeitlplanning task's zmq server if no hearbeat is received, e.g. 7
-        :param scenepk: pk of the bin picking task scene, e.g. komatsu_ntc.mujin.dae
-        :param robotname: name of the robot, e.g. VP-5243I
-        :param robotspeed: speed of the robot, e.g. 0.4
-        :param regionname: name of the bin, e.g. container1
-        :param targetname: name of the target, e.g. plasticnut-center
-        :param toolname: name of the manipulator, e.g. 2BaseZ
-        :param envclearance: environment clearance in milimeter, e.g. 20
-        :param usewebapi: whether to use webapi for controller commands
-        :param robotaccelmult: optional multiplier for forcing the acceleration
+        """Logs into the mujin controller, initializes realtimeitlplanning task, and sets up parameters
+        :param controllerurl: URL of the mujin controller, e.g. http://controller13
+        :param controllerusername: Username of the mujin controller, e.g. testuser
+        :param controllerpassword: Password of the mujin controller
+        :param taskzmqport: Port of the realtimeitlplanning task's zmq server, e.g. 7110
+        :param taskheartbeatport: Port of the realtimeitlplanning task's zmq server's heartbeat publisher, e.g. 7111
+        :param taskheartbeattimeout: Seconds until reinitializing realtimeitlplanning task's zmq server if no heartbeat is received, e.g. 7
+        :param scenepk: Primary key (pk) of the bin picking task scene, e.g. komatsu_ntc.mujin.dae
+        :param robotname: Name of the robot, e.g. VP-5243I
+        :param robotspeed: Speed of the robot, e.g. 0.4
+        :param regionname: Name of the bin, e.g. container1
+        :param targetname: Name of the target, e.g. plasticnut-center
+        :param toolname: Name of the manipulator, e.g. 2BaseZ
+        :param envclearance: Environment clearance in millimeters, e.g. 20
+        :param usewebapi: Whether to use webapi for controller commands
+        :param robotaccelmult: Optional multiplier for forcing the acceleration
         """
         super(RealtimeITLPlanningControllerClient, self).__init__(tasktype='realtimeitlplanning', **kwargs)
 
