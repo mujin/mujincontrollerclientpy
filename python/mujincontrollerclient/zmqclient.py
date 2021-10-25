@@ -233,11 +233,13 @@ class ZmqClient(object):
     def __init__(self, hostname='', port=0, ctx=None, limit=100, url=None, checkpreemptfn=None, reusetimeout=10.0):
         """Creates a new zmq client. Uses zmq req socket over tcp.
 
-        :param hostname: hostname or ip to connect to
-        :param port: port to connect to
-        :param ctx: optionally specifies a zmq context to use, if not provided, a new zmq context will be created
-        :param limit: defaults to 100, limit the number of underlying zmq socket to create, usually one socket will actually be used, but if server times out frequently and you use fireandforget, then this limit caps the number of sockets we can use
-        :param url: allow passing of zmq socket url instead of hostname and port
+        :param hostname: Hostname or ip to connect to
+        :param port: Port to connect to
+        :param ctx: Optionally specifies a zmq context to use, if not provided, a new zmq context will be created
+        :param limit: Limit the number of underlying zmq sockets to create. Usually one socket will actually be used, but if the server times out frequently and you use fireandforget, then this caps the number of sockets we can use. Default: 100
+        :param url: Allow passing of zmq socket url instead of hostname and port
+        :param checkpreemptfn: A function handle to preempt the socket. The function should raise an exception if a preempt is desired.
+        :param reusetimeout: Sets the "timeout" parameter of the ZmqSocketPool instance
         """
 
         self._hostname = hostname
@@ -278,12 +280,12 @@ class ZmqClient(object):
         """
         return self._port
 
-    # TODO: this is for backward compatibility, remove once all callers are updated
+    # TODO(ziyan): this is for backward compatibility, remove once all callers are updated
     @property
     def hostname(self):
         return self._hostname
 
-    # TODO: this is for backward compatibility, remove once all callers are updated
+    # TODO(ziyan): this is for backward compatibility, remove once all callers are updated
     @property
     def port(self):
         return self._port
@@ -302,7 +304,7 @@ class ZmqClient(object):
                 log.error('zmqclient used from multiple threads, this is a bug in the caller: previously = %s, now = %s, previous context = %s, new context = %s', oldcallerthread, callerthread, repr(oldcallercontext)[:100], repr(context)[:100])
     
     def _AcquireSocket(self, timeout=None, checkpreempt=True):
-        # if we were holding on to a socket before, release it before acquiring one
+        # If we were holding on to a socket before, release it before acquiring another one
         self._ReleaseSocket()
         self._socket = self._pool.AcquireSocket(timeout=timeout, checkpreemptfn=self._checkpreemptfn if checkpreempt else None)
 
@@ -323,6 +325,7 @@ class ZmqClient(object):
         :param fireandforget: If True, will send command and immediately return without trying to receive, and blockwait will be set to False. Default: False
         :param sendjson: If True (default), will send data as json
         :param recvjson: If True (default), will parse received data as json
+        :param checkpreempt: (required) If True, calls the preempt function after each send.
 
         :return: Returns the response from the zmq server in json format if blockwait is True
         """
@@ -395,6 +398,7 @@ class ZmqClient(object):
 
         :param timeout: If None, block. If >= 0, use as timeout. Default: 10.0
         :param recvjson: If True (default), will parse received data as json
+        :param checkpreempt: (required) If True, calls the preempt function after each send.
 
         :return: Returns the recv or recv_json response
         """

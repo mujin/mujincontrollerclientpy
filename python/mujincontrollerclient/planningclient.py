@@ -20,7 +20,7 @@ import logging
 log = logging.getLogger(__name__)
 
 def GetAPIServerErrorFromZMQ(response):
-    """If response is in error, return the APIServerError instantiated from the response's error field. Otherwise return None
+    """If response is an error, return the APIServerError instantiated from the response's error field. Otherwise return None
     """
     if response is None:
         return None
@@ -196,7 +196,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     def RunSceneTaskAsync(self, scenepk, taskpk, slaverequestid=None, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
-        Notice: overwrite function in controllerclientbase. This function with additional slaverequestid
+        Notice: This overwrites the base in controllerclientbase, to accept slaverequestid.
         """
         assert(usewebapi)
         if slaverequestid is None:
@@ -396,8 +396,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         """
         Sends a command that moves the camera to one of the following point of view names:
         +x, -x, +y, -y, +z, -z.
-        For each point of view, the camera will be aligned to the scene's bounding box center, and the whole scene will be visible. Camera will look at the 
-        scene using the oposite direction of the point of view name axis (for instance, the camera placed at +x will make it look at the scene in the -x direction).
+        For each point of view, the camera will be aligned to the scene's bounding box center, and the whole scene will be visible. The camera will look at the 
+        scene from the opposite direction of the point of view's name's axis (for instance, the camera placed at +x will look at the scene from the -x direction).
         """
         viewercommand = {
             'command': 'MoveCameraPointOfView',
