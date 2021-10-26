@@ -277,6 +277,10 @@ class ControllerClient(object):
         assert(usewebapi)
         return self._webclient.APICall('DELETE', u'scene/%s/' % scenepk, timeout=timeout)
 
+    def DeleteAllScenes(self, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'scene/', timeout=timeout)
+
     #
     # InstObject related
     #
