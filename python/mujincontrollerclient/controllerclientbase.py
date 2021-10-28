@@ -4,13 +4,13 @@
 Mujin controller client
 """
 
-# system imports
+# System imports
 import os
 import datetime
 import base64
 import email.utils
 
-# mujin imports
+# Mujin imports
 from . import ControllerClientError
 from . import controllerclientraw
 from . import ugettext as _
@@ -18,13 +18,13 @@ from . import json
 from . import urlparse
 from . import uriutils
 
-# logging
+# Logging
 import logging
 log = logging.getLogger(__name__)
 
 
 def GetFilenameFromURI(uri, mujinpath):
-    """returns the filesystem path that the URI points to.
+    """Returns the filesystem path that the URI points to.
     :param uri: points to mujin:/ resource
 
     example:
@@ -38,8 +38,7 @@ def GetFilenameFromURI(uri, mujinpath):
 
 def GetURIFromPrimaryKey(pk):
     """Given the encoded primary key (has to be str object), returns the unicode URL.
-    If pk is a unicode object, will use inside url as is, otherwise will decode
-
+    If pk is a unicode object, will use inside url as is. Otherwise it will be decoded.
     example:
 
       GetURIFromPrimaryKey('%E6%A4%9C%E8%A8%BC%E5%8B%95%E4%BD%9C1_121122')
@@ -80,13 +79,13 @@ def _FormatHTTPDate(dt):
 
 
 class ControllerClient(object):
-    """mujin controller client base
+    """Mujin controller client base
     """
 
     class ObjectsWrapper(list):
-        """wrap response for list of objects, provides extra meta data
+        """Wraps response for list of objects. Provides extra meta data
         """
-        _meta = None  # meta dict returned from server
+        _meta = None  # Meta dict returned from server
 
         def __init__(self, data):
             super(ControllerClient.ObjectsWrapper, self).__init__(data['objects'])
@@ -105,31 +104,32 @@ class ControllerClient(object):
             return self._meta['offset']
 
     _webclient = None
-    _userinfo = None  # a dict storing user info, like locale
+    _userinfo = None  # A dict storing user info, like locale
 
-    controllerurl = ''  # url to controller
-    controllerusername = ''  # username to login with
-    controllerpassword = ''  # password to login with
+    controllerurl = ''  # URl to controller
+    controllerusername = ''  # Username to login with
+    controllerpassword = ''  # Password to login with
 
-    controllerIp = ''  # hostname of the controller web server
-    controllerPort = 80  # port of the controller web server
+    controllerIp = ''  # Hostname of the controller web server
+    controllerPort = 80  # Port of the controller web server
 
     def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None):
-        """logs into the mujin controller
-        :param controllerurl: url of the mujin controller, e.g. http://controller14
-        :param controllerusername: username of the mujin controller, e.g. testuser
-        :param controllerpassword: password of the mujin controller
+        """Logs into the Mujin controller.
+
+        :param controllerurl: URL of the mujin controller, e.g. http://controller14
+        :param controllerusername: Username of the mujin controller, e.g. testuser
+        :param controllerpassword: Password of the mujin controller
         """
 
-        # parse controllerurl
+        # Parse controllerurl
         scheme, netloc, path, params, query, fragment = urlparse.urlparse(controllerurl)
 
-        # parse any credential in the url
+        # Parse any credential in the url
         if '@' in netloc:
             creds, netloc = netloc.rsplit('@', 1)
             self.controllerusername, self.controllerpassword = creds.split(':', 1)
 
-        # parse ip (hostname really) and port
+        # Parse IP (better: hostname) and port
         self.controllerIp = netloc.split(':', 1)[0]
         self.controllerPort = 80
         if ':' in netloc:
@@ -167,10 +167,10 @@ class ControllerClient(object):
         self._webclient.SetLocale(locale)
 
     def RestartController(self):
-        """ restarts controller
+        """Restarts controller
         """
         self._webclient.Request('POST', '/restartserver/', timeout=1)
-        # no reason to check response since it's probably an error (server is restarting after all)
+        # No reason to check response since it's probably an error (server is restarting after all)
 
     def IsLoggedIn(self):
         return True
@@ -202,10 +202,10 @@ class ControllerClient(object):
         return (int(serverVersionMajor), int(serverVersionMinor), int(serverVersionPatch), serverVersionCommit)
 
     def SetLogLevel(self, componentLevels, timeout=5):
-        """ Set webstack log level
-        :param componentLevels: mapping from component name to level name, for example {"some.speicifc.component": "DEBUG"}
-                                if component name is empty stirng, it sets the root logger
-                                if level name is empty string, it unsets the level previously set
+        """Set webstack log level
+        :param componentLevels: Mapping from component name to level name, for example {"some.specific.component": "DEBUG"}
+                                If component name is empty string, it sets the root logger
+                                If level name is empty string, it unsets the level previously set
         """
         response = self._webclient.Request('POST', '/loglevel/', json={'componentLevels': componentLevels}, timeout=timeout)
         if response.status_code != 200:
@@ -216,13 +216,12 @@ class ControllerClient(object):
     #
 
     def UploadSceneFile(self, f, timeout=5):
-        """uploads a file managed by file handle f
-
+        """Uploads a file managed by file handle f
         """
         return self.UploadFile(f, timeout=timeout)['filename']
 
     def GetScenes(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
-        """list all available scene on controller
+        """List all available scene on controller
         """
         assert(usewebapi)
         params = {
@@ -233,31 +232,31 @@ class ControllerClient(object):
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/', fields=fields, timeout=timeout, params=params))
 
     def GetScene(self, pk, fields=None, usewebapi=True, timeout=5):
-        """returns requested scene
+        """Returns requested scene
         """
         assert(usewebapi)
         return self._webclient.APICall('GET', u'scene/%s/' % pk, fields=fields, timeout=timeout)
 
     def GetObject(self, pk, fields=None, usewebapi=True, timeout=5):
-        """returns requested object
+        """Returns requested object
         """
         assert(usewebapi)
         return self._webclient.APICall('GET', u'object/%s/' % pk, fields=fields, timeout=timeout)
 
     def SetObject(self, pk, objectdata, fields=None, usewebapi=True, timeout=5):
-        """do partial update on object resource
+        """Do partial update on object resource
         """
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/' % pk, data=objectdata, fields=fields, timeout=timeout)
 
     def GetRobot(self, pk, fields=None, usewebapi=True, timeout=5):
-        """returns requested robot
+        """Returns requested robot
         """
         assert(usewebapi)
         return self._webclient.APICall('GET', u'robot/%s/' % pk, fields=fields, timeout=timeout)
 
     def SetRobot(self, pk, robotdata, fields=None, usewebapi=True, timeout=5):
-        """do partial update on robot resource
+        """Do partial update on robot resource
         """
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'robot/%s/' % pk, data=robotdata, fields=fields, timeout=timeout)
@@ -287,19 +286,19 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'scene/%s/instobject/' % scenepk, data=instobjectdata, fields=fields, timeout=timeout)
 
     def GetSceneInstObjects(self, scenepk, fields=None, usewebapi=True, timeout=5):
-        """ returns the instance objects of the scene
+        """Returns the instance objects of the scene
         """
         assert(usewebapi)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'scene/%s/instobject/' % scenepk, fields=fields, params={'limit': 0}, timeout=timeout))
 
     def GetSceneInstObject(self, scenepk, instobjectpk, fields=None, usewebapi=True, timeout=5):
-        """ returns the instance objects of the scene
+        """Returns the instance objects of the scene
         """
         assert(usewebapi)
         return self._webclient.APICall('GET', u'scene/%s/instobject/%s' % (scenepk, instobjectpk), fields=fields, timeout=timeout)
 
     def SetSceneInstObject(self, scenepk, instobjectpk, instobjectdata, fields=None, usewebapi=True, timeout=5):
-        """sets the instobject values via a WebAPI PUT call
+        """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
@@ -318,7 +317,7 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'object/%s/ikparam/' % objectpk, data=ikparamdata, fields=fields, timeout=timeout)
 
     def SetObjectIKParam(self, objectpk, ikparampk, ikparamdata, fields=None, usewebapi=True, timeout=5):
-        """sets the instobject values via a WebAPI PUT call
+        """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
@@ -337,7 +336,7 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'object/%s/graspset/' % objectpk, data=graspsetdata, fields=fields, timeout=timeout)
 
     def SetObjectGraspSet(self, objectpk, graspsetpk, graspsetdata, fields=None, usewebapi=True, timeout=5):
-        """sets the instobject values via a WebAPI PUT call
+        """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
@@ -372,20 +371,20 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'object/%s/link/' % objectpk, data=linkdata, fields=fields, timeout=timeout)
 
     def SetObjectLink(self, objectpk, linkpk, linkdata, fields=None, usewebapi=True, timeout=5):
-        """sets the instobject values via a WebAPI PUT call
+        """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/link/%s/' % (objectpk, linkpk), data=linkdata, fields=fields, timeout=timeout)
 
     def GetObjectLinks(self, objectpk, fields=None, usewebapi=True, timeout=5):
-        """ returns the instance objects of the scene
+        """Returns the instance objects of the scene
         """
         assert(usewebapi)
         return self._webclient.APICall('GET', u'object/%s/link/' % (objectpk), fields=fields, timeout=timeout)
 
     def GetObjectLink(self, objectpk, linkpk, fields=None, usewebapi=True, timeout=5):
-        """ returns the instance objects of the scene
+        """Returns the instance objects of the scene
         """
         assert(usewebapi)
         return self._webclient.APICall('GET', u'object/%s/link/%s/' % (objectpk, linkpk), fields=fields, timeout=timeout)
@@ -419,14 +418,14 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'object/%s/geometry/' % objectpk, data=geometrydata, fields=fields, timeout=timeout)
 
     def SetObjectGeometry(self, objectpk, geometrypk, geometrydata, fields=None, usewebapi=True, timeout=5):
-        """sets the instobject values via a WebAPI PUT call
+        """Sets the instobject values via a WebAPI PUT call
         :param instobjectdata: key-value pairs of the data to modify on the instobject
         """
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'object/%s/geometry/%s/' % (objectpk, geometrypk), data=geometrydata, fields=fields, timeout=timeout)
 
     def GetObjectGeometryData(self, objectpk, geometrypk, mesh=False, fields=None, usewebapi=True, timeout=5):
-        """ returns the instance objects of the scene
+        """Returns the instance objects of the scene
         """
         assert(usewebapi)
         params = {}
@@ -435,7 +434,7 @@ class ControllerClient(object):
         return self._webclient.APICall('GET', u'object/%s/geometry/%s/' % (objectpk, geometrypk), params=params, fields=fields, timeout=timeout)
 
     def SetObjectGeometryMesh(self, objectpk, geometrypk, data, formathint='stl', unit='mm', usewebapi=True, timeout=5):
-        """upload binary file content of a cad file to be set as the mesh for the geometry
+        """Upload binary file content of a cad file to be set as the mesh for the geometry
         """
         assert(usewebapi)
         assert(formathint == 'stl')  # for now, only support stl
@@ -474,7 +473,7 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'robot/%s/tool/' % robotpk, data=tooldata, fields=fields, timeout=timeout)
 
     def SetRobotTool(self, robotpk, toolpk, tooldata, fields=None, usewebapi=True, timeout=5):
-        """sets the tool values via a WebAPI PUT call
+        """Sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
         """
         assert(usewebapi)
@@ -501,7 +500,7 @@ class ControllerClient(object):
         return self._webclient.APICall('POST', u'scene/%s/instobject/%s/tool/' % (scenepk, instobjectpk), data=tooldata, fields=fields, timeout=timeout)
 
     def SetInstRobotTool(self, scenepk, instobjectpk, toolpk, tooldata, fields=None, usewebapi=True, timeout=5):
-        """sets the tool values via a WebAPI PUT call
+        """Sets the tool values via a WebAPI PUT call
         :param tooldata: key-value pairs of the data to modify on the tool
         """
         assert(usewebapi)
@@ -524,14 +523,14 @@ class ControllerClient(object):
         return self._webclient.APICall('GET', u'robot/%s/attachedsensor/' % robotpk, timeout=timeout)['attachedsensors']
 
     def SetRobotAttachedSensor(self, robotpk, attachedsensorpk, attachedsensordata, fields=None, usewebapi=True, timeout=5):
-        """sets the attachedsensor values via a WebAPI PUT call
+        """Sets the attachedsensor values via a WebAPI PUT call
         :param attachedsensordata: key-value pairs of the data to modify on the attachedsensor
         """
         assert(usewebapi)
         return self._webclient.APICall('PUT', u'robot/%s/attachedsensor/%s/' % (robotpk, attachedsensorpk), data=attachedsensordata, fields=fields, timeout=timeout)
 
     def SetRobotAttachedActuator(self, robotpk, attachedactuatorpk, attachedacturtordata, fields=None, usewebapi=True, timeout=5):
-        """sets the attachedactuatorpk values via a WebAPI PUT call
+        """Sets the attachedactuatorpk values via a WebAPI PUT call
         :param attachedacturtordata: key-value pairs of the data to modify on the attachedactuator
         """
         assert(usewebapi)
@@ -558,7 +557,7 @@ class ControllerClient(object):
         return self._webclient.APICall('GET', u'robot/%s/gripperInfo/%s/' % (robotpk, gripperinfopk), timeout=timeout)
 
     def SetRobotGripperInfo(self, robotpk, gripperinfopk, gripperInfoData, fields=None, usewebapi=True, timeout=5):
-        """sets the gripper values via a WebAPI PUT call
+        """Sets the gripper values via a WebAPI PUT call
         :param gripperInfoData: key-value pairs of the data to modify on the gripper
         """
         assert(usewebapi)
@@ -585,7 +584,7 @@ class ControllerClient(object):
         return self._webclient.APICall('GET', u'robot/%s/connectedBody/%s/' % (robotpk, connectedBodyPk), timeout=timeout)
 
     def SetRobotConnectedBody(self, robotpk, connectedBodyPk, connectedBodyData, fields=None, usewebapi=True, timeout=5):
-        """sets the connected body values via a WebAPI PUT call
+        """Sets the connected body values via a WebAPI PUT call
         :param connectedBodyData: key-value pairs of the data to modify on the connected body
         """
         assert(usewebapi)
@@ -628,7 +627,7 @@ class ControllerClient(object):
     def RunSceneTaskAsync(self, scenepk, taskpk, fields=None, usewebapi=True, timeout=5):
         """
         :return: {'jobpk': 'xxx', 'msg': 'xxx'}
-        Notice: This function can be overwritted in subclass, like RunSceneTaskAsync in planningclient.py
+        Notice: This function can be overwritted in the child class, like RunSceneTaskAsync in planningclient.py
         """
         assert(usewebapi)
         data = {
@@ -655,7 +654,7 @@ class ControllerClient(object):
         params = {'format': format}
         if programtype is not None and len(programtype) > 0:
             params['type'] = programtype
-        # custom http call because APICall currently only supports json
+        # Custom http call because APICall currently only supports json
         response = self._webclient.Request('GET', u'/api/v1/planningresult/%s/program/' % resultpk, params=params, timeout=timeout)
         assert(response.status_code == 200)
         return response.content
@@ -680,15 +679,15 @@ class ControllerClient(object):
         }))
 
     def DeleteJob(self, jobpk, usewebapi=True, timeout=5):
-        """ cancels the job with the corresponding jobk
+        """Cancels the job with the corresponding jobpk
         """
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'job/%s/' % jobpk, timeout=timeout)
 
     def DeleteJobs(self, usewebapi=True, timeout=5):
-        """ cancels all jobs
+        """Cancels all jobs
         """
-        # cancel on the zmq configure socket first
+        # Cancel on the zmq configure socket first
 
         if usewebapi:
             self._webclient.APICall('DELETE', u'job/', timeout=timeout)
@@ -727,7 +726,7 @@ class ControllerClient(object):
     #
 
     def GetObjectGeometry(self, objectpk, usewebapi=True, timeout=5):
-        """ return a list of geometries (a dictionary with key: positions, indices)) of given object
+        """Return list of geometries (a dictionary with keys: positions, indices) of the given object
         """
         import numpy
         assert(usewebapi)
@@ -749,7 +748,7 @@ class ControllerClient(object):
     #
 
     def GetSceneSensorMapping(self, scenepk=None, usewebapi=True, timeout=5):
-        """ return the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
+        """Return the mapping of camerafullname to cameraid. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
         """
         assert(usewebapi)
         if scenepk is None:
@@ -786,7 +785,7 @@ class ControllerClient(object):
 
     def SetSceneSensorMapping(self, sensormapping, scenepk=None, usewebapi=True, timeout=5):
         """
-        :param sensormapping: the camerafullname to cameraid mapping. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
+        :param sensormapping: The mapping of camerafullname to cameraid. e.g. {'sourcecamera/ensenso_l_rectified': '150353', 'sourcecamera/ensenso_r_rectified':'150353_Right' ...}
         """
         assert(usewebapi)
         if scenepk is None:
@@ -830,7 +829,7 @@ class ControllerClient(object):
     #
 
     def UploadFile(self, f, filename=None, timeout=10):
-        """uploads a file managed by file handle f
+        """Uploads a file managed by file handle f
 
         Returns:
             (dict) json response
@@ -874,7 +873,7 @@ class ControllerClient(object):
         raise ControllerClientError(response.content.decode('utf-8'))
 
     def FileExists(self, path, timeout=5):
-        """check if a file exists on server
+        """Check if a file exists on server
         """
         response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [200, 301, 404]:
@@ -882,9 +881,9 @@ class ControllerClient(object):
         return response.status_code != 404
 
     def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
-        """downloads a file given filename
+        """Downloads a file given filename
 
-        :return: a streaming response
+        :return: A streaming response
         """
         headers = {}
         if ifmodifiedsince:
@@ -897,9 +896,9 @@ class ControllerClient(object):
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
-        """Flush and perform a HEAD operation on given filename to retrieve metadata.
+        """Flush and perform a HEAD operation on the given filename to retrieve metadata.
 
-        :return: a streaming response
+        :return: A streaming response
         """
         response = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
         if response.status_code != 200:
@@ -907,9 +906,9 @@ class ControllerClient(object):
         return response
 
     def FlushAndHeadFile(self, filename, timeout=5):
-        """Flush and perform a HEAD operation on given filename to retrieve metadata.
+        """Flush and perform a HEAD operation on the given filename to retrieve metadata.
 
-        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
+        :return: A dict containing "modified (datetime.datetime)" and "size (int)"
         """
         response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, timeout=timeout)
         if response.status_code != 200:
@@ -920,9 +919,9 @@ class ControllerClient(object):
         }
 
     def HeadFile(self, filename, timeout=5):
-        """Perform a HEAD operation on given filename to retrieve metadata.
+        """Perform a HEAD operation on the given filename to retrieve metadata.
 
-        :return: a dict containing "modified (datetime.datetime)" and "size (int)"
+        :return: A dict containing "modified (datetime.datetime)" and "size (int)"
         """
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
@@ -934,7 +933,7 @@ class ControllerClient(object):
         }
 
     def FlushCache(self, timeout=5):
-        """flush pending changes in cache to disk
+        """Flush pending changes in cache to disk
         """
         response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
         if response.status_code != 200:
@@ -945,7 +944,7 @@ class ControllerClient(object):
     #
 
     def GetUserLog(self, category, level='DEBUG', keyword=None, limit=None, cursor=None, includecursor=False, forward=False, timeout=2):
-        """ restarts controller
+        """Get the user log from the controller.
         """
         params = {
             'keyword': (keyword or '').strip(),
@@ -998,7 +997,7 @@ class ControllerClient(object):
         return response.json()
 
     def SetConfig(self, data, filename=None, timeout=5):
-        """Set configruation file content to controller.
+        """Set configuration file content to controller.
         :param data: content dictionary in its entirety
         :param filename: optional, can be one of controllersystem.conf, binpickingsystem.conf, teachworkersystem.conf, robotbridges.conf.json
         """
@@ -1080,7 +1079,7 @@ class ControllerClient(object):
     #
 
     def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, timeout=600):
-        """downloads a backup file
+        """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
         :param savemedia: Whether we want to include media files in the backup, defaults to True
@@ -1099,7 +1098,7 @@ class ControllerClient(object):
         return response
 
     def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
-        """uploads a previously downloaded backup file to restore
+        """Uploads a previously downloaded backup file to restore
 
         :param file: Backup filer in tarball format
         :param restoreconfig: Whether we want to restore the configs, defaults to True
