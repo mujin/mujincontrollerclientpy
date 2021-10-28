@@ -965,6 +965,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """replaces bodies in the environment with new uris
         
         :param replaceInfos: list of dicts with keys: name, uri, containerDynamicProperties
+        :param testLocationName: If specified, will test if the container in this location matches testLocationContainerId, and only execute the replace if it matches and testLocationContainerId is not empty.
+        :param testLocationContainerId: containerId used for testing logic with testLocationName
+        :param removeNamePrefixes:
+        :param removeLocationNames:
+        :param doRemoveOnlyDynamic:
         """
         taskparameters = {
             'command': 'ReplaceBodies',
