@@ -363,12 +363,19 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
+        """Sets the cycle for stopping after the current pick cycle finishes.
+
+        If robot has not grabbed a part yet, then will stop the robot immediately.
+        On proper finish of the pick cycle, robot should go back to the finish position.
+        
+        :param finishCode: the finish code to end with. If not specified, will be 'FinishedCycleStopped'
+        """
         taskparameters = {
             'command': 'SetStopPickPlaceAfterExecutionCycle',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
-
+    
     def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, usewebapi=False, timeout=100, **kwargs):
         """runs saved planningresult trajs
         """
