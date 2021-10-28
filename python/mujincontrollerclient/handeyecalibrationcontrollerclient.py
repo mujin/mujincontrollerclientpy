@@ -2,28 +2,28 @@
 # Copyright (C) 2013-2015 MUJIN Inc.
 # Mujin controller client for bin picking task
 
-# system imports
+# System imports
 
-# mujin imports
+# Mujin imports
 from . import planningclient
 
-# logging
+# Logging
 import logging
 log = logging.getLogger(__name__)
 
 
 class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient):
-    """mujin controller client for hand-eye calibration task
+    """Mujin controller client for the hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
 
     def __init__(self, robot, **kwargs):
-        """logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
-        :param controllerurl: url of the mujin controller, e.g. http://controller14
-        :param controllerusername: username of the mujin controller, e.g. testuser
-        :param controllerpassword: password of the mujin controller
-        :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
-        :param usewebapi: whether to use webapi for controller commands
+        """Logs into the mujin controller, initializes hand eye calibration task, and sets up parameters
+        :param controllerurl: URL of the mujin controller, e.g. http://controller14
+        :param controllerusername: Username of the mujin controller, e.g. testuser
+        :param controllerpassword: Password of the mujin controller
+        :param scenepk: Primary key (pk) of the bin picking task scene, e.g. irex2013.mujin.dae
+        :param usewebapi: Whether to use webapi for controller commands
         """
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
