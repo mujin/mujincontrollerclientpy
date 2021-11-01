@@ -10,10 +10,10 @@ log = logging.getLogger(__name__)
 def _ParseArguments():
     import argparse
     parser = argparse.ArgumentParser(description='Open a shell to use controllerclient')
-    parser.add_argument('--loglevel', type=str, default=None, help='the python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
-    parser.add_argument('--url', type=str, default='http://localhost', help='url of the controller (default: %(default)s)')
-    parser.add_argument('--username', type=str, default='mujin', help='username to login with (default: %(default)s)')
-    parser.add_argument('--password', type=str, default='mujin', help='password to login with (default: %(default)s)')
+    parser.add_argument('--loglevel', type=str, default=None, help='The python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
+    parser.add_argument('--url', type=str, default='http://localhost', help='URL of the controller (default: %(default)s)')
+    parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
+    parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
     return parser.parse_args()
 
 
