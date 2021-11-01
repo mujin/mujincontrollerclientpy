@@ -873,7 +873,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningDecayingChirp(self, jointName, amplitude, freqMax, timeout=120, usewebapi=False, **kwargs):
-        """runs low-pass-filtered white noise test on specified joint and returns result
+        """runs chirp test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningDecayingChirp',
@@ -896,7 +896,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningBangBangResponse(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
-        """runs bangbang trajectory in acc space or jer space and returns result
+        """runs bangbang trajectory in acceleration or jerk space and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningBangBangResponse',
