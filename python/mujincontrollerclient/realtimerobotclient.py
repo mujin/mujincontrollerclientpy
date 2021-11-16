@@ -848,22 +848,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # Motor test related.
     #
-    
-    def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
-        """Runs frequency test on specified joint and returns result
-        """
-        taskparameters = {
-            'command': 'RunMotorControlTuningFrequencyTest',
-            'jointName': jointName,
-            'freqMin': freqMin,
-            'freqMax': freqMax,
-            'amplitude': amplitude,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
-        """Runs step response test on specified joint and returns result
+        """runs step response test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningStepTest',
@@ -875,10 +862,44 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
-        """Runs maximum length sequence test on specified joint and returns result
+        """runs maximum length sequence test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningMaximulLengthSequence',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningDecayingChirp(self, jointName, amplitude, freqMax, timeout=120, usewebapi=False, **kwargs):
+        """runs chirp test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningDecayingChirp',
+            'jointName': jointName,
+            'freqMax': freqMax,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningGaussianImpulse(self, jointName, amplitude, timeout=20, usewebapi=False, **kwargs):
+        """runs Gaussian Impulse test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningGaussianImpulse',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningBangBangResponse(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
+        """runs bangbang trajectory in acceleration or jerk space and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningBangBangResponse',
             'jointName': jointName,
             'amplitude': amplitude,
         }

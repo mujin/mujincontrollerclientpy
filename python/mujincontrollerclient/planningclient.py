@@ -245,8 +245,6 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
             'stamp': time.time(),
             'respawnopts': respawnopts,
         }
-        if self.tasktype == 'binpicking':
-            command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
         response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
 
         if fireandforget:
