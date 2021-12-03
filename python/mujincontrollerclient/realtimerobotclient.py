@@ -347,7 +347,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Resets tracking updates for locations
         
         :param resetAllLocations: If True, then will reset all the locations
-        :param resetLocationName: Resets only locations with matching name
+        :param resetLocationName: Resets only the location with matching name
+        :param resetLocationNames: Resets only locations with matching name
         :param checkIdAndResetLocationName: (locationName, containerId) - only reset the location if the container id matches
         
         :return: clearedLocationNames

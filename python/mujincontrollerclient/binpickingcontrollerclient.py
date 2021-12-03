@@ -348,15 +348,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
-    def SetCycleLocationsProhibited(self, prohibited, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        taskparameters = {
-            'command': 'SetCycleLocationsProhibited',
-            'prohibited': bool(prohibited),
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
+    
     def GetBinpickingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetBinpickingState'}
         taskparameters.update(kwargs)
