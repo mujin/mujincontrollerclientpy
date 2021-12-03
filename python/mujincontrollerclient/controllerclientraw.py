@@ -103,7 +103,7 @@ class ControllerWebClient(object):
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
         # in verbose logging, log the caller
-        if log.level <= 5: # logging.VERBOSE might not be available in the system
+        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
             log.verbose('request %s %s response %s took %.03f seconds:\n%s', method, url, response.status_code, response.elapsed.total_seconds(), '\n'.join([line.strip() for line in traceback.format_stack()[:-1]]))
         return response
 
