@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import traceback
 import os
 import requests
 import requests.auth
@@ -99,7 +100,12 @@ class ControllerWebClient(object):
         headers = dict(headers or {})
         headers.update(self._headers)
 
-        return self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+        response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
+
+        # in verbose logging, log the caller
+        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+            log.verbose('request %s %s response %s took %.03f seconds:\n%s', method, url, response.status_code, response.elapsed.total_seconds(), '\n'.join([line.strip() for line in traceback.format_stack()[:-1]]))
+        return response
 
     # Python port of the javascript API Call function
     def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, timeout=5):
@@ -134,8 +140,6 @@ class ControllerWebClient(object):
             headers['Accept'] = 'application/json'
 
         method = method.upper()
-
-        # log.debug('%s %s', method, self._baseurl + path)
         response = self.Request(method, path, params=params, data=data, headers=headers, timeout=timeout)
 
         # Try to parse response
