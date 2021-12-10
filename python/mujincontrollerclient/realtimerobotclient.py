@@ -347,7 +347,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Resets tracking updates for locations
         
         :param resetAllLocations: If True, then will reset all the locations
-        :param resetLocationName: Resets only locations with matching name
+        :param resetLocationName: Resets only the location with matching name
+        :param resetLocationNames: Resets only locations with matching name
         :param checkIdAndResetLocationName: (locationName, containerId) - only reset the location if the container id matches
         
         :return: clearedLocationNames
@@ -1016,3 +1017,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'GetState'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
+    def EnsureSyncWithRobotBridge(self, syncTimeStampUS, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """Ensures that planning has synchronized with robotbridge data that is newer than syncTimeStampUS
+        
+        :param syncTimeStampUS: us (linux time) of the timestamp
+        """
+        taskparameters = {'command': 'EnsureSyncWithRobotBridge', 'syncTimeStampUS':syncTimeStampUS}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
