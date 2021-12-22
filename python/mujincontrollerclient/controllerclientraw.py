@@ -100,6 +100,10 @@ class ControllerWebClient(object):
         headers = dict(headers or {})
         headers.update(self._headers)
 
+        if 'allow_redirects' not in kwargs:
+            # by default, disallow redirect since DELETE with redirection is too dangerous
+            kwargs['allow_redirects'] = method in ('GET',)
+
         response = self._session.request(method=method, url=url, timeout=timeout, headers=headers, **kwargs)
 
         # in verbose logging, log the caller
