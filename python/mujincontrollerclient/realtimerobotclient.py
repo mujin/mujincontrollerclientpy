@@ -366,8 +366,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['activeLocationTrackingInfos']
     
-    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, updateTimeStampMS=None, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """Resets the tracking of specific containers
+
+        :param updateTimeStampMS if specified then setup updatetimestamp on container (time when container arrives and becomes valid for usage)
+        :param trackingCycleIndex if specified then cycle with same cycleIndex will update location tracking in the same call
         """
         taskparameters = {
             'command': 'UpdateLocationContainerIdType',
@@ -376,6 +379,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'containerId': containerId,
             'containerType': containerType,
         }
+        if updateTimeStampMS is not None:
+            taskparameters['updateTimeStampMS'] = updateTimeStampMS
+        if trackingCycleIndex is not None:
+            taskparameters['trackingCycleIndex'] = trackingCycleIndex
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
