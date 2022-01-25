@@ -522,17 +522,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def VisualizePackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """stops the packing computation thread thread started with StartPackFormationComputationThread
-        :param initializeCameraPosition: bool. reset camera position
-        """
-
-        taskparameters = {
-            'command': 'VisualizePackFormationResult',
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
     
     def GetPackFormationSolution(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
@@ -558,16 +547,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """
         taskparameters = {
             'command': 'GetLatestPackFormationResultList',
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
-    def ClearPackingStateVisualization(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        """
-        Clear packing visualization
-        """
-        taskparameters = {
-            'command': 'ClearPackingStateVisualization',
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
