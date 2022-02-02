@@ -347,7 +347,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Resets tracking updates for locations
         
         :param resetAllLocations: If True, then will reset all the locations
-        :param resetLocationName: Resets only locations with matching name
+        :param resetLocationName: Resets only the location with matching name
+        :param resetLocationNames: Resets only locations with matching name
         :param checkIdAndResetLocationName: (locationName, containerId) - only reset the location if the container id matches
         
         :return: clearedLocationNames
@@ -365,8 +366,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['activeLocationTrackingInfos']
     
-    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, updateTimeStampMS=None, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """Resets the tracking of specific containers
+
+        :param updateTimeStampMS if specified then setup updatetimestamp on container (time when container arrives and becomes valid for usage)
+        :param trackingCycleIndex if specified then cycle with same cycleIndex will update location tracking in the same call
         """
         taskparameters = {
             'command': 'UpdateLocationContainerIdType',
@@ -375,6 +379,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'containerId': containerId,
             'containerType': containerType,
         }
+        if updateTimeStampMS is not None:
+            taskparameters['updateTimeStampMS'] = updateTimeStampMS
+        if trackingCycleIndex is not None:
+            taskparameters['trackingCycleIndex'] = trackingCycleIndex
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
@@ -848,22 +856,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # Motor test related.
     #
-    
-    def RunMotorControlTuningFrequencyTest(self, jointName, amplitude, freqMin, freqMax, timeout=10, usewebapi=False, **kwargs):
-        """Runs frequency test on specified joint and returns result
-        """
-        taskparameters = {
-            'command': 'RunMotorControlTuningFrequencyTest',
-            'jointName': jointName,
-            'freqMin': freqMin,
-            'freqMax': freqMax,
-            'amplitude': amplitude,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
-        """Runs step response test on specified joint and returns result
+        """runs step response test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningStepTest',
@@ -875,10 +870,44 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
     def RunMotorControlTuningMaximulLengthSequence(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
-        """Runs maximum length sequence test on specified joint and returns result
+        """runs maximum length sequence test on specified joint and returns result
         """
         taskparameters = {
             'command': 'RunMotorControlTuningMaximulLengthSequence',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningDecayingChirp(self, jointName, amplitude, freqMax, timeout=120, usewebapi=False, **kwargs):
+        """runs chirp test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningDecayingChirp',
+            'jointName': jointName,
+            'freqMax': freqMax,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningGaussianImpulse(self, jointName, amplitude, timeout=20, usewebapi=False, **kwargs):
+        """runs Gaussian Impulse test on specified joint and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningGaussianImpulse',
+            'jointName': jointName,
+            'amplitude': amplitude,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+
+    def RunMotorControlTuningBangBangResponse(self, jointName, amplitude, timeout=60, usewebapi=False, **kwargs):
+        """runs bangbang trajectory in acceleration or jerk space and returns result
+        """
+        taskparameters = {
+            'command': 'RunMotorControlTuningBangBangResponse',
             'jointName': jointName,
             'amplitude': amplitude,
         }
@@ -977,6 +1006,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Replaces bodies in the environment with new uris
         
         :param replaceInfos: list of dicts with keys: name, uri, containerDynamicProperties
+        :param testLocationName: If specified, will test if the container in this location matches testLocationContainerId, and only execute the replace if it matches and testLocationContainerId is not empty.
+        :param testLocationContainerId: containerId used for testing logic with testLocationName
+        :param removeNamePrefixes:
+        :param removeLocationNames:
+        :param doRemoveOnlyDynamic:
         """
         taskparameters = {
             'command': 'ReplaceBodies',
@@ -990,3 +1024,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {'command': 'GetState'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
+    def EnsureSyncWithRobotBridge(self, syncTimeStampUS, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """Ensures that planning has synchronized with robotbridge data that is newer than syncTimeStampUS
+        
+        :param syncTimeStampUS: us (linux time) of the timestamp
+        """
+        taskparameters = {'command': 'EnsureSyncWithRobotBridge', 'syncTimeStampUS':syncTimeStampUS}
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    

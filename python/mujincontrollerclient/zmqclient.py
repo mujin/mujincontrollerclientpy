@@ -316,7 +316,7 @@ class ZmqClient(object):
     def SetPreemptFn(self, checkpreemptfn):
         self._checkpreemptfn = checkpreemptfn
     
-    def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True, checkpreempt=None):
+    def SendCommand(self, command, timeout=10.0, blockwait=True, fireandforget=False, sendjson=True, recvjson=True, sendmultipart=False, recvmultipart=False, checkpreempt=None):
         """Sends command via established zmq socket
 
         :param command: Command in json format
@@ -325,6 +325,8 @@ class ZmqClient(object):
         :param fireandforget: If True, will send command and immediately return without trying to receive, and blockwait will be set to False. Default: False
         :param sendjson: If True (default), will send data as json
         :param recvjson: If True (default), will parse received data as json
+        :param sendmultipart: if True, will send multipart
+        :param recvmultipart: if True, will receive multipart
         :param checkpreempt: (required) If True, calls the preempt function after each send.
 
         :return: Returns the response from the zmq server in json format if blockwait is True
@@ -363,7 +365,9 @@ class ZmqClient(object):
                 if (waitingevents & zmq.POLLOUT) != zmq.POLLOUT:
                     continue
 
-                if sendjson:
+                if sendmultipart:
+                    self._socket.send_multipart(command, zmq.NOBLOCK)
+                elif sendjson:
                     self._socket.send_json(command, zmq.NOBLOCK)
                 else:
                     self._socket.send(command, zmq.NOBLOCK)
@@ -381,7 +385,7 @@ class ZmqClient(object):
                 return None
 
             # Receive
-            return self.ReceiveCommand(timeout=timeout, recvjson=recvjson, checkpreempt=checkpreempt)
+            return self.ReceiveCommand(timeout=timeout, recvjson=recvjson, recvmultipart=recvmultipart, checkpreempt=checkpreempt)
 
         finally:
             # release socket
@@ -393,14 +397,14 @@ class ZmqClient(object):
     def IsWaitingReply(self):
         return self._socket is not None
 
-    def ReceiveCommand(self, timeout=10.0, recvjson=True, checkpreempt=True):
+    def ReceiveCommand(self, timeout=10.0, recvjson=True, recvmultipart=False, checkpreempt=True):
         """Receive response to a previous SendCommand call. SendCommand must be called with blockwait=False and fireandforget=False
 
         :param timeout: If None, block. If >= 0, use as timeout. Default: 10.0
         :param recvjson: If True (default), will parse received data as json
         :param checkpreempt: (required) If True, calls the preempt function after each send.
 
-        :return: Returns the recv or recv_json response
+        :return: Returns the recv or recv_json or recv_multipart response
         """
         self._CheckCallerThread('ReceiveCommand')
         
@@ -419,7 +423,10 @@ class ZmqClient(object):
                 if endpolltime - startpolltime > 0.2:  # Due to python delays sometimes this can be 0.11s
                     log.critical('Polling time took %fs!', endpolltime - startpolltime)
                 if (waitingevents & zmq.POLLIN) == zmq.POLLIN:
-                    if recvjson:
+                    if recvmultipart:
+                        releaseSocket = True
+                        return self._socket.recv_multipart(zmq.NOBLOCK)
+                    elif recvjson:
                         releaseSocket = True
                         return self._socket.recv_json(zmq.NOBLOCK)
                     else:
