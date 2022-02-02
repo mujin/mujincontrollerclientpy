@@ -1074,6 +1074,10 @@ class ControllerClient(object):
         assert(usewebapi)
         self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
 
+    def DeleteAllITLPrograms(self, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'itl/', timeout=timeout)
+
     #
     # Backup restore
     #
