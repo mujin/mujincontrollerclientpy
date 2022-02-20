@@ -386,6 +386,21 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
+    def ResetLocationTrackingContainerId(self, locationName, checkContainerId, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """Resets the containerId of self._activeLocationTrackingInfos if it matches checkContainerId.
+        
+        :param checkContainerId: if checkContainerId is specified and not empty and it matches the current containerId of the tracking location, then reset the current tracking location
+        
+        :return isTrackingUpdated: True if the containerId was updated
+        """
+        taskparameters = {
+            'command': 'ResetLocationTrackingContainerId',
+            'locationName': locationName,
+            'checkContainerId': checkContainerId,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+    
     def RemoveObjectsWithPrefix(self, prefix=None, removeNamePrefixes=None, timeout=10, usewebapi=None, fireandforget=False, removeLocationNames=None, **kwargs):
         """Removes objects with prefix.
         
