@@ -7,10 +7,13 @@ log = logging.getLogger(__name__)
 def _StringifyQueryFields(queryFields, fields=None):
     selectedFields = []
     for fieldName, subQueryFields in queryFields.items():
-        if fields and fieldName not in fields:
+        if isinstance(fields, (list, set, dict)) and fieldName not in fields:
             continue
         if subQueryFields:
-            selectedFields.append('%s %s' % (fieldName, _StringifyQueryFields(subQueryFields)))
+            subFields = None
+            if isinstance(fields, dict):
+                subFields = fields.get(fieldName)
+            selectedFields.append('%s %s' % (fieldName, _StringifyQueryFields(subQueryFields, subFields)))
         else:
             selectedFields.append(fieldName)
     return '{%s}' % ', '.join(selectedFields)

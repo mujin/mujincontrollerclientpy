@@ -30,9 +30,13 @@ def _FetchSchema(url, username, password):
     webClient = ControllerWebClient(url, username, password)
     return graphql.build_client_schema(webClient.CallGraphAPI(graphql.get_introspection_query(descriptions=True), {}))
 
-def _DiscoverQueryFields(fieldType):
+def _DereferenceType(fieldType):
     while hasattr(fieldType, 'of_type'):
         fieldType = fieldType.of_type
+    return fieldType
+
+def _DiscoverQueryFields(fieldType):
+    fieldType = _DereferenceType(fieldType)
     if not hasattr(fieldType, 'fields'):
         return None
     queryFields = {}
@@ -49,22 +53,34 @@ def _DiscoverMethods(queryOrMutationType):
                 {
                     'parameterName': argumentName,
                     'parameterType': argument.type,
+                    'parameterDescription': argument.description,
                     'parameterNullable': not isinstance(argument.type, graphql.GraphQLNonNull),
                 }
                 for argumentName, argument in field.args.items()
             ], key=lambda x: (x['parameterNullable'], x['parameterName'])),
             'description': field.description,
+            'returnType': field.type,
             'queryFields': _DiscoverQueryFields(field.type),
         })
-    return methods
+    return methods    
 
-def _PrintMethod(queryOrMutation, operationName, parameters, description, queryFields):
+def _PrintMethod(queryOrMutation, operationName, parameters, description, returnType, queryFields):
     print('    def %s(self, %s):' % (operationName, ', '.join([
         '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
         for parameter in parameters
     ] + ['fields=None', 'timeout=None'])))
     if description:
-        print('        """%s"""' % description)
+        print('        """%s' % description)
+        print('')
+        print('        Args:')
+        for parameter in parameters:
+            print('            %s (%s): %s' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterDescription']))
+        print('            fields (list or dict): Optionally specify a subset of fields to return.')
+        print('            timeout (float): Number of seconds to wait for response.')
+        print('')
+        print('        Returns:')
+        print('            %s: %s' % (returnType, _DereferenceType(returnType).description))
+        print('        """')
     print('        parameterNameTypeValues = [')
     for parameter in parameters:
         print('            (\'%s\', \'%s\', %s),' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
