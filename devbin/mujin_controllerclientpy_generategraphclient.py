@@ -90,7 +90,10 @@ def _PrintClient(queryMethods, mutationMethods):
         _PrintMethod('mutation', **mutationMethod)
         print('')
     print('')
-    print('class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations): pass')
+    print('class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations):')
+    print('    pass')
+    print('')
+
 
 def _Main():
     options = _ParseArguments()

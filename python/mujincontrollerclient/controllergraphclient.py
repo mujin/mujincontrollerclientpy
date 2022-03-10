@@ -687,4 +687,6 @@ class ControllerGraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='ModifyTool', parameterNameTypeValues=parameterNameTypeValues, queryFields=queryFields, fields=fields, timeout=timeout)
 
 
-class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations): pass
+class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations):
+    pass
+
