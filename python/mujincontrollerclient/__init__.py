@@ -135,3 +135,21 @@ class URIError(ClientExceptionBase):
 
 class UserInterrupt(ClientExceptionBase):
     pass
+
+class ControllerGraphClientException(ClientExceptionBase):
+
+    _statusCode = None
+    _content = None
+
+    def __init__(self, message='', statusCode=None, content=None):
+        super(ControllerGraphClientException, self).__init__(message)
+        self._statusCode = statusCode
+        self._content = content
+
+    @property
+    def statusCode(self):
+        return self._statusCode
+
+    @property
+    def content(self):
+        return self._content
