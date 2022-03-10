@@ -235,6 +235,7 @@ class ControllerGraphQueries:
         queryFields = {'__deleted__': None, 'baseLinkName': None, 'chuckingDirections': None, 'direction': None, 'effectorLinkName': None, 'gripperJointNames': None, 'grippername': None, 'id': None, 'ikChainEndLinkName': None, 'ikSolverType': None, 'name': None, 'restrictGraspSetNames': None, 'toolChangerConnectedBodyToolName': None, 'transform': None}
         return self._CallSimpleGraphAPI('query', operationName='ListTools', parameterNameTypeValues=parameterNameTypeValues, queryFields=queryFields, fields=fields, timeout=timeout)
 
+
 class ControllerGraphMutations:
 
     def CopyAttachedSensor(self, attachedSensorId, bodyId, environmentId, attachedSensor=None, fields=None, timeout=None):
@@ -686,7 +687,4 @@ class ControllerGraphMutations:
         return self._CallSimpleGraphAPI('mutation', operationName='ModifyTool', parameterNameTypeValues=parameterNameTypeValues, queryFields=queryFields, fields=fields, timeout=timeout)
 
 
-class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations):
-    pass
-
-
+class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations): pass

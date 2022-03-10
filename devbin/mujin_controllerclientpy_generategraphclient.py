@@ -3,13 +3,32 @@
 
 import graphql # require graphql-core pip package when generating python code
 
-from mujincontrollerclient.controllerclientraw import ControllerWebClient
+import logging
+log = logging.getLogger(__name__)
 
-def _GetSchema():
-    webClient = ControllerWebClient('http://controller488', 'mujin', 'mujin')
+
+def _ConfigureLogging(level=None):
+    try:
+        import mujincommon
+        mujincommon.ConfigureRootLogger(level=level)
+    except ImportError:
+        logging.basicConfig(format='%(levelname)s %(name)s: %(funcName)s, %(message)s', level=logging.DEBUG)
+
+
+def _ParseArguments():
+    import argparse
+    parser = argparse.ArgumentParser(description='Open a shell to use controllerclient')
+    parser.add_argument('--loglevel', type=str, default=None, help='The python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
+    parser.add_argument('--url', type=str, default='http://localhost', help='URL of the controller (default: %(default)s)')
+    parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
+    parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
+    return parser.parse_args()
+
+
+def _FetchSchema(url, username, password):
+    from mujincontrollerclient.controllerclientraw import ControllerWebClient
+    webClient = ControllerWebClient(url, username, password)
     return graphql.build_client_schema(webClient.CallGraphAPI(graphql.get_introspection_query(descriptions=True), {}))
-
-schema = _GetSchema()
 
 def _DiscoverQueryFields(fieldType):
     while hasattr(fieldType, 'of_type'):
@@ -39,9 +58,6 @@ def _DiscoverMethods(queryOrMutationType):
         })
     return methods
 
-queryMethods = _DiscoverMethods(schema.query_type)
-mutationMethods = _DiscoverMethods(schema.mutation_type)
-
 def _PrintMethod(queryOrMutation, operationName, parameters, description, queryFields):
     print('    def %s(self, %s):' % (operationName, ', '.join([
         '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
@@ -55,30 +71,36 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, queryF
     print('        ]')
     print('        queryFields = %r' % queryFields)
     print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, queryFields=queryFields, fields=fields, timeout=timeout)' % (queryOrMutation, operationName))
+
+def _PrintClient(queryMethods, mutationMethods):
+    print('# -*- coding: utf-8 -*-')
+    print('# DO NOT EDIT: THIS FILE IS AUTO-GENERATED')
     print('')
+    print('from .controllergraphclientutils import ControllerGraphClientBase')
+    print('')
+    print('class ControllerGraphQueries:')
+    print('')
+    for queryMethod in queryMethods:
+        _PrintMethod('query', **queryMethod)
+        print('')
+    print('')
+    print('class ControllerGraphMutations:')
+    print('')
+    for mutationMethod in mutationMethods:
+        _PrintMethod('mutation', **mutationMethod)
+        print('')
+    print('')
+    print('class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations): pass')
 
-print("""# -*- coding: utf-8 -*-
-# DO NOT EDIT: THIS FILE IS AUTO-GENERATED
+def _Main():
+    options = _ParseArguments()
+    _ConfigureLogging(options.loglevel)
 
-from .controllergraphclientutils import ControllerGraphClientBase
-""")
-
-
-print("""class ControllerGraphQueries:
-""")
-for queryMethod in queryMethods:
-    _PrintMethod('query', **queryMethod)
+    schema = _FetchSchema(options.url, options.username, options.password)
+    queryMethods = _DiscoverMethods(schema.query_type)
+    mutationMethods = _DiscoverMethods(schema.mutation_type)
+    _PrintClient(queryMethods, mutationMethods)
 
 
-
-print("""class ControllerGraphMutations:
-""")
-for mutationMethod in mutationMethods:
-    _PrintMethod('mutation', **mutationMethod)
-
-
-print("""
-class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations):
-    pass
-
-""")
+if __name__ == "__main__":
+    _Main()
