@@ -44,18 +44,25 @@ class ControllerGraphClientBase(object):
         ])
         if queryParameters:
             queryParameters = '(%s)' % queryParameters
-        query = '%s %s%s\n' % (queryOrMutation, operationName, queryParameters)
-        query += '{'
         queryArguments = ', '.join([
             '%s: $%s' % (parameterName, parameterName)
             for parameterName, parameterType, parameterValue in parameterNameTypeValues
         ])
         if queryArguments:
             queryArguments = '(%s)' % queryArguments
-        query += '    %s%s %s\n' % (operationName, queryArguments, _StringifyQueryFields(queryFields, fields) if queryFields else '')
-        query += '}'
+        query = '%(queryOrMutation)s %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
+            'queryOrMutation': queryOrMutation,
+            'operationName': operationName,
+            'queryParameters': queryParameters,
+            'queryArguments': queryArguments,
+            'queryFields': ' %s' % _StringifyQueryFields(queryFields, fields) if queryFields else ''
+        }
         variables = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
             variables[parameterName] = parameterValue
+        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+            log.verbose('executing graph query with variables %r:\n\n%s\n', variables, query)
         data = self._webclient.CallGraphAPI(query, variables, timeout=timeout)
+        if log.isEnabledFor(5): # logging.VERBOSE might not be available in the system
+            log.verbose('got response from graph query: %r', data)
         return data.get(operationName)
