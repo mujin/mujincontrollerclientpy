@@ -17,6 +17,7 @@ from . import ugettext as _
 from . import json
 from . import urlparse
 from . import uriutils
+from . import controllergraphclient
 
 # Logging
 import logging
@@ -165,6 +166,10 @@ class ControllerClient(object):
     def SetLocale(self, locale):
         self._userinfo['locale'] = locale
         self._webclient.SetLocale(locale)
+
+    @property
+    def graphApi(self):
+        return controllergraphclient.ControllerGraphClient(self._webclient)
 
     def RestartController(self):
         """Restarts controller

@@ -11,10 +11,7 @@ This is an open-source client library communicating with the Mujin Controller We
 
 - Versions have three numbers: MAJOR.MINOR.PATCH
   
-  - Official releases always have the MINOR and PATCH version as an even number. For example 0.2.4, 0.2.6, 0.4.0, 0.4.2.
   - All versions with the same MAJOR.MINOR number have the same API ande are ABI compatible.
-  
-- There are [git tags](https://github.com/mujin/mujincontrollerclientpy/tags) for official release like v0.2.4.
 
 
 ## Running on Linux
@@ -32,3 +29,25 @@ pip install .
 
 Mujin Controller Python Client is Licensed under the Apache License, Version 2.0 (the "License"). See [LICENSE](LICENSE)
 
+## For developers
+
+### How to re-generate `controllergraphclient.py`
+
+First, set up a virtualenv to install required pip packages:
+
+```bash
+# create a new virtualenv, you can also delete it afterwards
+virtualenv .ve
+
+# install required packages
+./.ve/bin/pip install six==1.16.0 requests==2.27.1 pyzmq==22.3.0 graphql-core==3.2.0
+
+# install mujincontrollerclient
+./.ve/bin/pip install .
+```
+
+Then, use the `mujin_controllerclientpy_generategraphclient.py` to generate the content of the `controllergraphclient.py` file.
+
+```bash
+./.ve/bin/python devbin/mujin_controllerclientpy_generategraphclient.py --url http://controller123 > python/mujincontrollerclient/controllergraphclient.py
+````

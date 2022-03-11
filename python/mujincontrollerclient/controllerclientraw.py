@@ -18,8 +18,9 @@ import requests
 import requests.auth
 import requests.adapters
 
+from . import _
 from . import json
-from . import APIServerError, ControllerClientError
+from . import APIServerError, ControllerClientError, ControllerGraphClientException
 
 import logging
 log = logging.getLogger(__name__)
@@ -92,7 +93,7 @@ class ControllerWebClient(object):
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
-            raise ControllerClientError('timeout value (%s sec) is too small' % timeout)
+            raise ControllerClientError(_('Timeout value (%s sec) is too small') % timeout)
 
         url = self._baseurl + path
 
@@ -154,6 +155,7 @@ class ControllerWebClient(object):
                 content = json.loads(raw)
             except ValueError as e:
                 log.exception('caught exception parsing json response: %s: %s', e, raw)
+                raise APIServerError(_('Unable to parse server response %d: %s') % (response.status_code, raw))
 
         # First check error
         if content is not None and 'error_message' in content:
@@ -163,7 +165,7 @@ class ControllerWebClient(object):
             raise APIServerError(content['error'].get('message', raw), inputcommand=path)
         
         if response.status_code >= 400:
-            raise APIServerError(raw)
+            raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
 
         # TODO(ziyan): Figure out the expected status code from method
         #              Some APIs were mis-implemented to not return standard status code.
@@ -178,6 +180,41 @@ class ControllerWebClient(object):
         # Check expected status code
         if response.status_code != expectedStatusCode:
             log.error('response status code is %d, expecting %d for %s %s: %s', response.status_code, expectedStatusCode, method, path, raw)
-            raise APIServerError(raw)
+            raise APIServerError(_('Unexpected server response %d: %s') % (response.status_code, raw))
 
         return content
+
+    def CallGraphAPI(self, query, variables=None, timeout=5.0):
+        response = self.Request('POST', '/api/v2/graphql', headers={
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }, data=json.dumps({
+            'query': query,
+            'variables': variables or {},
+        }), timeout=timeout)
+
+        # try to parse response
+        raw = response.content.decode('utf-8', 'replace').strip()
+
+        # repsonse must be 200 OK
+        statusCode = response.status_code
+        if statusCode != 200:
+            raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode)
+
+        # decode the response content
+        content = None
+        if len(raw) > 0:
+            try:
+                content = json.loads(raw)
+            except ValueError as e:
+                log.exception('caught exception parsing json response: %s: %s', e, raw)
+
+        # raise any error returned
+        if content is not None and 'errors' in content and len(content['errors']) > 0:
+            message = content['errors'][0].get('message', raw)
+            raise ControllerGraphClientException(message, statusCode=statusCode, content=content)
+
+        if content is None or 'data' not in content:
+            raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode)
+
+        return content['data']
