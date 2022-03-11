@@ -4,16 +4,22 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def _StringifyQueryFields(queryFields, fields=None):
+def _StringifyQueryFields(typeDatabase, typeName, fields=None):
+    if typeName not in typeDatabase:
+        return ''
     selectedFields = []
-    for fieldName, subQueryFields in queryFields.items():
+    for fieldName, subTypeName in typeDatabase[typeName].items():
         if isinstance(fields, (list, set, dict)) and fieldName not in fields:
             continue
-        if subQueryFields:
+        if subTypeName:
             subFields = None
             if isinstance(fields, dict):
                 subFields = fields.get(fieldName)
-            selectedFields.append('%s %s' % (fieldName, _StringifyQueryFields(subQueryFields, subFields)))
+            subQuery = _StringifyQueryFields(typeDatabase, subTypeName, subFields)
+            if subQuery:
+                selectedFields.append('%s %s' % (fieldName, subQuery))
+            else:
+                selectedFields.append(fieldName)
         else:
             selectedFields.append(fieldName)
     return '{%s}' % ', '.join(selectedFields)
@@ -26,12 +32,12 @@ class ControllerGraphClientBase(object):
     def __init__(self, webclient):
         self._webclient = webclient
 
-    def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, queryFields=None, fields=None, timeout=None):
+    def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, returnType, fields=None, timeout=None):
         """
         :param queryOrMutation: either "query" or "mutation"
         :param operationName: name of the operation
         :param parameterNameTypeValues: list of tuple (parameterName, parameterType, parameterValue)
-        :param queryFields: dict mapping fieldName to subFields, used to construct query fields
+        :param returnType: name of the return type to look up in typeDatabase, used to construct query fields
         :param fields: list of fieldName to filter for
         :param timeout: timeout in seconds
         """
@@ -49,13 +55,16 @@ class ControllerGraphClientBase(object):
             for parameterName, parameterType, parameterValue in parameterNameTypeValues
         ])
         if queryArguments:
+            queryFields = _StringifyQueryFields(self.typeDatabase, returnType, fields)
+            if queryFields:
+                queryFields = ' %s' % queryFields
             queryArguments = '(%s)' % queryArguments
         query = '%(queryOrMutation)s %(operationName)s%(queryParameters)s {\n    %(operationName)s%(queryArguments)s%(queryFields)s\n}' % {
             'queryOrMutation': queryOrMutation,
             'operationName': operationName,
             'queryParameters': queryParameters,
             'queryArguments': queryArguments,
-            'queryFields': ' %s' % _StringifyQueryFields(queryFields, fields) if queryFields else ''
+            'queryFields': queryFields,
         }
         variables = {}
         for parameterName, parameterType, parameterValue in parameterNameTypeValues:
