@@ -710,6 +710,15 @@ class ControllerClient(object):
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
 
+    def GetCycleLogStats(self, fields=None, offset=0, limit=0, usewebapi=True, timeout=5, **kwargs):
+        assert(usewebapi)
+        params = {
+            'offset': offset,
+            'limit': limit,
+        }
+        params.update(kwargs)
+        return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/stats/', fields=fields, timeout=timeout, params=params))
+
     def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         return self._webclient.APICall('POST', u'cycleLog/', data={
