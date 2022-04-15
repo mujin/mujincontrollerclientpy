@@ -107,13 +107,13 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
 
 def _PrintTypeDatabase(typeDatabase):
     print('    typeDatabase = {')
-    for typeName, typeDefinition in typeDatabase.items():
+    for typeName, typeDefinition in sorted(typeDatabase.items()):
         print('')
         if typeDefinition['description']:
             for line in typeDefinition['description'].split('\n'):
                 print('        # %s' % line)
         print('        \'%s\': {' % typeName)
-        for fieldName, fieldDefinition in typeDefinition['fields'].items():
+        for fieldName, fieldDefinition in sorted(typeDefinition['fields'].items()):
             if fieldDefinition['description']:
                 for line in fieldDefinition['description'].split('\n'):
                     print('            # %s' % line)
