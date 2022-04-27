@@ -342,13 +342,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
     
-    def ResetCachedRobotConfigurationState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
-        taskparameters = {
-            'command': 'ResetCachedRobotConfigurationState',
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-    
     def GetBinpickingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetBinpickingState'}
         taskparameters.update(kwargs)
