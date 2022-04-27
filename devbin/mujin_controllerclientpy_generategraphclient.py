@@ -41,6 +41,19 @@ def _DereferenceType(graphType):
         graphType = graphType.of_type
     return graphType
 
+def _FormatTypeForDocstring(typeName):
+    """Removes the exclamation mark and converts basic Golang types to Python types.
+    """
+    _typeName = str(typeName).replace("!", "")
+    if _typeName == 'String':
+        return 'str'
+    elif _typeName == 'Int':
+        return 'int'
+    elif _typeName == 'Boolean':
+        return 'bool'
+    else:
+        return _typeName
+
 def _DiscoverType(graphType, typeDatabase):
     baseFieldType = _DereferenceType(graphType)
     baseFieldTypeName = '%s' % baseFieldType
@@ -92,12 +105,13 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
         print('')
         print('        Args:')
         for parameter in parameters:
-            print('            %s (%s): %s' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterDescription']))
-        print('            fields (list or dict): Optionally specify a subset of fields to return.')
-        print('            timeout (float): Number of seconds to wait for response.')
+            isOptionalString = ", optional" if parameter['parameterNullable'] else ""
+            print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, parameter['parameterDescription']))
+        print('            fields (list or dict, optional): Specifies a subset of fields to return.')
+        print('            timeout (float, optional): Number of seconds to wait for response.')
         print('')
         print('        Returns:')
-        print('            %s: %s' % (returnType['typeName'], returnType['description']))
+        print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), returnType['description']))
         print('        """')
     print('        parameterNameTypeValues = [')
     for parameter in parameters:
