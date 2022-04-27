@@ -7,7 +7,7 @@ This is an open-source client library communicating with the Mujin Controller We
 
 ## Releases and Versioning
 
-- The latest stable build is managed by the **master** branch, please use it. It is tested on Linux with python 3.9.
+- The latest stable build is managed by the **master** branch, please use it. It is tested on Linux with Python 3.9.
 
 - Versions have three numbers: MAJOR.MINOR.PATCH
   
@@ -16,7 +16,7 @@ This is an open-source client library communicating with the Mujin Controller We
 
 ## Running on Linux
 
-Load mujincontrollerclient as a module in python.
+Load mujincontrollerclient as a module in Python.
 
 
 ## Install on Linux
@@ -40,7 +40,7 @@ First, set up a virtualenv to install required pip packages:
 virtualenv .ve
 
 # install required packages
-./.ve/bin/pip install six==1.16.0 requests==2.27.1 pyzmq==22.3.0 graphql-core==3.2.0
+./.ve/bin/pip install six==1.16.0 requests==2.27.1 pyzmq==22.3.0 graphql-core==3.2.0 typing_extensions==4.2.0
 
 # install mujincontrollerclient
 ./.ve/bin/pip install .
