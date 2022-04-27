@@ -41,6 +41,11 @@ def _DereferenceType(graphType):
         graphType = graphType.of_type
     return graphType
 
+def _IndentNewlines(string, indent="    "*5):
+    """Indent new lines in a string. Used for multi-line descriptions.
+    """
+    return string.replace("\n", "\n"+indent)
+
 def _FormatTypeForDocstring(typeName):
     """Removes the exclamation mark and converts basic Golang types to Python types.
     """
@@ -106,12 +111,12 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
         print('        Args:')
         for parameter in parameters:
             isOptionalString = ", optional" if parameter['parameterNullable'] else ""
-            print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, parameter['parameterDescription']))
+            print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
         print('            fields (list or dict, optional): Specifies a subset of fields to return.')
         print('            timeout (float, optional): Number of seconds to wait for response.')
         print('')
         print('        Returns:')
-        print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), returnType['description']))
+        print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
         print('        """')
     print('        parameterNameTypeValues = [')
     for parameter in parameters:

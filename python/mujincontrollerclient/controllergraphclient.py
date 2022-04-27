@@ -321,8 +321,8 @@ class ControllerGraphQueries:
 
         Returns:
             RobotMotionParameters: A set of parameters that constrain the motion of a robot, e.g. maximum tool (cartesian) speed and acceleration.
-Also includes information about the robot model and maker.
-These parameters are used only during planning - the values in SafetySpeedConstraintsInfo are used to limit speed during execution.
+                    Also includes information about the robot model and maker.
+                    These parameters are used only during planning - the values in SafetySpeedConstraintsInfo are used to limit speed during execution.
         """
         parameterNameTypeValues = [
             ('bodyId', 'String!', bodyId),
@@ -1281,8 +1281,8 @@ class ControllerGraphMutations:
 
         Returns:
             RobotMotionParameters: A set of parameters that constrain the motion of a robot, e.g. maximum tool (cartesian) speed and acceleration.
-Also includes information about the robot model and maker.
-These parameters are used only during planning - the values in SafetySpeedConstraintsInfo are used to limit speed during execution.
+                    Also includes information about the robot model and maker.
+                    These parameters are used only during planning - the values in SafetySpeedConstraintsInfo are used to limit speed during execution.
         """
         parameterNameTypeValues = [
             ('bodyId', 'String!', bodyId),
@@ -1949,8 +1949,8 @@ These parameters are used only during planning - the values in SafetySpeedConstr
 
         Returns:
             RobotMotionParameters: A set of parameters that constrain the motion of a robot, e.g. maximum tool (cartesian) speed and acceleration.
-Also includes information about the robot model and maker.
-These parameters are used only during planning - the values in SafetySpeedConstraintsInfo are used to limit speed during execution.
+                    Also includes information about the robot model and maker.
+                    These parameters are used only during planning - the values in SafetySpeedConstraintsInfo are used to limit speed during execution.
         """
         parameterNameTypeValues = [
             ('bodyId', 'String!', bodyId),
