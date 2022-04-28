@@ -716,9 +716,10 @@ class ControllerClient(object):
 
     def CreateLogEntries(self, logEntries, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
-        return self._webclient.APICall('POST', u'logEntry/', data={
-            'logEntries': logEntries,
-        }, fields=fields, timeout=timeout)
+        files = []
+        for logEntry in logEntries:
+            files.append(('logEntry', (None, json.dumps(logEntry), 'application/json')))
+        return self._webclient.APICall('POST', u'logEntry/', files=files, fields=fields, timeout=timeout)
         
     #
     # Controller State
