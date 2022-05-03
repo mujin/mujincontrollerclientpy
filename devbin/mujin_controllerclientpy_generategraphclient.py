@@ -29,8 +29,7 @@ def _ParseArguments():
 def _FetchServerVersionAndSchema(url, username, password):
     from mujincontrollerclient.controllerclientraw import ControllerWebClient
     webClient = ControllerWebClient(url, username, password)
-    response = webClient.Request('HEAD', '/api/v2')
-    assert response.status_code == 200, 'Unable to fetch server version: %s' % response
+    response = webClient.Request('HEAD', '/')
     serverVersion = response.headers['Server'].split()[0]
     log.info('server version determined to be: %s', serverVersion)
     schema = graphql.build_client_schema(webClient.CallGraphAPI(graphql.get_introspection_query(descriptions=True), {}))
