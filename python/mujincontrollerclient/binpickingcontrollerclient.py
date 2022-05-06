@@ -431,20 +431,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
 
-    def SendCurrentLayoutData(self, containername, containerLayoutSize, ioVariableName, includeTargetsWithPrefix, timeout=10, usewebapi=True, **kwargs):
-        '''
-        requests for sending layoutdata to plc
-        '''
-        taskparameters = {
-            'command': 'SendCurrentLayoutData',
-            'containername': containername,
-            'containerLayoutSize': containerLayoutSize,
-            'ioVariableName': ioVariableName,
-            'includeTargetsWithPrefix': includeTargetsWithPrefix
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
-
     def ClearVisualization(self, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         """
         clears visualization
@@ -460,14 +446,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'GetPlanStatistics'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
-    def ResetCurrentLayoutData(self, usewebapi=False, fireandforget=True, **kwargs):
-        """
-        resets current layout data
-        """
-        taskparameters = {'command': 'ResetCurrentLayoutData'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def SetCurrentLayoutDataSendOnObjectUpdateData(self, doUpdate, containername=None, containerLayoutSize=None, ioVariableName=None, usewebapi=False, fireandforget=True, **kwargs):
         """
