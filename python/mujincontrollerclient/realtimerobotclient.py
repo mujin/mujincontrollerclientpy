@@ -1117,6 +1117,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # Motor test related.
     #
+    # TODO(felixvd): These are linked in systemmanager.py because they appear in the GUI. But none of them use WebAPI, so that's ok.
 
     def RunMotorControlTuningStepTest(self, jointName, amplitude, timeout=10, usewebapi=False, **kwargs):
         """runs step response test on specified joint and returns result
