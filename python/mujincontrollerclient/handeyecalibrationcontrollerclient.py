@@ -63,6 +63,4 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({
             'command': 'ReloadModule',
-            'sceneparams': self.sceneparams,
-            'tasktype': self.tasktype,
         }, **kwargs)
