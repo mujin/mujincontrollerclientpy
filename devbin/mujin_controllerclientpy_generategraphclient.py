@@ -53,6 +53,8 @@ def _FormatTypeForDocstring(typeName):
         return 'str'
     elif _typeName == 'Int':
         return 'int'
+    elif _typeName == 'Float':
+        return 'float'
     elif _typeName == 'Boolean':
         return 'bool'
     else:
@@ -139,6 +141,98 @@ def _PrintTypeDatabase(typeDatabase):
         print('        },')
     print('    }')
 
+def isBasicType(t):
+    if t in ['String', 'Float', 'Boolean', 'Int']:
+        return True
+    elif t in ['Any']:  # Exception for objectDescription parameter, which does not have a type
+        return True
+    else:
+        return False
+
+def _MakeConstructor(fields, indent='    '):
+    """
+    """
+    s = indent + 'def __init__(self'
+    for fieldName, _ in fields:
+        s += ', ' + fieldName + '=None'
+    s += '):'
+    return s
+
+
+def _PrintTypesAsClasses(typeDatabase):
+    """Create Python classes inspired by systemmanager/models.py, based on the graphAPI types.
+    """
+    indent = '    '
+    indent2 = indent*2
+    indent3 = indent*3
+    for typeName, typeDefinition in sorted(typeDatabase.items()):
+        modelName = '' + typeName
+        print('class ' + modelName + '(dict):')
+        print('    """')
+        if typeDefinition['description']:
+            for line in typeDefinition['description'].split('\n'):
+                print('    %s' % line)
+        print('')
+
+        s = '    '
+        if 'Input' in modelName:
+            s += 'This class is an input type, meant to be passed to a function of controllergraphclient.'
+        if not 'Input' in modelName:
+            s += "This class is a return type, returned by a function of controllergraphclient. Not all fields may be intended for editing."
+            if modelName + 'Input' in typeDatabase:
+                s += " Also see the 'Input' version of this class."
+
+        s += '\n\n    This class exposes its fields as properties for convenience, so they can be accessed more easily and auto-completed in most editors.'
+        if 'Input' in modelName:
+            s += ' This class behaves like a regular Python dictionary, which means that methods which take an instance of this class as an input also accept a dictionary, and the input does not first need to be converted to this class.'
+        print(s)
+        print('    """')
+        
+        fields = sorted(typeDefinition['fields'].items())  # Sorted for repeatability
+
+        # Constructor (declaration and docstring)
+        print()
+        print(_MakeConstructor(fields))
+        print(indent2 + '"""')
+        if typeDefinition['description']:
+            for line in typeDefinition['description'].split('\n'):
+                print(indent2 + '%s' % line)
+        print('')
+        # TODO(felixvd): Enforce the keyword-only behavior when Python 3 transition is finished (as in https://stackoverflow.com/questions/31939890/function-which-allows-only-name-arguments )
+        print(indent2 + 'The argument order may change in future releases. Only instantiate this object with named arguments (do not use positional args).')
+        print('')
+        print(indent2 + 'Args:')
+        for fieldName, fieldDefinition in fields:
+            isOptionalString = ""  # ", optional"
+            print(indent3 + '%s (%s%s): %s' % (fieldName, _FormatTypeForDocstring(fieldDefinition['baseTypeName']), isOptionalString, fieldDefinition['description']))
+        print(indent2 + '"""')
+
+        # Constructor (content)
+        for fieldName, fieldDefinition in fields:
+            # TODO(felixvd): Can this be made into one line with self['%s'] = %s if %s is not None , or does this perform worse?
+            print(indent2 + "if %s is not None:" % fieldName)
+            print(indent2 + "    self['%s'] = %s" % (fieldName, fieldName))
+            if not isBasicType(fieldDefinition['baseTypeName']) and fieldDefinition['baseTypeName'] != 'DateTime': # It is one of our types, so we instantiate an empty one (this allows descending into the tree)
+                print(indent2 + "else:")
+                print(indent2 + "    self['%s'] = %s()" % (fieldName, fieldDefinition['baseTypeName']))
+
+        print('')
+
+        # Property/Setter pairs
+        for fieldName, fieldDefinition in fields:
+            print('    @property')
+            print('    def %s(self):' % fieldName)
+            if fieldDefinition.get('description', None):
+                print('        """' + fieldDefinition['description'])
+                print('        """')
+            print("        return self.get('%s', None)" % fieldName)
+            print('')
+            print('    @%s.setter' % fieldName)
+            print('    def %s(self, value):' % fieldName)
+            print("        self['%s'] = value" % fieldName)
+            print('')
+        
+        
 def _PrintClient(serverVersion, queryMethods, mutationMethods, typeDatabase):
     print('# -*- coding: utf-8 -*-')
     print('#')
@@ -164,6 +258,10 @@ def _PrintClient(serverVersion, queryMethods, mutationMethods, typeDatabase):
     print('class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, ControllerGraphMutations):')
     print('')
     _PrintTypeDatabase(typeDatabase)
+    print('')
+    print('# ===== Types are defined below')
+    print('')
+    _PrintTypesAsClasses(typeDatabase)
     print('')
     print('#')
     print('# DO NOT EDIT, THIS FILE WAS AUTO-GENERATED, SEE HEADER')
