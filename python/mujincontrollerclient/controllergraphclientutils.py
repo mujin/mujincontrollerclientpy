@@ -34,12 +34,14 @@ class ControllerGraphClientBase(object):
 
     def _CallSimpleGraphAPI(self, queryOrMutation, operationName, parameterNameTypeValues, returnType, fields=None, timeout=None):
         """
-        :param queryOrMutation: either "query" or "mutation"
-        :param operationName: name of the operation
-        :param parameterNameTypeValues: list of tuple (parameterName, parameterType, parameterValue)
-        :param returnType: name of the return type to look up in typeDatabase, used to construct query fields
-        :param fields: list of fieldName to filter for
-        :param timeout: timeout in seconds
+
+        Args:
+            queryOrMutation (string): either "query" or "mutation"
+            operationName (string): name of the operation
+            parameterNameTypeValues (list): list of tuple (parameterName, parameterType, parameterValue)
+            returnType (string): name of the return type to look up in typeDatabase, used to construct query fields
+            fields (list[string]): list of fieldName to filter for
+            timeout (float): timeout in seconds
         """
         if timeout is None:
             timeout = 5.0

@@ -29,8 +29,7 @@ def _ParseArguments():
 def _FetchServerVersionAndSchema(url, username, password):
     from mujincontrollerclient.controllerclientraw import ControllerWebClient
     webClient = ControllerWebClient(url, username, password)
-    response = webClient.Request('HEAD', '/api/v2')
-    assert response.status_code == 200, 'Unable to fetch server version: %s' % response
+    response = webClient.Request('HEAD', '/')
     serverVersion = response.headers['Server'].split()[0]
     log.info('server version determined to be: %s', serverVersion)
     schema = graphql.build_client_schema(webClient.CallGraphAPI(graphql.get_introspection_query(descriptions=True), {}))
@@ -40,6 +39,24 @@ def _DereferenceType(graphType):
     while hasattr(graphType, 'of_type'):
         graphType = graphType.of_type
     return graphType
+
+def _IndentNewlines(string, indent="    "*5):
+    """Indent new lines in a string. Used for multi-line descriptions.
+    """
+    return string.replace("\n", "\n"+indent)
+
+def _FormatTypeForDocstring(typeName):
+    """Removes the exclamation mark and converts basic Golang types to Python types.
+    """
+    _typeName = str(typeName).replace("!", "")
+    if _typeName == 'String':
+        return 'str'
+    elif _typeName == 'Int':
+        return 'int'
+    elif _typeName == 'Boolean':
+        return 'bool'
+    else:
+        return _typeName
 
 def _DiscoverType(graphType, typeDatabase):
     baseFieldType = _DereferenceType(graphType)
@@ -92,12 +109,13 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
         print('')
         print('        Args:')
         for parameter in parameters:
-            print('            %s (%s): %s' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterDescription']))
-        print('            fields (list or dict): Optionally specify a subset of fields to return.')
-        print('            timeout (float): Number of seconds to wait for response.')
+            isOptionalString = ", optional" if parameter['parameterNullable'] else ""
+            print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
+        print('            fields (list or dict, optional): Specifies a subset of fields to return.')
+        print('            timeout (float, optional): Number of seconds to wait for response.')
         print('')
         print('        Returns:')
-        print('            %s: %s' % (returnType['typeName'], returnType['description']))
+        print('            %s: %s' % (_FormatTypeForDocstring(returnType['typeName']), _IndentNewlines(returnType['description'])))
         print('        """')
     print('        parameterNameTypeValues = [')
     for parameter in parameters:
