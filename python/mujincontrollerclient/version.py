@@ -1,2 +1,3 @@
-__version__ = '0.15.1'
-__CHANGELOG__ = "move ResetCachedRobotConfigurationState to realtimerobotclient"
+__version__ = '0.15.2'
+
+# Do not forget to update CHANGELOG.md
