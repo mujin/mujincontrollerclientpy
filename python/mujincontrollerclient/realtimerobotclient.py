@@ -185,7 +185,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             toolname (str, optional): Name of the manipulator. Default: self.toolname
             timeout (float, optional):  (Default: 10)
             robotspeed (float, optional):
-            maxdeviationangle (float): How much the tool tip can rotationally deviate from the linear path. In deg.
+            workmaxdeviationangle (float): How much the tool tip can rotationally deviate from the linear path. In deg.
             workspeed (float): [anglespeed, transspeed] in deg/s and mm/s
             workaccel (float): [angleaccel, transaccel] in deg/s^2 and mm/s^2
             worksteplength (float): Discretization for planning MoveHandStraight, in seconds.
