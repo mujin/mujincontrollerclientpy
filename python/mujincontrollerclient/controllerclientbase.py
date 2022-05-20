@@ -17,6 +17,7 @@ from . import ugettext as _
 from . import json
 from . import urlparse
 from . import uriutils
+from . import encodingutils
 from . import controllergraphclient
 
 # Logging
@@ -717,8 +718,10 @@ class ControllerClient(object):
     def CreateLogEntries(self, logEntries, fields=None, usewebapi=True, timeout=5):
         assert(usewebapi)
         files = []
+        # we need to use the regular json library instead of ujson since ujson doesn't support custom encoders
+        import json 
         for logEntry in logEntries:
-            files.append(('logEntry', (None, json.dumps(logEntry), 'application/json')))
+            files.append(('logEntry', (None, json.dumps(logEntry, cls=encodingutils.DatetimeEncoder), 'application/json')))
         return self._webclient.APICall('POST', u'logEntry/', files=files, fields=fields, timeout=timeout)
         
     #
