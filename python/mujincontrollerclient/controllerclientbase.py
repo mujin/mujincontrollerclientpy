@@ -144,6 +144,7 @@ class ControllerClient(object):
 
         self._userinfo = {
             'username': self.controllerusername,
+            'password': self.controllerpassword,
             'locale': os.environ.get('LANG', ''),
         }
         self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author)
