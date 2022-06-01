@@ -816,33 +816,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        """Moves the robot to desired joint angles.
-
-        Args:
-            dropOffInfo:
-            robotname (str, optional): Name of the robot
-            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
-            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
-            execute:  (Default: 1)
-            startvalues (list[float], optional):
-            envclearance (float, optional): Environment clearance in millimeters
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
-        """
-        taskparameters = {
-            'command': 'MoveToDropOff',
-            'dropOffInfo': dropOffInfo,
-            'execute': execute,
-        }
-        if envclearance is not None:
-            taskparameters['envclearance'] = envclearance
-        if startvalues is not None:
-            taskparameters['startvalues'] = list(startvalues)
-
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
-    
     def GetRobotBridgeIOVariables(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """Returns the data of the IO in ascii hex as a string
 
