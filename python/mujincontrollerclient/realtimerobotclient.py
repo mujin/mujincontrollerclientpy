@@ -174,8 +174,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             workaccel (float): [angleaccel, transaccel] in deg/s^2 and mm/s^2
             worksteplength (float): Discretization for planning MoveHandStraight, in seconds.
             plannername (str):
-            workminimumcompletetime (float): Set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
-            workminimumcompleteratio (float): In case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything
             numspeedcandidates (int): If speed/accel are not specified, the number of candiates to consider
             workignorefirstcollisionee (float): time, necessary in case initial is in collision, has to be multiples of step length?
             workignorelastcollisionee (float): time, necessary in case goal is in collision, has to be multiples of step length?
@@ -465,7 +463,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['activeLocationTrackingInfos']
     
-    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, updateTimeStampMS=None, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """Resets the tracking of specific containers
 
         Args:
@@ -473,7 +471,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             containerName (str):
             containerId (str):
             containerType (str):
-            updateTimeStampMS (optional): if specified then setup updatetimestamp on container (time when container arrives and becomes valid for usage)
             trackingCycleIndex (optional): if specified then cycle with same cycleIndex will update location tracking in the same call
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
@@ -486,8 +483,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'containerId': containerId,
             'containerType': containerType,
         }
-        if updateTimeStampMS is not None:
-            taskparameters['updateTimeStampMS'] = updateTimeStampMS
         if trackingCycleIndex is not None:
             taskparameters['trackingCycleIndex'] = trackingCycleIndex
         taskparameters.update(kwargs)
