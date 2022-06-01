@@ -160,22 +160,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def MoveJointStraight(self, deltagoalvalue, jointName, timeout=10, robotspeed=None, **kwargs):
-        """Moves a single joint by a given amount
-
-        Args:
-            deltagoalvalue (float): How much to move joint (delta)
-            jointName (str): Name of the joint to move
-            timeout (float, optional):  (Default: 10)
-            robotspeed (float, optional):
-        """
-        taskparameters = {'command': 'MoveJointStraight',
-                          'deltagoalvalue': deltagoalvalue,
-                          'jointName': jointName,
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
-
     def MoveToolLinear(self, goaltype, goals, toolname=None, timeout=10, robotspeed=None, **kwargs):
         """Moves the tool linear
 
@@ -708,19 +692,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
 
-    def ResetRobotBridges(self, timeout=10, usewebapi=True, **kwargs):
-        """Resets the robot bridge states
-
-        Args:
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
-        """
-        taskparameters = {
-            'command': 'ResetRobotBridges'
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-
     def MoveJointsToJointConfigurationStates(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """Moves the robot to desired joint angles specified in jointStates
 
@@ -877,66 +848,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'command': 'SetRobotBridgeIOVariables',
             'iovalues': list(iovalues)
         }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
-    def SetRobotBridgeIOVariableAsciiHex16(self, ioname, iovalue, robotname=None, timeout=20, usewebapi=None, **kwargs):
-        """
-
-        Args:
-            ioname (str):
-            iovalue:
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 20)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-        """
-        taskparameters = {
-            'command': 'SetRobotBridgeIOVariableAsciiHex16',
-            'ioname': ioname,
-            'iovalue': iovalue,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
-    def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """Returns the data of the IO in ascii hex as a string
-
-        Args:
-            ioname (str, optional): One IO name to read
-            ionames (list[str], optional): A list of the IO names to read
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-        """
-        taskparameters = {
-            'command': 'GetRobotBridgeIOVariableAsciiHex16'
-        }
-        if ioname is not None and len(ioname) > 0:
-            taskparameters['ioname'] = ioname
-        if ionames is not None and len(ionames) > 0:
-            taskparameters['ionames'] = ionames
-
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
-    def GetRobotBridgeIOVariableString(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """Returns the data of the IO in ascii hex as a string
-
-        Args:
-            ioname (str, optional): One IO name to read
-            ionames (list[str], optional): A list of the IO names to read
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-        """
-        taskparameters = {
-            'command': 'GetRobotBridgeIOVariableString'
-        }
-        if ioname is not None and len(ioname) > 0:
-            taskparameters['ioname'] = ioname
-        if ionames is not None and len(ionames) > 0:
-            taskparameters['ionames'] = ionames
-        
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
