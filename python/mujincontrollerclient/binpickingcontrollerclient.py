@@ -17,19 +17,21 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
 
     def __init__(self, regionname=None, **kwargs):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
-        :param controllerurl: url of the mujin controller, e.g. http://controller14
-        :param controllerusername: username of the mujin controller, e.g. testuser
-        :param controllerpassword: password of the mujin controller
-        :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7110
-        :param binpickingheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
-        :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no heartbeat is received, e.g. 7
-        :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
-        :param robotname: name of the robot, e.g. VP-5243I
-        :param regionname: name of the bin, e.g. container1
-        :param toolname: name of the manipulator, e.g. 2BaseZ
-        :param envclearance: environment clearance in millimeters, e.g. 20
-        :param usewebapi: whether to use webapi for controller commands
-        :param robotaccelmult: optional multiplier for forcing the acceleration
+        
+        Args:
+            controllerurl: url of the mujin controller, e.g. http://controller14
+            controllerusername: username of the mujin controller, e.g. testuser
+            controllerpassword: password of the mujin controller
+            taskzmqport: port of the binpicking task's zmq server, e.g. 7110
+            taskheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
+            taskheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no heartbeat is received, e.g. 7
+            scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
+            robotname: name of the robot, e.g. VP-5243I
+            regionname: name of the bin, e.g. container1
+            toolname: name of the manipulator, e.g. 2BaseZ
+            envclearance: environment clearance in millimeters, e.g. 20
+            usewebapi: whether to use webapi for controller commands
+            robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(BinpickingControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
 
