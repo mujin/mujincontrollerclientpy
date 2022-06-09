@@ -967,7 +967,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             toolname (str, optional): Tool name
-            timeout (float, optional):  (Default: 10)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            targetname (str, optional): Name of the target object
+            graspsetname (str, optional): Name of the grasp set to use
+            ikparamnames (list, optional): If graspset does not exist, use the ikparamnames to initialize the grasp.
+            limit (float, optional): Number of solutions to return
+            useSolutionIndices (bool, optional): 
+            disabletarget (bool, optional): 
+            unit (str, optional): The unit of the given values. (Default: mm)
+            randomBoxInfo (dict, optional): info structure for maintaining grasp parameters for random box picking. Used when picking up randomized boxes (targetIsRandomBox is True), Keys are: usefaces, dictFacePriorities, boxDirAngle, toolTranslationOffsets
+            freeincvalue (float, optional): The discretization of the free joints of the robot when computing ik.
+            freeinc (float, optional): (deprecated) The discretization of the free joints of the robot when computing ik.
+            applyapproachoffset (bool, optional): 
+            inPlaneAngleDeviation (float, optional): 
+            outOfPlaneAngleDeviation (float, optional): 
+            searchfreeparams (bool, optional): 
+            returnClosestToCurrent (bool, optional): 
+            filteroptionslist (list, optional): A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions. Overrides filteroptions.
+            filteroptions (int, optional): OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked
 
         Returns:
             A dictionary of:
@@ -1044,6 +1061,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # jogging related
     #
+
     def SetJogModeVelocities(self, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """
 
@@ -1088,7 +1106,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            servoon:
+            servoon (bool): If True, turns servo on.
             robotname (str, optional): Name of the robot
             timeout (float, optional):  (Default: 3)
             fireandforget (bool, optional):  (Default: False)
@@ -1103,7 +1121,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            islockmode:
+            islockmode (bool): If True, turns on Lock Mode. During Lock Mode, all communication with the physical robot is turned off and the hardware will not move.
             robotname (str, optional): Name of the robot
             timeout (float, optional):  (Default: 3)
             fireandforget (bool, optional):  (Default: False)
@@ -1130,7 +1148,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            controlMode:
+            controlMode (str): The control mode to use, e.g. "Manual".
             timeout (float, optional):  (Default: 3)
             fireandforget (bool, optional):  (Default: False)
         """
@@ -1226,8 +1244,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs step response test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1244,8 +1262,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs maximum length sequence test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1261,9 +1279,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs chirp test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
-            freqMax:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
+            freqMax (float): The maximum frequency in Hz
             timeout (float, optional):  (Default: 120)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1280,8 +1298,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs Gaussian Impulse test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 20)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1297,8 +1315,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs bangbang trajectory in acceleration or jerk space and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 60)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1358,14 +1376,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    # def RunDynamicsIdentificationInertiaTest(self):
-    #     # TODO
-    #     pass
-
-    # def RunDynamicsIdentificationCenterOfMassTest(self):
-    #     # TODO
-    #     pass
-
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
 
@@ -1383,7 +1393,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Gets motor control parameters as name-value dict
 
         Args:
-            jointName:
+            jointName (str): The name of the joint.
             parameterName:
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
             timeout (float, optional):  (Default: 10)
@@ -1413,7 +1423,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Sets motor control parameter
 
         Args:
-            jointName:
+            jointName (str): The name of the joint.
             parameterName:
             parameterValue:
             timeout (float, optional):  (Default: 10)
