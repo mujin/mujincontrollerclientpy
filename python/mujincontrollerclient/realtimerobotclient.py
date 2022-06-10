@@ -1498,24 +1498,154 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def UpdateObjects(self, envstate, targetname=None, state=None, unit="mm", timeout=10, **kwargs):
+# ============ The methods below are auto-generated
+
+    def UpdateObjects(self,
+    envstate,
+    targetname=None,
+    state=None,
+    unit='mm',
+    timeout=10,
+    callerid=None,
+    detectionResultState=None,
+    targetUpdateNamePrefix=None,
+    cameranames=None,
+    countOverlappingPoints=None,
+    overlapUpAxis=None,
+    zthresholdmult=None,
+    addUnpickableRegionAcrossShortEdgeDist=None,
+    sizeRoundUp=None,
+    sizePrecisionXYZ=None,
+    points=None,
+    pointsize=None,
+    pointcloudid=None,
+    locationName=None,
+    containerName=None,
+    locationContainerId=None,
+    isFromStateSlaveNotify=None,
+    imageStartTimeStampMS=None,
+    imageEndTimeStampMS=None,
+    belowBoxOverlap=0,
+    ignoreOverlapPointsFromWall=0,
+    ignoreOverlapPointsFromNearbyTargets=0,
+    castPointCloudShadowFromCamera=None,
+    pointsProjectedDirection=None,
+    randomBoxOrigin=None,
+    rollStepDegree=90,
+    clampToContainer=None,
+    medianFilterHalfSize=None,
+    useEmptyRegionForCropping=None,
+    cropContainerMarginsXYZXYZ=None,
+    ioSignalsInfo=None,
+    addPointOffsetInfo=None):
         """Updates objects in the scene with the envstate
 
         Args:
             envstate: A list of dictionaries for each instance object in world frame. Quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0], 'object_uri':'mujin:/asdfas.mujin.dae'}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
-            targetname (optional):
-            state (optional):
-            unit (str, optional): Unit of envstate. Default: mm
-            timeout (float, optional):  (Default: 10)
+            targetname (str, optional): Name of the target object
+            state (dict, optional): 
+            unit (str, optional): The unit of the given values. (Default: mm)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            callerid (str, optional): The name of the caller (only used internally)
+            detectionResultState (dict, optional): Information about the detected objects (received from detectors)
+            targetUpdateNamePrefix (str, optional): 
+            cameranames (list, optional): 
+            countOverlappingPoints (bool, optional): 
+            overlapUpAxis (list, optional): 
+            zthresholdmult (float, optional): 
+            addUnpickableRegionAcrossShortEdgeDist (bool, optional): 
+            sizeRoundUp (bool, optional): If False, then round down. (Default: True)
+            sizePrecisionXYZ (list, optional): mm (x,y,z) for rounding up incoming boxes from the detector. This allows previous grasping models to be cached and re-used since the sizes will be multiples of the current precision.
+            points (list, optional): The point cloud passed in along with the detection results. Used in selective cases to count point overlap of random box.
+            pointsize (float, optional): Size of points in the point cloud.
+            pointcloudid (str, optional): 
+            locationName (str, optional): Name of the location to update.
+            containerName (str, optional): Name of the container to update. Requires locationName to be set. If containerName is empty, will use the container in locationName.
+            locationContainerId (str, optional): 
+            isFromStateSlaveNotify (bool, optional): 
+            imageStartTimeStampMS (int, optional): 
+            imageEndTimeStampMS (int, optional): 
+            belowBoxOverlap (float, optional): mm, Threshold on how much to ignore the relative heights of two neighboring targets to determine if the candidate is *below* the current pickup target. Positive value the pickup target is allowed to be under the other non-pickup targets by this amount, and still be pickable. When two targets are deemed to be overlapping on the face orthogonal to overlapUpAxis based on neighOverlapThresh, then check the heights of the targets to make sure that one target is really above the other. Sometimes detection error can cause two targets on the same height to be overlapped a little, but that doesn't mean that one target is on top of the other. (Default: 0)
+            ignoreOverlapPointsFromWall (float, optional): mm, distance from the container inner walls within which pointcloud points do not count towards overlapping points (Default: 0)
+            ignoreOverlapPointsFromNearbyTargets (float, optional): mm, amount of target extents reduction when counting the number of overlapping pointcloud points. This is so that pointcloud near the edges of the target (can come from noises from nearby targets, for example) can be ignored. (Default: 0)
+            castPointCloudShadowFromCamera (bool, optional): If True, bottom parts of pointcloud obstacle are generated by casting shadow from camera. otherwise, vertical down (-z).
+            pointsProjectedDirection (list, optional): The negative direction in which the points were projected when creating the obstacles. If specified, then take into account when computing the overlap. When container up is +Z, then pointsProjectedDirection will be (0,0,1).
+            randomBoxOrigin (list, optional): Specifying where to place the origin of the incoming box detections. By default [0,0,1] means the origin will be at the center of the +Z (top) face.
+            rollStepDegree (float, optional): Step of 6D grasp rotation around z axis in degrees, defaults to 45 degrees. (Default: 90)
+            clampToContainer (bool, optional): If True, crop to container dimensions.
+            medianFilterHalfSize (float, optional): If clampcontainer is True, this is used for filtering.
+            useEmptyRegionForCropping (bool, optional): If clampcontainer is True, this is used for filtering.
+            cropContainerMarginsXYZXYZ (list, optional): Margin defining an axis aligned bounding box to limit point cloud data for the container. Values are measured from the interior of container edges. Positive value means cropping, negative value means additional margin. 
+            ioSignalsInfo (dict, optional): Struct for dictating if any IO signals should be written on receiving detection results
+            addPointOffsetInfo (dict, optional): Special offsets from pointcloud
         """
-        taskparameters = {'command': 'UpdateObjects',
-                          'envstate': envstate,
-                          'unit': unit,
-                          }
+        taskparameters = {
+            'command': 'UpdateObjects',
+            'envstate': envstate,
+            'unit': unit,
+            'belowBoxOverlap': belowBoxOverlap,
+            'ignoreOverlapPointsFromWall': ignoreOverlapPointsFromWall,
+            'ignoreOverlapPointsFromNearbyTargets': ignoreOverlapPointsFromNearbyTargets,
+            'rollStepDegree': rollStepDegree,
+        }
         if targetname is not None:
-            taskparameters['objectname'] = targetname
-            taskparameters['object_uri'] = u'mujin:/%s.mujin.dae' % (targetname)
-        taskparameters.update(kwargs)
+            taskparameters['targetname'] = targetname
         if state is not None:
-            taskparameters['state'] = json.dumps(state)
+            taskparameters['state'] = state
+        if callerid is not None:
+            taskparameters['callerid'] = callerid
+        if detectionResultState is not None:
+            taskparameters['detectionResultState'] = detectionResultState
+        if targetUpdateNamePrefix is not None:
+            taskparameters['targetUpdateNamePrefix'] = targetUpdateNamePrefix
+        if cameranames is not None:
+            taskparameters['cameranames'] = cameranames
+        if countOverlappingPoints is not None:
+            taskparameters['countOverlappingPoints'] = countOverlappingPoints
+        if overlapUpAxis is not None:
+            taskparameters['overlapUpAxis'] = overlapUpAxis
+        if zthresholdmult is not None:
+            taskparameters['zthresholdmult'] = zthresholdmult
+        if addUnpickableRegionAcrossShortEdgeDist is not None:
+            taskparameters['addUnpickableRegionAcrossShortEdgeDist'] = addUnpickableRegionAcrossShortEdgeDist
+        if sizeRoundUp is not None:
+            taskparameters['sizeRoundUp'] = sizeRoundUp
+        if sizePrecisionXYZ is not None:
+            taskparameters['sizePrecisionXYZ'] = sizePrecisionXYZ
+        if points is not None:
+            taskparameters['points'] = points
+        if pointsize is not None:
+            taskparameters['pointsize'] = pointsize
+        if pointcloudid is not None:
+            taskparameters['pointcloudid'] = pointcloudid
+        if locationName is not None:
+            taskparameters['locationName'] = locationName
+        if containerName is not None:
+            taskparameters['containerName'] = containerName
+        if locationContainerId is not None:
+            taskparameters['locationContainerId'] = locationContainerId
+        if isFromStateSlaveNotify is not None:
+            taskparameters['isFromStateSlaveNotify'] = isFromStateSlaveNotify
+        if imageStartTimeStampMS is not None:
+            taskparameters['imageStartTimeStampMS'] = imageStartTimeStampMS
+        if imageEndTimeStampMS is not None:
+            taskparameters['imageEndTimeStampMS'] = imageEndTimeStampMS
+        if castPointCloudShadowFromCamera is not None:
+            taskparameters['castPointCloudShadowFromCamera'] = castPointCloudShadowFromCamera
+        if pointsProjectedDirection is not None:
+            taskparameters['pointsProjectedDirection'] = pointsProjectedDirection
+        if randomBoxOrigin is not None:
+            taskparameters['randomBoxOrigin'] = randomBoxOrigin
+        if clampToContainer is not None:
+            taskparameters['clampToContainer'] = clampToContainer
+        if medianFilterHalfSize is not None:
+            taskparameters['medianFilterHalfSize'] = medianFilterHalfSize
+        if useEmptyRegionForCropping is not None:
+            taskparameters['useEmptyRegionForCropping'] = useEmptyRegionForCropping
+        if cropContainerMarginsXYZXYZ is not None:
+            taskparameters['cropContainerMarginsXYZXYZ'] = cropContainerMarginsXYZXYZ
+        if ioSignalsInfo is not None:
+            taskparameters['ioSignalsInfo'] = ioSignalsInfo
+        if addPointOffsetInfo is not None:
+            taskparameters['addPointOffsetInfo'] = addPointOffsetInfo
         return self.ExecuteCommand(taskparameters, timeout=timeout)
