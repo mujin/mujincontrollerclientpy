@@ -222,18 +222,18 @@ services:
         '#/components/Internal_MoveCommandDecoratorParameters', 
         '#/components/Internal_SetRobotClientParameters'
         ]
-  # GetInertiaChildJointStartValues:  # TODO: (felixvd) This function doesn't exist. Delete it. 
-  #   parameters:
-  #     timeout:
-  #       $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
-  #       default: 10
-  #       orderNumber: 1
-  #     usewebapi:
-  #       $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
-  #       default: false
-  #       orderNumber: 0
-  #     kwargs:
-  #       description: 'TODO: Look up these undefined parameters and remove the kwargs call'
+  GetInertiaChildJointStartValues:  # TODO: (felixvd) This function doesn't exist. Delete it. 
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+      kwargs:
+        description: 'TODO: Look up these undefined parameters and remove the kwargs call'
   GetTimeToRunDynamicsIdentificationTest:
     parameters:
       jointName:
@@ -878,42 +878,42 @@ services:
       $ref: [
         '#/components/Internal_SetRobotClientParameters'
         ]
-  ### This is only used in BinpickingClient and probably should only be defined there.
-  # MoveToDropOff:
-  #   description: Moves the robot to desired joint angles.
-  #   parameters:
-  #     dropOffInfo:
-  #       orderNumber: 0
-  #       required: true
-  #     envclearance:
-  #       $ref: '#/components/envclearance'
-  #       orderNumber: 6
-  #     execute:
-  #       $ref: '#/components/execute'
-  #       default: 1
-  #       orderNumber: 4
-  #     robotaccelmult:
-  #       $ref: '#/components/robotaccelmult'
-  #       orderNumber: 3
-  #     robotname:
-  #       $ref: '#/components/robotname'
-  #       orderNumber: 1
-  #     robotspeed:
-  #       $ref: '#/components/robotspeed'
-  #       orderNumber: 2
-  #     startvalues:
-  #       $ref: '#/components/startvalues'
-  #       orderNumber: 5
-  #     timeout:
-  #       $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
-  #       default: 10
-  #       orderNumber: 7
-  #     usewebapi:
-  #       $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
-  #       default: true
-  #       orderNumber: 8
-  #     kwargs:
-  #       description: 'TODO: Look up these undefined parameters and remove the kwargs call'
+  ## This is only used in BinpickingClient and probably should only be defined there.
+  MoveToDropOff:
+    description: Moves the robot to desired joint angles.
+    parameters:
+      dropOffInfo:
+        orderNumber: 0
+        required: true
+      envclearance:
+        $ref: '#/components/envclearance'
+        orderNumber: 6
+      execute:
+        $ref: '#/components/execute'
+        default: 1
+        orderNumber: 4
+      robotaccelmult:
+        $ref: '#/components/robotaccelmult'
+        orderNumber: 3
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      robotspeed:
+        $ref: '#/components/robotspeed'
+        orderNumber: 2
+      startvalues:
+        $ref: '#/components/startvalues'
+        orderNumber: 5
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 7
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: true
+        orderNumber: 8
+      kwargs:
+        description: 'TODO: Look up these undefined parameters and remove the kwargs call'
   MoveJointsToPositionConfiguration:
     description: Moves the robot to desired position configuration specified in positionConfigurationName
     parameters:
