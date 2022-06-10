@@ -1009,6 +1009,15 @@ class ControllerClient(object):
         if response.status_code not in (200, 202):
             raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code)
 
+    def DeleteConfig(self, filename, timeout=5):
+        """Delete configuration file on controller.
+        :param filename: filename of the configuration file to delete
+        """
+        path = '/config/%s/' % filename
+        response = self._webclient.Request('DELETE', path, timeout=timeout)
+        if response.status_code not in (200, 204):
+            raise ControllerClientError(_('Failed to delete configuration on controller, status code is %d') % response.status_code)
+
     def GetSystemInfo(self, timeout=3):
         response = self._webclient.Request('GET', '/systeminfo/')
         if response.status_code != 200:
