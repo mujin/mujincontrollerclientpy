@@ -1433,72 +1433,128 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         return self.ExecuteCommand({'command': 'StartProfiling', 'clocktype': clocktype}, usewebapi=usewebapi, timeout=timeout)
 
-    def StopGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+# ============ The methods below are auto-generated
+
+    def StopGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, fireandforget=False, toolname=None, robotspeed=None, robotaccelmult=None, ionames=None):
         """
 
         Args:
             robotname (str, optional): Name of the robot
-            grippername (str, optional): Name of the gripper
-            timeout (float, optional):  (Default: 10)
+            grippername (str, optional): Name of the gripper.
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            fireandforget (bool, optional):  (Default: False)
+            fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server. (Default: False)
+            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
+            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
+            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
+            ionames (list, optional): A list of IO names to read/write
         """
-        taskparameters = {'command': 'StopGripper', 'grippername':grippername}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        taskparameters = {
+            'command': 'StopGripper',
+        }
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
+        if ionames is not None:
+            taskparameters['ionames'] = ionames
+        if grippername is not None:
+            taskparameters['grippername'] = grippername
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
+        if robotname is not None:
+            taskparameters['robotname'] = robotname
+        if usewebapi is not None:
+            taskparameters['usewebapi'] = usewebapi
+        return self.ExecuteCommand(taskparameters, fireandforget=fireandforget, timeout=timeout, usewebapi=usewebapi)
 
     def StopProfiling(self, timeout=10, usewebapi=False):
         """Stop profiling planning
 
         Args:
-            timeout (float, optional):  (Default: 10)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
-        return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
+        taskparameters = {
+            'command': 'StopProfiling',
+        }
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def UnchuckGripper(self, robotname=None, grippername=None, timeout=10, usewebapi=None, **kwargs):
+    def UnchuckGripper(self, targetname, robotname=None, grippername=None, timeout=10, usewebapi=None, toolname=None, pulloutdist=None, deletetarget=None, unit='mm', robotBridgeConnectionInfo=None, locationCollisionInfos=None, robotspeed=None, robotaccelmult=None, ionames=None):
         """Unchucks the manipulator and releases the target
 
         Args:
             robotname (str, optional): Name of the robot
-            grippername (str, optional): Name of the gripper
-            timeout (float, optional):  (Default: 10)
+            grippername (str, optional): Name of the gripper.
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            targetname (str): Name of the target
+            targetname (str): Name of the target object.
+            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
+            pulloutdist (float, optional): Distance to move away along the tool direction after releasing.
+            deletetarget (int, optional): If 1, removes the target object from the environment after releasing. (Default: 1)
+            unit (str, optional): The unit of the given values. (Default: mm)
+            robotBridgeConnectionInfo (dict, optional): Information to set up a client to the robot bridge.
+            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
+            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
+            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
+            ionames (list, optional): A list of IO names to read/write
         """
-        taskparameters = {'command': 'UnchuckGripper', 'grippername':grippername}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
+        taskparameters = {
+            'command': 'UnchuckGripper',
+            'unit': unit,
+            'targetname': targetname,
+        }
+        if robotBridgeConnectionInfo is not None:
+            taskparameters['robotBridgeConnectionInfo'] = robotBridgeConnectionInfo
+        if locationCollisionInfos is not None:
+            taskparameters['locationCollisionInfos'] = locationCollisionInfos
+        if robotspeed is not None:
+            taskparameters['robotspeed'] = robotspeed
+        if robotaccelmult is not None:
+            taskparameters['robotaccelmult'] = robotaccelmult
+        if ionames is not None:
+            taskparameters['ionames'] = ionames
+        if grippername is not None:
+            taskparameters['grippername'] = grippername
+        if toolname is not None:
+            taskparameters['toolname'] = toolname
+        if pulloutdist is not None:
+            taskparameters['pulloutdist'] = pulloutdist
+        if deletetarget is not None:
+            taskparameters['deletetarget'] = deletetarget
+        if robotname is not None:
+            taskparameters['robotname'] = robotname
+        if usewebapi is not None:
+            taskparameters['usewebapi'] = usewebapi
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
 
-    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, updateTimeStampMS=None, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, unit='mm'):
         """Resets the tracking of specific containers
 
         Args:
-            locationName (str):
-            containerName (str):
-            containerId (str):
-            containerType (str):
-            updateTimeStampMS (optional): if specified then setup updatetimestamp on container (time when container arrives and becomes valid for usage)
-            trackingCycleIndex (optional): if specified then cycle with same cycleIndex will update location tracking in the same call
-            timeout (float, optional):  (Default: 10)
+            locationName (str): Name of the location the container is in
+            containerName (str): Name of the container
+            containerId (str): ID of the container
+            containerType (str): Type of the container
+            trackingCycleIndex: If specified, then the cycle with same cycleIndex will update location tracking in the same call.
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            fireandforget (bool, optional):  (Default: False)
+            fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server. (Default: False)
+            unit (str, optional): The unit of the given values. (Default: mm)
         """
         taskparameters = {
             'command': 'UpdateLocationContainerIdType',
-            'locationName': locationName,
-            'containerName': containerName,
             'containerId': containerId,
+            'containerName': containerName,
             'containerType': containerType,
+            'locationName': locationName,
+            'unit': unit,
         }
-        if updateTimeStampMS is not None:
-            taskparameters['updateTimeStampMS'] = updateTimeStampMS
         if trackingCycleIndex is not None:
             taskparameters['trackingCycleIndex'] = trackingCycleIndex
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
-# ============ The methods below are auto-generated
+        if usewebapi is not None:
+            taskparameters['usewebapi'] = usewebapi
+        return self.ExecuteCommand(taskparameters, fireandforget=fireandforget, timeout=timeout, usewebapi=usewebapi)
 
     def UpdateObjects(self,
     envstate,
