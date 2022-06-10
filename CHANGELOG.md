@@ -1,3 +1,8 @@
+# 0.15.3 (2022-06-10)
+
+- Removed `mujin_controllerclientpy_registerscene.py` script that is deprecated.
+- Add `DeleteConfig` api.
+
 # 0.15.2 (2022-05-10)
 
 - Removed old functions and clients:
