@@ -212,7 +212,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             goals (list[float]): Flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
             toolname (str, optional): Name of the manipulator. Default: self.toolname
             envclearance (float): Clearance in millimeter. Default: self.envclearances
-            closegripper: Whether to close gripper once the goal is reached. Default: 0
+            closegripper: (DEPRECATED) Whether to close gripper once the goal is reached. Default: 0
             robotspeed (float, optional):
             robotaccelmult (float, optional):
             timeout (float, optional):  (Default: 10)
@@ -531,7 +531,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Removes objects with prefix.
 
         Args:
-            prefix (str, optional):
+            prefix (str, optional): (DEPRECATED)
             removeNamePrefixes (list[str], optional): Names of prefixes to match with when removing items
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
