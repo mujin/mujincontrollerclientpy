@@ -1730,9 +1730,13 @@ services:
           mapsToParamWithCustomAssignment:
             param: 'object_uri'
             assignment: "u'mujin:/%s.mujin.dae' % (targetname)"
+            # evalAssignmentInGenerator: true  # Required so that targetname is inserted
         envstate:
           orderNumber: 0
         state:  # TODO(felixvd): This seems to be unused.
+          mapsToParamWithCustomAssignment:
+            param: 'state'
+            forceJsonDumps: true
           orderNumber: 2
         unit:
           orderNumber: 3
