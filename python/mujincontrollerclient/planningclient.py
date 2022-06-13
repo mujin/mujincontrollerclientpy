@@ -389,7 +389,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
     def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         """Sets the camera transform
-        :param transform: 4x4 matrix
+        
+        Args:
+            transform: 4x4 matrix
         """
         viewercommand = {
             'command': 'SetCameraTransform',
