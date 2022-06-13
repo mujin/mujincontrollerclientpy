@@ -589,7 +589,7 @@ services:
         type: boolean
       jogtype:
         ## TODO(felixvd): I think this is not parsed. It needs to be in robotJogParameters['jogtype']
-        description: "One of 'joints', 'world', 'robot', 'tool'. (DEPRECATED; needs to be a field in robotJogParameters instead)"
+        description: "One of 'joints', 'world', 'robot', 'tool'. (DEPRECATED: set this as a field in robotJogParameters instead)"
         orderNumber: 9
         type: string
       robotaccelmult:
@@ -753,7 +753,7 @@ services:
         description: The discretization of the free joints of the robot when computing ik.
         type: number
       freeinc:
-        description: (deprecated) The discretization of the free joints of the robot when computing ik.
+        description: (DEPRECATED) The discretization of the free joints of the robot when computing ik.
         type: number
       applyapproachoffset:
         type: boolean
@@ -973,7 +973,7 @@ services:
     description: Moves the robot to desired joint angles specified in jointvalues
     parameters:
       jointvalues:
-        description: (deprecated, use goaljoints) List of joint values to move to.
+        description: "(DEPRECATED: use goaljoints) List of joint values to move to."
         orderNumber: 100
         required: true
         type: array
@@ -1332,6 +1332,7 @@ services:
         default: false
         orderNumber: 4
       prefix:
+        description: (DEPRECATED)
         orderNumber: 0
         type: string
       removeLocationNames:
@@ -1838,7 +1839,7 @@ services:
     parameters:
       closegripper:
         default: 0
-        description: Whether to close gripper once the goal is reached. (deprecated)
+        description: (DEPRECATED) Whether to close gripper once the goal is reached.
         orderNumber: 4
         type: boolean
       envclearance:
