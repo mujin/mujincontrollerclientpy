@@ -240,7 +240,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           'unit': unit,
                           }
         if targetname is not None:
-            taskparameters['objectname'] = targetname
             taskparameters['object_uri'] = u'mujin:/%s.mujin.dae' % (targetname)
         taskparameters.update(kwargs)
         if state is not None:
