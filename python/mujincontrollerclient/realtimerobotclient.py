@@ -160,22 +160,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def MoveJointStraight(self, deltagoalvalue, jointName, timeout=10, robotspeed=None, **kwargs):
-        """Moves a single joint by a given amount
-
-        Args:
-            deltagoalvalue (float): How much to move joint (delta)
-            jointName (str): Name of the joint to move
-            timeout (float, optional):  (Default: 10)
-            robotspeed (float, optional):
-        """
-        taskparameters = {'command': 'MoveJointStraight',
-                          'deltagoalvalue': deltagoalvalue,
-                          'jointName': jointName,
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
-
     def MoveToolLinear(self, goaltype, goals, toolname=None, timeout=10, robotspeed=None, **kwargs):
         """Moves the tool linear
 
@@ -190,8 +174,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             workaccel (float): [angleaccel, transaccel] in deg/s^2 and mm/s^2
             worksteplength (float): Discretization for planning MoveHandStraight, in seconds.
             plannername (str):
-            workminimumcompletetime (float): Set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
-            workminimumcompleteratio (float): In case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything
             numspeedcandidates (int): If speed/accel are not specified, the number of candiates to consider
             workignorefirstcollisionee (float): time, necessary in case initial is in collision, has to be multiples of step length?
             workignorelastcollisionee (float): time, necessary in case goal is in collision, has to be multiples of step length?
@@ -240,7 +222,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
                           'unit': unit,
                           }
         if targetname is not None:
-            taskparameters['objectname'] = targetname
             taskparameters['object_uri'] = u'mujin:/%s.mujin.dae' % (targetname)
         taskparameters.update(kwargs)
         if state is not None:
@@ -481,7 +462,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)['activeLocationTrackingInfos']
     
-    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, updateTimeStampMS=None, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def UpdateLocationContainerIdType(self, locationName, containerName, containerId, containerType, trackingCycleIndex=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """Resets the tracking of specific containers
 
         Args:
@@ -489,7 +470,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             containerName (str):
             containerId (str):
             containerType (str):
-            updateTimeStampMS (optional): if specified then setup updatetimestamp on container (time when container arrives and becomes valid for usage)
             trackingCycleIndex (optional): if specified then cycle with same cycleIndex will update location tracking in the same call
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
@@ -502,8 +482,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'containerId': containerId,
             'containerType': containerType,
         }
-        if updateTimeStampMS is not None:
-            taskparameters['updateTimeStampMS'] = updateTimeStampMS
         if trackingCycleIndex is not None:
             taskparameters['trackingCycleIndex'] = trackingCycleIndex
         taskparameters.update(kwargs)
@@ -708,19 +686,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
 
-    def ResetRobotBridges(self, timeout=10, usewebapi=True, **kwargs):
-        """Resets the robot bridge states
-
-        Args:
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
-        """
-        taskparameters = {
-            'command': 'ResetRobotBridges'
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
-
     def MoveJointsToJointConfigurationStates(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """Moves the robot to desired joint angles specified in jointStates
 
@@ -816,33 +781,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
     
-    def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
-        """Moves the robot to desired joint angles.
-
-        Args:
-            dropOffInfo:
-            robotname (str, optional): Name of the robot
-            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
-            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
-            execute:  (Default: 1)
-            startvalues (list[float], optional):
-            envclearance (float, optional): Environment clearance in millimeters
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
-        """
-        taskparameters = {
-            'command': 'MoveToDropOff',
-            'dropOffInfo': dropOffInfo,
-            'execute': execute,
-        }
-        if envclearance is not None:
-            taskparameters['envclearance'] = envclearance
-        if startvalues is not None:
-            taskparameters['startvalues'] = list(startvalues)
-
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
-    
     def GetRobotBridgeIOVariables(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """Returns the data of the IO in ascii hex as a string
 
@@ -880,66 +818,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
-    def SetRobotBridgeIOVariableAsciiHex16(self, ioname, iovalue, robotname=None, timeout=20, usewebapi=None, **kwargs):
-        """
-
-        Args:
-            ioname (str):
-            iovalue:
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 20)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-        """
-        taskparameters = {
-            'command': 'SetRobotBridgeIOVariableAsciiHex16',
-            'ioname': ioname,
-            'iovalue': iovalue,
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
-    def GetRobotBridgeIOVariableAsciiHex16(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """Returns the data of the IO in ascii hex as a string
-
-        Args:
-            ioname (str, optional): One IO name to read
-            ionames (list[str], optional): A list of the IO names to read
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-        """
-        taskparameters = {
-            'command': 'GetRobotBridgeIOVariableAsciiHex16'
-        }
-        if ioname is not None and len(ioname) > 0:
-            taskparameters['ioname'] = ioname
-        if ionames is not None and len(ionames) > 0:
-            taskparameters['ionames'] = ionames
-
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
-    def GetRobotBridgeIOVariableString(self, ioname=None, ionames=None, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """Returns the data of the IO in ascii hex as a string
-
-        Args:
-            ioname (str, optional): One IO name to read
-            ionames (list[str], optional): A list of the IO names to read
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-        """
-        taskparameters = {
-            'command': 'GetRobotBridgeIOVariableString'
-        }
-        if ioname is not None and len(ioname) > 0:
-            taskparameters['ioname'] = ioname
-        if ionames is not None and len(ionames) > 0:
-            taskparameters['ionames'] = ionames
-        
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
-    
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
         """
 
@@ -967,7 +845,24 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             toolname (str, optional): Tool name
-            timeout (float, optional):  (Default: 10)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            targetname (str, optional): Name of the target object
+            graspsetname (str, optional): Name of the grasp set to use
+            ikparamnames (list, optional): If graspset does not exist, use the ikparamnames to initialize the grasp.
+            limit (float, optional): Number of solutions to return
+            useSolutionIndices (bool, optional): 
+            disabletarget (bool, optional): 
+            unit (str, optional): The unit of the given values. (Default: mm)
+            randomBoxInfo (dict, optional): info structure for maintaining grasp parameters for random box picking. Used when picking up randomized boxes (targetIsRandomBox is True), Keys are: usefaces, dictFacePriorities, boxDirAngle, toolTranslationOffsets
+            freeincvalue (float, optional): The discretization of the free joints of the robot when computing ik.
+            freeinc (float, optional): (deprecated) The discretization of the free joints of the robot when computing ik.
+            applyapproachoffset (bool, optional): 
+            inPlaneAngleDeviation (float, optional): 
+            outOfPlaneAngleDeviation (float, optional): 
+            searchfreeparams (bool, optional): 
+            returnClosestToCurrent (bool, optional): 
+            filteroptionslist (list, optional): A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions. Overrides filteroptions.
+            filteroptions (int, optional): OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked
 
         Returns:
             A dictionary of:
@@ -1044,6 +939,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     #
     # jogging related
     #
+
     def SetJogModeVelocities(self, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """
 
@@ -1088,7 +984,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            servoon:
+            servoon (bool): If True, turns servo on.
             robotname (str, optional): Name of the robot
             timeout (float, optional):  (Default: 3)
             fireandforget (bool, optional):  (Default: False)
@@ -1103,7 +999,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            islockmode:
+            islockmode (bool): If True, turns on Lock Mode. During Lock Mode, all communication with the physical robot is turned off and the hardware will not move.
             robotname (str, optional): Name of the robot
             timeout (float, optional):  (Default: 3)
             fireandforget (bool, optional):  (Default: False)
@@ -1130,7 +1026,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            controlMode:
+            controlMode (str): The control mode to use, e.g. "Manual".
             timeout (float, optional):  (Default: 3)
             fireandforget (bool, optional):  (Default: False)
         """
@@ -1226,8 +1122,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs step response test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1244,8 +1140,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs maximum length sequence test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1261,9 +1157,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs chirp test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
-            freqMax:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
+            freqMax (float): The maximum frequency in Hz
             timeout (float, optional):  (Default: 120)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1280,8 +1176,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs Gaussian Impulse test on specified joint and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 20)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1297,8 +1193,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """runs bangbang trajectory in acceleration or jerk space and returns result
 
         Args:
-            jointName:
-            amplitude:
+            jointName (str): The name of the joint.
+            amplitude (float): The amplitude.
             timeout (float, optional):  (Default: 60)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
         """
@@ -1358,14 +1254,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    # def RunDynamicsIdentificationInertiaTest(self):
-    #     # TODO
-    #     pass
-
-    # def RunDynamicsIdentificationCenterOfMassTest(self):
-    #     # TODO
-    #     pass
-
     def GetMotorControlParameterSchema(self, usewebapi=False, timeout=10, **kwargs):
         """Gets motor control parameter schema
 
@@ -1383,7 +1271,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Gets motor control parameters as name-value dict
 
         Args:
-            jointName:
+            jointName (str): The name of the joint.
             parameterName:
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
             timeout (float, optional):  (Default: 10)
@@ -1413,7 +1301,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Sets motor control parameter
 
         Args:
-            jointName:
+            jointName (str): The name of the joint.
             parameterName:
             parameterValue:
             timeout (float, optional):  (Default: 10)
