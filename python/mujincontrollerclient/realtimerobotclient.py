@@ -600,6 +600,8 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         :param robotspeed: Value in (0,1] setting the percentage of robot speed to move at
         :param robotaccelmult: Value in (0,1] setting the percentage of robot acceleration to move at
         :param envclearance: Environment clearance in millimeters
+        
+        :return: dictionary of keys: goalPositionName, goalConfiguration
         """
         taskparameters = {
             'command': 'MoveJointsToPositionConfiguration',
