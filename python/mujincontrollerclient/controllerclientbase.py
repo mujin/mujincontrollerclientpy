@@ -144,6 +144,7 @@ class ControllerClient(object):
 
         self._userinfo = {
             'username': self.controllerusername,
+            'password': self.controllerpassword,
             'locale': os.environ.get('LANG', ''),
         }
         self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author)
@@ -710,14 +711,17 @@ class ControllerClient(object):
         params.update(kwargs)
         return self.ObjectsWrapper(self._webclient.APICall('GET', u'cycleLog/', fields=fields, timeout=timeout, params=params))
 
-    def CreateCycleLogs(self, cycleLogs, reporterControllerId=None, reporterDateCreated=None, fields=None, usewebapi=True, timeout=5):
-        assert(usewebapi)
-        return self._webclient.APICall('POST', u'cycleLog/', data={
-            'cycleLogs': cycleLogs,
-            'reporterControllerId': reporterControllerId,
-            'reporterDateCreated': reporterDateCreated,
-        }, fields=fields, timeout=timeout)
+    #
+    # LogEntry
+    #
 
+    def CreateLogEntries(self, logEntries, fields=None, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        files = []
+        for logEntry in logEntries:
+            files.append(('logEntry', (None, json.dumps(logEntry), 'application/json')))
+        return self._webclient.APICall('POST', u'logEntry/', files=files, fields=fields, timeout=timeout)
+        
     #
     # Controller State
     #

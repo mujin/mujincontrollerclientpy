@@ -113,7 +113,7 @@ class ControllerWebClient(object):
         return response
 
     # Python port of the javascript API Call function
-    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, timeout=5):
+    def APICall(self, method, path='', params=None, fields=None, data=None, headers=None, expectedStatusCode=None, files=None, timeout=5):
         path = '/api/v1/' + path.lstrip('/')
         if not path.endswith('/'):
             path += '/'
@@ -130,14 +130,15 @@ class ControllerWebClient(object):
         # if 'order_by' not in params:
         #     params['order_by'] = 'pk'
 
-        if data is None:
+        # set the default body data only if no files are given
+        if data is None and files is None:
             data = {}
 
         if headers is None:
             headers = {}
 
-        # Default to json content type
-        if 'Content-Type' not in headers:
+        # Default to json content type if not using multipart/form-data
+        if 'Content-Type' not in headers and files is None:
             headers['Content-Type'] = 'application/json'
             data = json.dumps(data)
 
@@ -145,7 +146,7 @@ class ControllerWebClient(object):
             headers['Accept'] = 'application/json'
 
         method = method.upper()
-        response = self.Request(method, path, params=params, data=data, headers=headers, timeout=timeout)
+        response = self.Request(method, path, params=params, data=data, files=files, headers=headers, timeout=timeout)
 
         # Try to parse response
         raw = response.content.decode('utf-8', 'replace').strip()
