@@ -753,7 +753,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
     
     def MoveJointsToPositionConfiguration(self, positionConfigurationName=None, positionConfigurationCandidateNames=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
         """Moves the robot to desired position configuration specified in positionConfigurationName
-
+        
         Args:
             positionConfigurationName (str, optional): If specified, the name of position configuration to move to. If it does not exist, will raise an error.
             positionConfigurationCandidateNames (optional): If specified, goes to the first position that is defined for the robot. If no positions exist, returns without moving the robot.
@@ -765,6 +765,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
+        
+        Returns:
+            dictionary of keys: goalPositionName, goalConfiguration
         """
         taskparameters = {
             'command': 'MoveJointsToPositionConfiguration',
