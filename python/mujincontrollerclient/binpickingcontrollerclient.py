@@ -17,19 +17,21 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
 
     def __init__(self, regionname=None, **kwargs):
         """logs into the mujin controller, initializes binpicking task, and sets up parameters
-        :param controllerurl: url of the mujin controller, e.g. http://controller14
-        :param controllerusername: username of the mujin controller, e.g. testuser
-        :param controllerpassword: password of the mujin controller
-        :param binpickingzmqport: port of the binpicking task's zmq server, e.g. 7110
-        :param binpickingheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
-        :param binpickingheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no heartbeat is received, e.g. 7
-        :param scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
-        :param robotname: name of the robot, e.g. VP-5243I
-        :param regionname: name of the bin, e.g. container1
-        :param toolname: name of the manipulator, e.g. 2BaseZ
-        :param envclearance: environment clearance in millimeters, e.g. 20
-        :param usewebapi: whether to use webapi for controller commands
-        :param robotaccelmult: optional multiplier for forcing the acceleration
+        
+        Args:
+            controllerurl: url of the mujin controller, e.g. http://controller14
+            controllerusername: username of the mujin controller, e.g. testuser
+            controllerpassword: password of the mujin controller
+            taskzmqport: port of the binpicking task's zmq server, e.g. 7110
+            taskheartbeatport: port of the binpicking task's zmq server's heartbeat publisher, e.g. 7111
+            taskheartbeattimeout: seconds until reinitializing binpicking task's zmq server if no heartbeat is received, e.g. 7
+            scenepk: pk of the bin picking task scene, e.g. irex2013.mujin.dae
+            robotname: name of the robot, e.g. VP-5243I
+            regionname: name of the bin, e.g. container1
+            toolname: name of the manipulator, e.g. 2BaseZ
+            envclearance: environment clearance in millimeters, e.g. 20
+            usewebapi: whether to use webapi for controller commands
+            robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(BinpickingControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
 
@@ -246,6 +248,33 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
+    def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+        """Moves the robot to desired joint angles.
+
+        Args:
+            dropOffInfo:
+            robotname (str, optional): Name of the robot
+            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
+            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
+            execute:  (Default: 1)
+            startvalues (list[float], optional):
+            envclearance (float, optional): Environment clearance in millimeters
+            timeout (float, optional):  (Default: 10)
+            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
+        """
+        taskparameters = {
+            'command': 'MoveToDropOff',
+            'dropOffInfo': dropOffInfo,
+            'execute': execute,
+        }
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+        if startvalues is not None:
+            taskparameters['startvalues'] = list(startvalues)
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+
     ####################
     # scene commands
     ####################
@@ -431,20 +460,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
 
-    def SendCurrentLayoutData(self, containername, containerLayoutSize, ioVariableName, includeTargetsWithPrefix, timeout=10, usewebapi=True, **kwargs):
-        '''
-        requests for sending layoutdata to plc
-        '''
-        taskparameters = {
-            'command': 'SendCurrentLayoutData',
-            'containername': containername,
-            'containerLayoutSize': containerLayoutSize,
-            'ioVariableName': ioVariableName,
-            'includeTargetsWithPrefix': includeTargetsWithPrefix
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
-
     def ClearVisualization(self, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
         """
         clears visualization
@@ -460,14 +475,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters = {'command': 'GetPlanStatistics'}
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
-
-    def ResetCurrentLayoutData(self, usewebapi=False, fireandforget=True, **kwargs):
-        """
-        resets current layout data
-        """
-        taskparameters = {'command': 'ResetCurrentLayoutData'}
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def SetCurrentLayoutDataSendOnObjectUpdateData(self, doUpdate, containername=None, containerLayoutSize=None, ioVariableName=None, usewebapi=False, fireandforget=True, **kwargs):
         """

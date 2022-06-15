@@ -193,22 +193,6 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
     # Tasks related
     #
 
-    def RunSceneTaskAsync(self, scenepk, taskpk, slaverequestid=None, fields=None, usewebapi=True, timeout=5):
-        """
-        :return: {'jobpk': 'xxx', 'msg': 'xxx'}
-        Notice: This overwrites the base in controllerclientbase, to accept slaverequestid.
-        """
-        assert(usewebapi)
-        if slaverequestid is None:
-            slaverequestid = self._slaverequestid
-        data = {
-            'scenepk': scenepk,
-            'target_pk': taskpk,
-            'resource_type': 'task',
-            'slaverequestid': slaverequestid,
-        }
-        return self._webclient.APICall('POST', u'job/', data=data, expectedStatusCode=200, timeout=timeout)
-
     def ExecuteTaskSync(self, scenepk, tasktype, taskparameters, slaverequestid='', timeout=None):
         '''Executes task with a particular task type without creating a new task
         :param taskparameters: A dictionary with the following values: targetname, destinationname, robot, command, manipname, returntostart, samplingtime
@@ -405,7 +389,9 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
 
     def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, usewebapi=False, timeout=10, fireandforget=True, **kwargs):
         """Sets the camera transform
-        :param transform: 4x4 matrix
+        
+        Args:
+            transform: 4x4 matrix
         """
         viewercommand = {
             'command': 'SetCameraTransform',
