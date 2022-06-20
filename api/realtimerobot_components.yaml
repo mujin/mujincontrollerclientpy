@@ -1,0 +1,417 @@
+# Components from `realtimerobotclient.py`
+
+components:
+  Vector3Schema:
+    type: array
+    minItems: 3
+    maxItems: 3
+    additionalItems: False
+    items: [
+      {description: 'x', type: number},
+      {description: 'y', type: number},
+      {description: 'z', type: number},
+    ]
+  Internal_ExecuteCommandParameters:
+    timeout:
+      default: 4.0
+      description: Time in seconds after which the command is assumed to have failed.
+      type: number
+      x-doNotAddToPayload: true  # Used only inside the client, not sent to the server
+    fireandforget:
+      default: false
+      description: If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
+      type: boolean
+      x-doNotAddToPayload: true  # Used only inside the client, not sent to the server
+    respawnopts:
+      required: False
+      description: Settings to determine the respawning behavior of planning slaves. Restarts/respawns a planning slave if conditions are met.
+      type: object
+      properties:
+        allowrespawn:
+          type: boolean
+          default: True
+          description: Allow the planning slave to respawn.
+        forcerespawn:
+          type: boolean
+          default: False
+          description: Force the planning slave to respawn.
+        respawnMemoryThreshold:
+          type: float
+          description: The amount of memory that the planning slave needs to occupy before it is respawned.
+          default: 2*1024*1024*1024
+    usewebapi:
+      description: If True, send command through Web API. Otherwise, through ZMQ.
+      type: bool
+  ExecuteCommandParameters:  # Parameters that are added to each command in the ExecuteCommand method (in the PlanningClientBase). Such a dirty hack. This should be Internal_ExecuteCommandParameters.
+    slaverequestid:
+      type: integer
+      description: The requested planning slave
+  Internal_TaskBaseInitParameters:
+    slaverequestid:
+      type: integer
+      description: The requested planning slave
+    robot:
+      description: Name of the robot
+      type: string
+    retimerplannername:
+      description: "Name of the retimer (planner). E.g.: LinearTrajectoryRetimer, ParabolicTrajectoryRetimer, CubicTrajectoryRetimer2, constraintparabolicsmoother. (Default: ParabolicTrajectoryRetimer2)"
+      type: string
+    multidofinterp:
+      description: Specifies how to interpolate multiple points. 0 is minimum acceleration, every point is independent. 2 is closer to robot makers with the switch times occurring simultaneously.
+      type: integer
+    vrcExtraClearance:
+      description: "The extra clearance that needs to be kept between VRC (Virtual Robot Controller) clearance and the simulated clearance. Depending on how well we can simulate robot maker controllers, this can be reduced. (Default: 0.02)"
+      type: string
+    $ref: ['#/components/pathPlannerParameters', '#/components/smootherParameters']
+  Internal_RealtimeRobotTaskInitParameters:  # Parameters in __init__ of realtimerobottask3.py
+    usecachechecker:  # TODO: Remove this from the code base
+      description: "(DEPRECATED, INACTIVE) If True will use cache checking. (Default: False)"
+      type: boolean
+    setPlanningModels:
+      description: "If True, then call setPlanningModels which will set the robot's weights and resolutions automatically. If False, then do not touch the robot values. (Default: True)"
+      type: boolean
+      default: True
+    doprofiling:
+      description: If True, then gather profiling data
+      type: boolean
+    zmqctx:
+      description: ZMQ Context
+      type: object
+    skipTrajectoryExecution:
+      description: If True, actual execution of the trajectory is skipped. This can speed up simulation with viewer disabled.
+      type: boolean
+    logdir:
+      description: "Directory to save the logs (Default: OpenRAVE home directory)"
+      type: string
+    trajectoriessavedir:
+      description: Directory to save the trajectories
+      type: string
+    locationManagerId:
+      description: A string handed to 'SyncEnvironmentFromOriginal' as part of 'noSyncBodyPrefixes', to avoid bodies clashing with the moving robot while environment is being synced. Used to identify objects that are used for planning
+      type: string
+    useJointLogMode:
+      description: "If 1 then will use joint log in the same environment. If 2 will create a separate environment and use joint log streaming. If 0, then do not create the joint log modules. (Default: 1)"
+      type: integer
+    capturelog:
+      description: If True, will read very accurate values from the robot control log (this is slow)
+      type: boolean
+    savetrajectorylog:
+      description: If True, will save the commanded (input) trajectories before they are executed
+      type: boolean
+    saveRobotFeedbackLog:
+      description: If True, will tell robotbridge to save trajectory files
+      type: boolean
+    loadRobotFeedbackLog:
+      description: If True, will tell robotbridge to load the robot feedback log after trajectory ends
+      type: boolean
+    saveConcatenateTrajectoryLog:
+      description: If True, will save trajectories used for inputs of concatenate trajectory functions
+      type: boolean
+    saveFilterTrajectoryLog:
+      description: If True, will save trajectories used for filtering, such as SmartFilter
+      type: boolean
+    executionConnectingTrajReverseMult:
+      description: Used for several code paths such as MoveToolLinear, MoveJointsNoDec, MoveToHandPosition. This is passed to robotbridge. If None, robotbridge uses default value internally.
+      type: number
+    executionReverseRecoveryDistance:
+      description: Specifies the reversing distance for trajectories to recover from collision/position error. This is passed to robotbridge. If None, robotbridge uses default internally (most likely 50 mm).
+      type: number
+    webstackMountpoint:
+      description: Location to load certain data from (e.g. template targets). Overrides localMediaDir.
+      type: string
+    localMediaDir:
+      description: Directory to load local media from (e.g. for template targets). Overridden by webstackMountpoint. If preserveexternalrefs=True, this is used for some checks regardless.
+      type: string
+    viewer:
+      description: If True, attempt to use viewer...?
+      type: boolean
+  Internal_SetRobotClientParameters:
+    unit:
+      $ref: '#/components/unit'
+    robotBridgeConnectionInfo:
+      $ref: '#/components/robotBridgeConnectionInfo'
+    locationCollisionInfos:
+      description: List of external collision IOs to be computed and sent in realtime.
+      type: object
+  Internal_MoveCommandDecoratorParameters:
+    robotspeed:
+      $ref: '#/components/robotspeed'
+    # speed is an optional deprecated alternative to robotspeed
+    robotaccelmult:
+      $ref: '#/components/robotaccelmult'
+    ionames:
+      $ref: '#/components/ionames'
+  smootherParameters:
+    smootherplannername:
+      description: "Name of the smoother (planner) (Default: parabolicsmoother2)"
+      type: string
+    smootheriterations:
+      description: "Maximum number of iterations for the smoother (Default: 3000)"
+      type: string
+  pathPlannerParameters:
+    pathPlannerName:
+      description: "The name of the path planner. Needs to be one of the following: birrt, BasicRRT, DualSpaceTreeSearch,  (Default: birrt)"
+      type: string
+    dynamicsConstraintsType:
+      description: "If given, has to be a string. Possible values: IgnoreTorque, NominalTorque, InstantaneousTorque, Unknown. (reference: ConvertDynamicsConstraints function in controllercommon)"
+      type: string
+    maxiter:
+      description: "Maximum number of path planning iterations. (Default: 4000)"
+      type: string
+    maxPlanningTime:
+      description: "Maximum amount of time to spend in path planning."
+      type: string
+    steplength:
+      description: "Maximum step length of the resulting trajectory."
+      type: string
+  dynamicEnvironmentState:
+    object: The dynamic objects in the environment that is to be used for planning/executing the task. A list of bodies.
+    type: array
+    items:
+      type: object
+  robotBridgeConnectionInfo:
+    description: Information to set up a client to the robot bridge.
+    type: object
+    properties:
+      host:
+        description: The host address of the robotbridge.
+        default: '172.0.0.1'
+        type: string
+      port:
+        description: The port of the robotbridge.
+        default: 7000
+        type: integer
+      queueid:
+        description: The requested planning slave id.
+        type: string
+      use:
+        description: If False, robotbridge is not used.
+        type: boolean
+  moveJointsParameters:
+    unit:
+      $ref: '#/components/unit'
+    constraintToolDirection:
+      # TODO(felixvd): Link to the schema in binpickingparametersschema? Is this the same parameter?
+      type: array
+      items:
+        type: number
+    departOffsetDir:
+      # TODO(felixvd): Link to the schema in binpickingparametersschema? Is this the same parameter?
+      description: "Direction in which to apply the offset when departing from the pick/place operation."
+      type: array
+      items:
+        type: number
+    departOffsetAwayFromGravity:
+      description: Overridden by departOffsetDir
+      type: number
+    trajname:
+      type: string
+    disablebodies:
+      type: boolean
+    ignoreGrabbingTarget:
+      type: boolean
+    jointthresh:
+      type: number
+    envclearance:
+      $ref: '#/components/envclearance'
+    jitter:
+      type: number
+    execute:
+      $ref: '#/components/execute'
+    executionFilterFactor:
+      type: number
+    filtertraj:
+      type: boolean
+    locationCollisionInfos:
+      $ref: '#/components/Internal_SetRobotClientParameters/locationCollisionInfos'
+    currentlimitratios:
+      description: The joints' current limt ratios.
+      type: array
+      items:
+        type: number
+    goalJointThreshold:
+      description: Threshold of the sum of abs joint differences between what the robot is able to achieve and where the goal is, in degrees. If not within this threshold, robot tries to reach goal, during some time.
+      type: array
+      items:
+        type: number
+    goalWorkspaceThreshold:
+      description: Threshold in mm. If the robot manipulator is within this threshold to the goal position, then trajectory is assumed to be successful.
+      type: number
+    calibrategripper:
+      type: boolean
+    departAccel:
+      type: number
+    maxManipAccel:
+      type: number
+    maxJitterLinkDist:
+      $ref: '#/components/jittererParameters/maxJitterLinkDist'
+  jittererParameters:
+    maxJitter:
+      description: Maximum amount of jitter applied to a joint during one iteration.
+      type: number
+    maxJitterIterations:
+      description: Maximum number of iterations to use during jittering.
+      type: number
+    maxJitterLinkDist:
+      description: mm.
+      type: number
+    jitterBiasDirection:
+      description: mm. Not normalized
+      type: array
+      items:
+        type: number
+    jitterNeighDistThresh:
+      type: number
+    useWorkspaceJitterer:
+      type: boolean
+  forceTorqueBasedEstimatorParameters:   #TODO
+    description: A set of parameters for force-torque based estimation.
+    type: object
+  robot:
+    description: The name of the robot (modelName).
+    type: string
+  robotname:
+    description: Name of the robot
+    type: string
+  robotaccelmult:
+    description: Value in (0,1] setting the percentage of robot acceleration to move at
+    type: number
+  robotspeed:
+    description: Value in (0,1] setting the percentage of robot speed to move at
+    type: number
+  grippername:
+    description: Name of the gripper.
+    type: string
+  envclearance:
+    description: Environment clearance in millimeters
+    type: number
+  syncTimeStampUS:
+    description: us (microseconds, linux time) of the timestamp
+    required: true
+    type: integer
+  removeLocationNames:
+    type: array
+    items:
+      type: string
+  doRemoveOnlyDynamic:
+    description: If True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
+    type: boolean
+  ioSignalsInfo:
+    description: Struct for dictating if any IO signals should be written on receiving detection results  
+    type: object
+  removeNamePrefixes:
+    description: Names of prefixes to match with when removing items
+    type: array
+    items:
+      type: string
+  amplitude:
+    type: number
+    description: The amplitude.
+  jointName:
+    type: string
+    description: The name of the joint.
+  freqMax:
+    type: number
+    # TODO(felixvd): Is this right?
+    description: The maximum frequency in Hz
+  unit:
+    description: The unit of the given values.
+    default: mm
+    type: string
+  toolname:
+    description: Name of the manipulator. Defaults to currently selected tool
+    type: string
+  filteroptions:
+    $ref: '#/components/filteroptions'
+    description: OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked
+    type: integer
+  filteroptionslist:
+    description: 'A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions'
+    type: array
+  ioname:
+    description: One IO name to read/write
+    type: string
+  ionames:
+    description: A list of IO names to read/write
+    type: array
+  execute:
+    description: If 1, execute the motion.
+    type: int
+  startvalues:
+    description: The robot joint values to start the motion from.
+    type: array
+    items:
+      type: number
+  jointindices:
+    description: List of corresponding joint indices, default is range(len(jointvalues))
+    type: array
+    items:
+      type: int
+  targetname:
+    description: Name of the target object
+    type: string
+  graspsetname: 
+    description: Name of the grasp set to use
+    type: string
+  ikparamnames: 
+    description: If graspset does not exist, use the ikparamnames to initialize the grasp.
+    type: array
+    items:
+      type: string
+  linknameOBB:
+    description: Name of link to use for OBB. If not specified, uses entire target.
+    type: string
+  linknameAABB:
+    description: Name of link to use for the AABB. If not specified, uses entire target.
+    type: string
+  quaternion:
+    description: List specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0].
+    type: array
+    items:
+      type: number
+  translation:
+    description: List of x,y,z values of the object in millimeters.
+    type: array
+    items:
+      type: number
+  rotationmat:
+    description: List specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
+    type: array
+  goaltype:
+    description: Type of the goal, e.g. translationdirection5d
+    type: string
+  goals:
+    description: 'Flat list of goals, e.g. two 5D ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]'
+    type: array
+  Internal_MoveToParams:
+    goaltype:
+      $ref: '#/components/goaltype'
+    goals:
+      $ref: '#/components/goals'
+    instobjectname:
+      description: If goaltype is not set and both instobjectname and ikparamname are set, use ikparamname of instobjectname as target position.
+      type: string
+    ikparamname:
+      description: If goaltype is not set and both instobjectname and ikparamname are set, use ikparamname of instobjectname as target position.
+      type: string
+    ikparamoffset:
+      type: array
+      items:
+        type: number
+  workspeed:
+    description: '[anglespeed, transspeed] in deg/s and mm/s'
+    type: number
+  workaccel:
+    description: '[angleaccel, transaccel] in deg/s^2 and mm/s^2'
+    type: number
+  jointvalues:
+    type: array
+    items:
+      type: number
+  executetimeout:
+    default: 1.0
+    description: Time in seconds after which the command is assumed to have failed.
+    type: number
+  minimumgoalpaths:
+    description: Number of solutions the planner must provide before it is allowed to finish.
+    type: integer

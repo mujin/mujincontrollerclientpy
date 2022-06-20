@@ -1,0 +1,19 @@
+
+
+services:
+  SetLogLevel:
+    isConfig: true
+    description: Set webstack and planning log level
+    parameters:
+      componentLevels:
+        description: "Mapping from component name to level name, for example {\"some.specific.component\": \"DEBUG\"}.
+                      If the component name is an empty string, it sets the root logger.
+                      If the level name is an empty string, it unsets the level previously set."
+        type: object
+        orderNumber: 0
+      fireandforget:
+        orderNumber: 1
+        $ref: '#/components/fireandforget'
+      timeout:
+        orderNumber: 2
+        $ref: '#/components/timeout'

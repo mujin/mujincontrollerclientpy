@@ -1,0 +1,125 @@
+# A MujinAPI definition of the Hand-Eye Calibration Task.
+# Used to generate handeyecalibrationcontrollerclient.py
+components:
+  timeout:
+    default: 4.0
+    description: Time in seconds after which the command is assumed to have failed.
+    type: number
+    x-doNotAddToPayload: true  # Used only inside the client, not sent to the server
+  cameracontainername: 
+    description:
+    type: string
+  primarysensorname: 
+    description: Name of the primary sensor to be calibrated (attached to the robot)
+    type: string
+  secondarysensornames: 
+    description: Names of secondary sensors to be calibrated (assumed to be nearby the primary sensor)
+    type: array
+    items:
+      type: string
+  gridindex:
+    type: int
+    description: The index of the voxel 
+  calibboardvisibility: 
+    type: boolean
+  calibboardLinkName: 
+    type: string
+  calibboardGeomName: 
+    type: string
+    description:
+  minPatternTiltAngle: 
+    type: number
+    description: "The minimum tilt of the pattern in degrees. Default: 10 degrees"
+  maxPatternTiltAngle: 
+    type: number
+    description: "The maximum tilt of the pattern in degrees. Default: 30 degrees"
+  robot:
+    description: The name of the robot (modelName).
+    type: string
+  ExecuteCommandParameters:  # Parameters that are added to each command in the ExecuteCommand method. Such a dirty hack.
+    slaverequestid:
+      type: integer
+      description: 
+      
+info:
+  description: The API of the Planning Server for a Calibration task.
+mujinapi: 0.0.1
+services.calibration:  # The API of the calibration task
+  SampleCalibrationConfiguration:
+    description: Sample a valid calibration pose inside the given voxel and find a corresponding IK solution.
+    parameters: 
+      cameracontainername: 
+        orderNumber: 0
+        $ref: '#/components/cameracontainername'
+        required: true
+      primarysensorname: 
+        orderNumber: 1
+        $ref: '#/components/primarysensorname'
+        required: true
+      secondarysensornames: 
+        orderNumber: 2
+        $ref: '#/components/secondarysensornames'
+        required: true
+      gridindex:
+        orderNumber: 3
+        $ref: '#/components/gridindex'
+        required: true
+      calibboardvisibility: 
+        orderNumber: 4
+        $ref: '#/components/calibboardvisibility'
+        required: true
+      calibboardLinkName: 
+        orderNumber: 5
+        $ref: '#/components/calibboardLinkName'
+      calibboardGeomName: 
+        orderNumber: 6
+        $ref: '#/components/calibboardGeomName'
+      minPatternTiltAngle: 
+        orderNumber: 7
+        $ref: '#/components/minPatternTiltAngle'
+      maxPatternTiltAngle: 
+        orderNumber: 8
+        $ref: '#/components/maxPatternTiltAngle'
+      timeout:
+        orderNumber: 9
+        $ref: '#/components/timeout'
+      robot:
+        orderNumber: 10
+        fillFromClassMember: robot
+        $ref: '#/components/robot'
+    returns:
+      vConfig:
+        description: The IK solution (joint angles) for the sample.
+        type: array
+        items:
+          type: number
+  ComputeCalibrationPoses:
+    description: Compute a set of calibration poses that satisfy the angle constraints using latin hypercube sampling (or stratified sampling upon failure)
+    parameters:
+      numsamples:
+        orderNumber: 0
+        $ref: '#/components/numsamples'
+      cameracontainername:
+        orderNumber: 1
+        $ref: '#/components/cameracontainername'
+      primarysensorname:
+        orderNumber: 2
+        $ref: '#/components/primarysensorname'
+      secondarysensornames:
+        orderNumber: 3
+        $ref: '#/components/secondarysensornames'
+      calibboardvisibility:
+        orderNumber: 4
+        $ref: '#/components/calibboardvisibility'
+      calibboardLinkName:
+        orderNumber: 5
+        $ref: '#/components/calibboardLinkName'
+      calibboardGeomName:
+        orderNumber: 6
+        $ref: '#/components/calibboardGeomName'
+      robot:
+        orderNumber: 10
+        fillFromClassMember: robot
+        $ref: '#/components/robot'
+  ReloadModule:
+    description: Reloads the module without restarting the whole controller. For development.

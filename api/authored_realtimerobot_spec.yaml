@@ -1,0 +1,2026 @@
+
+include:
+  - "realtimerobot_components.yaml"
+  - "mujinrepo:mujinbinpickingmanager.schema.binpickingparametersschema"
+  - "mujinrepo:mujinbinpickingmanager.schema.containerschema"
+  # - "mujinrepo:mujinbinpickingmanager.schema.destGoalsSchema"  # This include must refer to the package, not an object in the package.
+info:
+  description: The RealtimeRobot API of the Mujin Planning Server. To be used for generating clients.
+mujinapi: 0.0.1
+services:
+  ResetCachedRobotConfigurationState:
+    description: Resets cached robot configuration (position of the robot) in the planning slave received from slave notification. Need to perform every time robot moved not from the task slaves.
+    parameters:
+      # mujinRepoParamExample:
+      #   $ref: '#/mujinbinpickingmanager.schema.destGoalsSchema/destGoalSchema'
+      #   orderNumber: 3
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        orderNumber: 2
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 1
+  EnsureSyncWithRobotBridge:
+    description: Ensures that planning has synchronized with robotbridge data that is newer than syncTimeStampUS
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        orderNumber: 3
+        type: bool
+      syncTimeStampUS:
+        description: us (microseconds, linux time) of the timestamp
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 2
+  GetState:
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        orderNumber: 2
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 1
+      $ref: '#/components/Internal_SetRobotClientParameters'  
+  ReplaceBodies:
+    description: Replaces bodies in the environment with new uris
+    parameters:
+      bodieslist:
+        orderNumber: 0
+        required: true
+        mapsTo: 
+      doRemoveOnlyDynamic:
+        $ref: '#/components/doRemoveOnlyDynamic'
+        orderNumber: 7
+      removeLocationNames:
+        $ref: '#/components/removeLocationNames'
+        orderNumber: 6
+      removeNamePrefixes:
+        $ref: '#/components/removeNamePrefixes'
+        orderNumber: 5
+      replaceInfos:
+        description: 'list of dicts with keys: name, uri, containerDynamicProperties'
+        orderNumber: 2
+        type: array
+      testLocationContainerId:
+        description: containerId used for testing logic with testLocationName
+        orderNumber: 4
+        type: string
+      testLocationName:
+        description: If specified, will test if the container in this location matches testLocationContainerId, and only execute the replace if it matches and testLocationContainerId is not empty.
+        orderNumber: 3
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      unit:
+        $ref: '#/components/unit'
+        orderNumber: 8
+  StopProfiling:
+    description: Stop profiling planning
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 1
+  StartProfiling:
+    description: Start profiling planning
+    parameters:
+      clocktype:
+        default: cpu
+        type: string
+        orderNumber: 0
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 2
+  IsProfilingRunning:
+    description: Queries if profiling is running on planning
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 1
+  SetMotorControlParameter:
+    description: Sets motor control parameter
+    parameters:
+      jointName:
+        orderNumber: 0
+        required: true
+        type: string
+      parameterName:
+        description: The name of the parameter to set.
+        orderNumber: 1
+        required: true
+        type: string
+      parameterValue:
+        description: The value to assign to the parameter.
+        orderNumber: 2
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 4
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  GetMotorControlParameters:
+    description: Gets cached motor control parameters as name-value dict
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+  GetMotorControlParameter:
+    description: "Gets motor control parameters as a name-value dict, e.g.: {'J1':{'KP':1}, 'J2':{'KV':2}}"
+    parameters:
+      jointName:
+        orderNumber: 0
+        required: true
+        type: string
+      parameterName:
+        orderNumber: 1
+        required: true
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 2
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  GetMotorControlParameterSchema:
+    description: Gets motor control parameter schema
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+  CalculateTestRangeFromCollision:
+    parameters:
+      jointName:
+        $ref: "#/components/jointName"
+        orderNumber: 2
+      unit:
+        $ref: "#/components/unit"
+        orderNumber: 3
+      envclearance:
+        $ref: "#/components/envclearance"
+        orderNumber: 4
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  # GetInertiaChildJointStartValues:  # TODO: (felixvd) This function doesn't exist. Delete it. 
+  #   parameters:
+  #     timeout:
+  #       $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+  #       default: 10
+  #       orderNumber: 1
+  #     usewebapi:
+  #       $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+  #       default: false
+  #       orderNumber: 0
+  #     kwargs:
+  #       description: 'TODO: Look up these undefined parameters and remove the kwargs call'
+  GetTimeToRunDynamicsIdentificationTest:
+    parameters:
+      jointName:
+        $ref: "#/components/jointName"
+        orderNumber: 2
+      minJointAngle:
+        description: The joint angle to start the dynamics identification test at.
+        type: number
+        orderNumber: 3
+      maxJointAngle:
+        description: The joint angle to finish the dynamics identification test at.
+        type: number
+        orderNumber: 4
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  RunDynamicsIdentificationTest:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        orderNumber: 0
+        required: true
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 1
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  RunMotorControlTuningBangBangResponse:
+    description: Runs bangbang trajectory in acceleration or jerk space and returns result
+    parameters:
+      amplitude:
+        $ref: '#/components/amplitude'
+        orderNumber: 1
+        required: true
+      jointName:
+        $ref: '#/components/jointName'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 60
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  RunMotorControlTuningGaussianImpulse:
+    description: Runs Gaussian Impulse test on specified joint and returns result
+    parameters:
+      amplitude:
+        $ref: '#/components/amplitude'
+        orderNumber: 1
+        required: true
+      jointName:
+        $ref: '#/components/jointName'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 20
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  RunMotorControlTuningDecayingChirp:
+    description: runs chirp test on specified joint and returns result
+    parameters:
+      amplitude:
+        $ref: '#/components/amplitude'
+        orderNumber: 1
+        required: true
+      freqMax:
+        $ref: '#/components/freqMax'
+        orderNumber: 2
+        required: true
+      jointName:
+        $ref: '#/components/jointName'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 120
+        orderNumber: 3
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 4
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  RunMotorControlTuningMaximulLengthSequence:
+    description: Runs maximum length sequence test on specified joint and returns result
+    parameters:
+      amplitude:
+        $ref: '#/components/amplitude'
+        orderNumber: 1
+        required: true
+      jointName:
+        $ref: '#/components/jointName'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  RunMotorControlTuningStepTest:
+    description: Runs step response test on specified joint and returns result
+    parameters:
+      amplitude:
+        $ref: '#/components/amplitude'
+        orderNumber: 1
+        required: true
+      jointName:
+        $ref: '#/components/jointName'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 3
+      kwargs:
+        description: 'TODO: Look up these undefined parameters and remove the kwargs call'
+  SetRobotBridgeExternalIOPublishing:
+    description: Enables publishing collision data to the robotbridge
+    parameters:
+      enable:
+        description: If True, collision data will be published to robotbridge.
+        orderNumber: 0
+        required: true
+        type: boolean
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 3
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 2
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 1
+  ResetCacheTemplates:
+    description: Resets any cached templates
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 2
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 1
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+  ComputeRobotConfigsForGraspVisualization:
+    description: Returns robot configs for grasp visualization
+    parameters:
+      graspname:
+        orderNumber: 1
+        description: Name of the grasp for which to visualize grasps.
+        required: true
+        type: string
+      robotname:
+        $ref: '#/components/robotname'
+        description: Name of the robot
+        orderNumber: 2
+        type: string
+      targetname:
+        description: Target object's name.
+        orderNumber: 0
+        required: true
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 6
+      toolname:
+        $ref: '#/components/toolname'
+        default: self.toolname
+        description: Name of the manipulator.
+        orderNumber: 3
+        type: string
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 4
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 5
+      approachoffset:
+        type: number
+      departoffsetdir:
+        $ref: '#/components/moveJointsParameters/departOffsetDir'
+      departoffsetintool:
+        description: 
+        type: array
+        items:
+          type: number
+      shadowrobotname:
+        type: string
+      shadowrobottoolname:
+        type: string
+  GetDynamicObjects:
+    description: Get a list of dynamically added objects in the scene, from vision detection and physics simulation.
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 1
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+  SetRobotBridgeControlMode:
+    parameters:
+      controlMode:
+        description: The control mode to use, e.g. "Manual".
+        orderNumber: 0
+        required: true
+        type: string
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 2
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 3
+        orderNumber: 1
+  ResetSafetyFault:
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 3
+        orderNumber: 0
+  SetRobotBridgeLockMode:
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 3
+      islockmode:
+        description: If True, turns on Lock Mode. During Lock Mode, all communication with the physical robot is turned off and the hardware will not move.
+        orderNumber: 0
+        required: true
+        type: boolean
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 3
+        orderNumber: 2
+  SetRobotBridgeServoOn:
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 3
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      servoon:
+        description: If True, turns servo on.
+        orderNumber: 0
+        required: true
+        type: boolean
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 3
+        orderNumber: 2
+  EndJogMode:
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 2
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 1
+        orderNumber: 1
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  SetJogModeVelocities:
+    parameters:
+      movejointsigns:
+        description: Joint signs used for jogging. If less than the number of joints, will be padded with zeros.
+        orderNumber: 0
+        required: true
+        type: array
+        items:
+          type: number
+      canJogInCheckMode:
+        description: "If True, then allow jogging even if in check mode. (Default: False)"
+        orderNumber: 5
+        type: boolean
+      checkSelfCollisionWhileJogging:
+        orderNumber: 10
+        type: boolean
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 8
+      force:
+        description: If true, forces the velocities to be set.
+        orderNumber: 11
+        type: boolean
+      jogtype:
+        ## TODO(felixvd): I think this is not parsed. It needs to be in robotJogParameters['jogtype']
+        description: "One of 'joints', 'world', 'robot', 'tool'. (DEPRECATED; needs to be a field in robotJogParameters instead)"
+        orderNumber: 9
+        type: string
+      robotaccelmult:
+        $ref: '#/components/robotaccelmult'
+        description: Value in (0,1] setting the percentage of robot acceleration to move at
+        orderNumber: 4
+        type: number
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      robotspeed:
+        $ref: '#/components/robotspeed'
+        orderNumber: 3
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 1
+        orderNumber: 7
+      toolname:
+        $ref: '#/components/toolname'
+        description: Name of the manipulator. Defaults to self.toolname
+        orderNumber: 2
+        type: string
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: false
+        orderNumber: 6
+      robotJogParameters:
+        description: A dictionary. Includes field 'jogtype' (One of 'joints', 'world', 'robot', 'tool').
+        type: object
+      simulationtimestep:
+        description: Time step of the simulation.
+        type: number
+      plotDirection:
+        description: If True, plot the direction.
+        type: boolean
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  SetRobotBridgeResume:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  SetRobotBridgePause:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  ClearRobotBridgeError:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 1
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  GetRobotBridgeState:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      ionames:
+        $ref: '#/components/ionames'
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  ShutdownRobotBridge:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  ReloadModule:
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+  ComputeIK:  # This was originally only in Binpickingcontrollerclient.
+    parameters:
+      toolname:
+        $ref: '#/components/toolname'
+        description: Tool name
+        orderNumber: 0
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      limit: 
+        description: Number of solutions to return
+        type: integer
+      iktype: 
+        description: "Needs to be one of transform6d, translationdirection5d, translation3d, translationxaxisangleznorm4d or translationzaxisangle4d. Default: transform6d"
+        type: string
+      translation: 
+        description: Translation in world coordinates. 
+        $ref: '#/components/Vector3Schema'
+      quaternion: 
+        description: Orientation in world coordinates. Used only for iktype 'transform6d'.
+        type: array
+        items:
+          type: number
+      direction: 
+        description: Direction in world coordinates. Used only for iktype 'translationdirection5d'.
+        $ref: '#/components/Vector3Schema'
+      angle: 
+        description: Angle in degrees and world coordinates. Used for iktypes 'translationxaxisangleznorm4d', 'translationzaxisangle4d'. 
+        type: number
+      freeincvalue: 
+        description: The discretization of the free joints of the robot when computing ik.
+        type: number
+      filteroptions: 
+        description: "OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked"
+        type: integer
+      preshape: 
+        description: If the tool has fingers after the end effector, this specifies their values. The gripper DOFs come from the **gripper_dof_pks** field of the tool.
+        type: array
+        items:
+          type: number
+    returns:
+      description: "A dictionary of:
+
+        - solution: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit"
+  ComputeIKFromParameters:
+    parameters:
+      targetname:
+        $ref: '#/components/targetname'
+      graspsetname:
+        $ref: '#/components/graspsetname'
+      ikparamnames:
+        $ref: '#/components/ikparamnames'
+      limit:
+        description: Number of solutions to return
+        type: number
+      useSolutionIndices:
+        type: boolean
+      disabletarget:
+        type: boolean
+      unit:
+        $ref: '#/components/unit'
+      randomBoxInfo:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/binpickingParametersSchema/properties/randomBoxInfo'
+      freeincvalue:
+        description: The discretization of the free joints of the robot when computing ik.
+        type: number
+      freeinc:
+        description: (deprecated) The discretization of the free joints of the robot when computing ik.
+        type: number
+      applyapproachoffset:
+        type: boolean
+      inPlaneAngleDeviation:
+        type: number
+      outOfPlaneAngleDeviation:
+        type: number
+      searchfreeparams:
+        type: boolean
+      returnClosestToCurrent:
+        type: boolean
+      filteroptionslist:
+        description: "A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions. Overrides filteroptions."
+        type: array
+        items:
+          type: string
+      filteroptions: 
+        description: "OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked"
+        type: integer
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+      toolname:
+        $ref: '#/components/toolname'
+        description: Tool name
+        orderNumber: 0
+        type: string
+    returns:
+      description: |
+        A dictionary of:
+
+        - solution: array of IK solutions (each of which is an array of DOF values), sorted by minimum travel distance and truncated to match the limit
+  ComputeIkParamPosition:
+    description: Given the name of a kinbody, computes the manipulator in the kinbody frame to generate parameters for an ikparam
+    parameters:
+      name:
+        orderNumber: 0
+        required: true
+        type: string
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      jointvalues:
+        description: 
+        $ref: '#/components/jointvalues'
+      unit:
+        $ref: '#/components/unit'
+      ### These parameters were in the docstring, but they are unused on the server side. Ignoring.
+      # filteroptions:
+      #   orderNumber: 9
+      # filteroptionslist:
+      #   orderNumber: 8
+      # freeincvalue:
+      #   description: The discretization of the free joints of the robot when computing ik.
+      #   orderNumber: 7
+      #   type: number
+      # ikparamnames:
+      #   description: The ikparameter names, also contains information about the grasp like the preshape
+      #   orderNumber: 5
+      #   type: array
+      # limit:
+      #   description: Number of solutions to return
+      #   orderNumber: 4
+      #   type: integer
+      # targetname:
+      #   description: The target object name that the ikparamnames belong to
+      #   orderNumber: 6
+      #   type: string
+  SetRobotBridgeIOVariables:
+    description: |
+      Sets a set of IO variables in the robot bridge.
+
+      This should not lock self.env since it can happen during the runtime of a task and lock out other functions waiting in the queue.
+    parameters:
+      iovalues:
+        orderNumber: 0
+        required: true
+      forceasync:
+        type: boolean
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  GetRobotBridgeIOVariables:
+    description: Returns the data of the IO in ASCII hex as a string
+    parameters:
+      ioname:
+        $ref: '#/components/ioname'
+        description: One IO name to read
+        orderNumber: 0
+      ionames:
+        $ref: '#/components/ionames'
+        description: A list of the IO names to read
+        orderNumber: 1
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 2
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 4
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  ### This is only used in BinpickingClient and probably should only be defined there.
+  # MoveToDropOff:
+  #   description: Moves the robot to desired joint angles.
+  #   parameters:
+  #     dropOffInfo:
+  #       orderNumber: 0
+  #       required: true
+  #     envclearance:
+  #       $ref: '#/components/envclearance'
+  #       orderNumber: 6
+  #     execute:
+  #       $ref: '#/components/execute'
+  #       default: 1
+  #       orderNumber: 4
+  #     robotaccelmult:
+  #       $ref: '#/components/robotaccelmult'
+  #       orderNumber: 3
+  #     robotname:
+  #       $ref: '#/components/robotname'
+  #       orderNumber: 1
+  #     robotspeed:
+  #       $ref: '#/components/robotspeed'
+  #       orderNumber: 2
+  #     startvalues:
+  #       $ref: '#/components/startvalues'
+  #       orderNumber: 5
+  #     timeout:
+  #       $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+  #       default: 10
+  #       orderNumber: 7
+  #     usewebapi:
+  #       $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+  #       default: true
+  #       orderNumber: 8
+  #     kwargs:
+  #       description: 'TODO: Look up these undefined parameters and remove the kwargs call'
+  MoveJointsToPositionConfiguration:
+    description: Moves the robot to desired position configuration specified in positionConfigurationName
+    parameters:
+      positionConfigurationCandidateNames:
+        description: If specified, goes to the first position that is defined for the robot. If no positions exist, returns without moving the robot.
+        orderNumber: 1
+        type: array
+        items:
+          type: string
+      positionConfigurationName:
+        description: If specified, the name of position configuration to move to. If it does not exist, will raise an error.
+        orderNumber: 0
+        type: string
+      startJointConfigurationStates:
+        description: List of dicts for each joint.
+        type: array
+        items:
+          type: object
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 2
+      startvalues:
+        $ref: '#/components/startvalues'
+        orderNumber: 6
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 8
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: true
+        orderNumber: 9
+      robotProgramName:
+        type: string
+      forceTorqueBasedEstimatorParameters:
+        $ref: '#/components/forceTorqueBasedEstimatorParameters'
+      ### Duplicated in $ref targets. Removing from here.
+      # envclearance:
+      #   $ref: '#/components/envclearance'
+      #   orderNumber: 7
+      # execute:
+      #   $ref: '#/components/execute'
+      #   default: 1
+      #   orderNumber: 5
+      # robotaccelmult:
+      #   $ref: '#/components/robotaccelmult'
+      #   orderNumber: 4
+      # robotspeed:
+      #   $ref: '#/components/robotspeed'
+      #   orderNumber: 3
+      $ref: [
+        '#/components/moveJointsParameters',
+        '#/components/Internal_MoveCommandDecoratorParameters',
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  MoveJoints:
+    description: Moves the robot to desired joint angles specified in jointvalues
+    parameters:
+      jointvalues:
+        description: (deprecated, use goaljoints) List of joint values to move to.
+        orderNumber: 100
+        required: true
+        type: array
+        items:
+          type: number
+      goaljoints:
+        description: List of joint values to move to.
+        orderNumber: 0
+        required: true
+        type: array
+        items:
+          type: number
+      jointindices:
+        $ref: '#/components/jointindices'
+        orderNumber: 1
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 2
+      startvalues:
+        $ref: '#/components/startvalues'
+        orderNumber: 6
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 8
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: true
+        orderNumber: 9
+      robotProgramName:  # TODO(felixvd): This should be a required param.
+        type: string
+        orderNumber: 10
+      forceTorqueBasedEstimatorParameters:
+        $ref: '#/components/forceTorqueBasedEstimatorParameters'
+      ### Duplicated in $ref targets. Removing from here.
+      # envclearance:
+      #   $ref: '#/components/envclearance'
+      #   orderNumber: 7
+      # execute:
+      #   $ref: '#/components/execute'
+      #   default: 1
+      #   orderNumber: 5
+      # robotaccelmult:
+      #   $ref: '#/components/robotaccelmult'
+      #   orderNumber: 4
+      # robotspeed:
+      #   $ref: '#/components/robotspeed'
+      #   orderNumber: 3
+      $ref: [
+        '#/components/moveJointsParameters',
+        '#/components/Internal_MoveCommandDecoratorParameters',
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  MoveJointsToJointConfigurationStates:
+    description: Moves the robot to desired joint angles specified in jointStates
+    parameters:
+      jointConfigurationStates:
+        mapsTo: goalJointConfigurationStates
+        orderNumber: 0
+        required: true
+      startJointConfigurationStates:
+        orderNumber: 5
+        type: ''
+      jointStates:
+        description: List[{'jointName':str, 'jointValue':float}]
+        orderNumber: 9
+        type: array
+      jointindices:
+        $ref: '#/components/jointindices'
+        orderNumber: 10
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 7
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        default: true
+        orderNumber: 8
+      ### Duplicated in $ref targets. Removing from here.
+      # envclearance:
+      #   $ref: '#/components/envclearance'
+      #   orderNumber: 6
+      # execute:
+      #   $ref: '#/components/execute'
+      #   default: 1
+      #   orderNumber: 4
+      # robotaccelmult:
+      #   $ref: '#/components/robotaccelmult'
+      #   orderNumber: 3
+      # robotspeed:
+      #   $ref: '#/components/robotspeed'
+      #   orderNumber: 2
+      $ref: [
+        '#/components/moveJointsParameters',
+        '#/components/Internal_MoveCommandDecoratorParameters',
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  SaveGripper:
+    description: Separate gripper from a robot in a scene and save it.
+    parameters:
+      filename:
+        description: File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
+        orderNumber: 2
+        type: string
+      manipname:
+        description: Name of the manipulator.
+        orderNumber: 3
+        type: string
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  SaveScene:
+    description: Saves the current scene to file
+    parameters:
+      externalref:
+        description: If '*', then each of the objects will be saved as externally referencing their original filename. Otherwise will force saving specific bodies as external references.
+        orderNumber: 3
+        type: string
+      filename:
+        description: e.g. /tmp/testscene.mujin.dae, if not specified, it will be saved with an auto-generated filename
+        orderNumber: 1
+        type: string
+      preserveexternalrefs:
+        description: If True, any bodies that are currently being externally referenced from the environment will be saved as external references.
+        orderNumber: 2
+        type: bool
+      saveReferenceUriAsHint:
+        description: If True, use save the reference uris as referenceUriHint so that webstack does not get confused and deletes content
+        orderNumber: 5
+        type: bool
+      saveclone:
+        description: (DEPRECATED) If 1, will save the scenes for all the cloned environments
+        orderNumber: 4
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+    returns:
+      description: 'The filename the scene is saved to, in a json dictionary, e.g. {''filename'': ''2013-11-01-17-10-00-UTC.dae''}'
+      type: object
+  ExecuteRobotProgram:
+    description: Execute a robot specific program by name
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 4
+      robotProgramName:
+        orderNumber: 0
+        required: true
+        type: string
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters',
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  MoveGripper:
+    description: Moves the chuck of the manipulator to a given value.
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 5
+      grippername:
+        $ref: '#/components/grippername'
+        orderNumber: 2
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 6
+      grippervalues:
+        description: Target value(s) of the chuck.
+        orderNumber: 0
+        required: true
+        type: array
+        items:
+          type: number
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 4
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters',
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  StopGripper:
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 4
+      grippername:
+        $ref: '#/components/grippername'
+        orderNumber: 1
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 5
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 0
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters'
+        ]
+  CalibrateGripper:
+    description: Goes through the gripper calibration procedure
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 4
+      grippername:
+        $ref: '#/components/grippername'
+        orderNumber: 1
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 5
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 0
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters'
+        ]
+  UnchuckGripper:
+    description: Unchucks the manipulator and releases the target
+    parameters:
+      grippername:
+        $ref: '#/components/grippername'
+        orderNumber: 1
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 5
+      pulloutdist:  # TODO(felixvd): Is this deprecated?
+        description: Distance to move away along the tool direction after releasing.
+        type: number
+        orderNumber: 6
+      deletetarget:
+        description: "If 1, removes the target object from the environment after releasing. (Default: 1)"
+        type: integer
+        orderNumber: 7
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 0
+      targetname:
+        $ref: '#/components/targetname'
+        description: Name of the target object.
+        orderNumber: 4
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters',
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  ChuckGripper:
+    description: Chucks the manipulator
+    parameters:
+      grippername:
+        $ref: '#/components/grippername'
+        orderNumber: 1
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 4
+      robotname:
+        $ref: '#/components/robotname'
+        orderNumber: 0
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters'
+        ]
+  GetTrajectoryLog:
+    description: Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
+    parameters:
+      includejointvalues:
+        default: false
+        description: If True, will include timedjointvalues. If False, will just give back the trajectories.
+        orderNumber: 3
+        type: bool
+      num:
+        description: Number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
+        orderNumber: 2
+        required: true
+        type: integer
+      startindex:
+        description: Start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the
+        orderNumber: 1
+        required: true
+        type: integer
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 4
+      saverawtrajectories:
+        description: If True, will save the raw trajectories.
+        type: boolean
+    returns:
+      description: "A dict with structure: \n    total: 10\n    trajectories: [\n    {\n    \"timestarted\": 12345215\n    \"name\": \"movingtodest\",\n    \"numpoints\": 100,\n    \"duration\": 0.8,\n    \"timedjointvalues\": [0, 0, 0, .....]\n    },\n    { ... }\n    ]\n    \n    Where timedjointvalues is a list of joint values and the trajectory time. For a 3DOF robot sampled at 0.008s, this is\n    [J1, J2, J3, 0, J1, J2, J3, 0.008, J1, J2, J3, 0.016, ...]"
+      type: object
+  RemoveObjectsWithPrefix:
+    description: Removes objects with prefix.
+    parameters:
+      doRemoveOnlyDynamic:
+        $ref: '#/components/doRemoveOnlyDynamic'
+        orderNumber: 6
+        required: true
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 4
+      prefix:
+        orderNumber: 0
+        type: string
+      removeLocationNames:
+        $ref: '#/components/removeLocationNames'
+        orderNumber: 5
+      removeNamePrefixes:
+        $ref: '#/components/removeNamePrefixes'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+    returns:
+      description: With key 'removedBodyNames' for the removed object names
+      type: object
+  ResetLocationTrackingContainerId:
+    description: Resets the containerId of self._activeLocationTrackingInfos if it matches checkContainerId.
+    parameters:
+      checkContainerId:
+        description: If checkContainerId is specified and not empty and it matches the current containerId of the tracking location, then reset the current tracking location
+        orderNumber: 1
+        required: true
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 4
+      locationName:
+        description: The name of the location that may be reset.
+        orderNumber: 0
+        required: true
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 3
+  UpdateLocationContainerIdType:
+    # TODO(felixvd): This description seems wrong. What does this actually update and what is a filter?
+    description: Resets the tracking of specific containers
+    parameters:
+      containerId:
+        description: ID of the container
+        orderNumber: 2
+        required: true
+        type: string
+      containerName:
+        description: Name of the container
+        orderNumber: 1
+        required: true
+        type: string
+      containerType:
+        description: Type of the container
+        orderNumber: 3
+        required: true
+        type: string
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 8
+      locationName:
+        description: Name of the location the container is in
+        orderNumber: 0
+        required: true
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 6
+      unit:
+        $ref: '#/components/unit'
+        orderNumber: 9
+      trackingCycleIndex:
+        description: If specified, then the cycle with same cycleIndex will update location tracking in the same call.
+        orderNumber: 5
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 7
+  GetLocationTrackingInfos:
+    description: Gets the active tracked locations
+    parameters:
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 0
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 1
+    returns:
+      description: activeLocationTrackingInfos
+      type: object
+  ResetLocationTracking:
+    description: Resets tracking updates for locations
+    parameters:
+      checkIdAndResetLocationName:
+        description: (locationName, containerId) - only reset the location if the container id matches
+        orderNumber: 6
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 2
+      resetAllLocations:
+        description: If True, then will reset all the locations
+        orderNumber: 3
+        type: bool
+      resetLocationName:
+        description: Resets only the location with matching name
+        orderNumber: 4
+        type: string
+      resetLocationNames:
+        description: Resets only locations with matching name
+        orderNumber: 5
+        type: array
+        items:
+          type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 1
+    returns:
+      description: clearedLOcationNames
+      type: object
+  SetLocationTracking:
+    description: Resets the tracking of specific containers
+    parameters:
+      cycleIndex:
+        description: The cycle index to track the locations for
+        orderNumber: 3
+      fireandforget:
+        $ref: '#/components/Internal_ExecuteCommandParameters/fireandforget'
+        default: false
+        orderNumber: 2
+      locationReplaceInfos:
+        description: 'A dict that should have the keys: name, containerDynamicProperties, rejectContainerIds, uri, pose, cycleIndex'
+        orderNumber: 4
+      removeLocationNames:
+        $ref: '#/components/removeLocationNames'
+        orderNumber: 5
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      usewebapi:
+        $ref: '#/components/Internal_ExecuteCommandParameters/usewebapi'
+        orderNumber: 1
+      minRobotBridgeTimeStampUS:
+        description: The minimum expected time stamp.
+        type: integer
+        orderNumber: 6
+      dynamicObstacleBaseName:
+        type: string
+        orderNumber: 7
+      targetUpdateBaseName:
+        type: string
+        orderNumber: 8
+      ioSignalsInfo:
+        $ref: '#/components/ioSignalsInfo'
+        orderNumber: 9
+      unit:
+        $ref: '#/components/unit'
+        orderNumber: 10
+  GetAABB:
+    description: Gets the axis-aligned bounding box (AABB) of an object.
+    parameters:
+      linkname:
+        $ref: '#/components/linknameAABB'
+        orderNumber: 3
+      targetname:
+        $ref: '#/components/targetname'
+        description: Name of the object
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 1
+    returns:
+      description: 'AABB of the object, e.g. {''pos'': [1000,400,100], ''extents'': [100,200,50]}'
+      type: object
+  GetInstObjectInfoFromURI:
+    description: Opens a URI and returns info about the internal/external and geometry info from it.
+    parameters:
+      instobjecturi:
+        orderNumber: 0
+        type: string
+        mapsTo: objecturi
+      instobjectpose:
+        description: Pose to be assigned to the retrieved object. 7-element list
+        orderNumber: 3
+        type: array
+        items:
+          type: number
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 1
+  GetInstObjectAndSensorInfo:
+    description: Returns information about the inst objects and sensors that are a part of those inst objects.
+    parameters:
+      instobjectnames:
+        orderNumber: 0
+        type: array
+        items:
+          type: string
+      sensornames:
+        orderNumber: 1
+        type: array
+        items:
+          type: string
+      ignoreMissingObjects:
+        description: "If False, will raise an error if the object is not found in the scene. Default: True."
+        type: boolean
+        orderNumber: 4
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 2
+  GetInnerEmptyRegionOBB:
+    description: Get the inner empty oriented bounding box (OBB) of a container.
+    parameters:
+      linkname:
+        $ref: '#/components/linknameOBB' # TODO(felixvd): This should be required: true, it seems
+        orderNumber: 1
+      targetname:
+        $ref: '#/components/targetname'
+        description: Name of the object
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 2
+    returns:
+      description: 'A dict describing the OBB of the object with keys: extents, boxLocalTranslation, originalBodyTranslation, quaternion, rotationmat, translation'
+      type: object
+  GetOBB:
+    description: Get the oriented bounding box (OBB) of object.
+    parameters:
+      linkname:
+        $ref: '#/components/linknameOBB'
+        orderNumber: 3
+      targetname:
+        $ref: '#/components/targetname'
+        description: Name of the object
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 1
+    returns:
+      description: 'A dict describing the OBB of the object with keys: extents, boxLocalTranslation, originalBodyTranslation, quaternion, rotationmat, translation'
+      type: object
+  SetTransform:
+    description: Sets the transform of an object. Rotation can be specified by either quaternion or rotation matrix.
+    parameters:
+      quaternion:
+        $ref: '#/components/quaternion'
+        orderNumber: 4
+      rotationmat:
+        $ref: '#/components/rotationmat'
+        orderNumber: 3
+      targetname:
+        $ref: '#/components/targetname'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 5
+      translation:
+        $ref: '#/components/translation'
+        orderNumber: 1
+        required: true
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 2
+  GetTransform:
+    description: Gets the transform of an object
+    parameters:
+      connectedBodyName:
+        description: OpenRave connected body name
+        orderNumber: 1
+        type: string
+      geometryName:
+        description: OpenRave geometry id name
+        orderNumber: 3
+        type: string
+      geometryPk:
+        description: OpenRave geometry primary key (pk)
+        orderNumber: 4
+        type: string
+      linkName:
+        description: OpenRave link name
+        orderNumber: 2
+        type: string
+      targetname:
+        description: OpenRave Kinbody name
+        orderNumber: 0
+        required: true
+        type: string
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 6
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+        orderNumber: 5
+    returns:
+      description: 'Transform of the object in a json dictionary, e.g. {''translation'': [100,200,300], ''rotationmat'': [[1,0,0],[0,1,0],[0,0,1]], ''quaternion'': [1,0,0,0]}'
+      type: object
+  GetGrabbed:
+    description: Gets the names of the objects currently grabbed
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+    returns:
+      description: 'Names of the grabbed object in a JSON dictionary, e.g. {''names'': [''target_0'']}'
+      type: object
+  Release:
+    description: Releases a grabbed object.
+    parameters:
+      targetname:
+        $ref: '#/components/targetname'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 1
+  Grab:
+    description: Grabs an object with tool
+    parameters:
+      targetname:
+        $ref: '#/components/targetname'
+        orderNumber: 0
+        required: true
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 1
+  UpdateObjects:
+    description: Updates objects in the scene with the envstate
+    x-clientGeneratorSettings:
+      omitFromArguments: [
+        'objectname',
+        'object_uri'
+      ]
+      parameters:
+        ### `targetname` replaces objectname and object_uri with these lines:
+        # taskparameters['objectname'] = targetname
+        # taskparameters['object_uri'] = u'mujin:/%s.mujin.dae' % (targetname)
+        targetname:
+          orderNumber: 1
+          $ref: '#/components/targetname'
+          mapsTo: objectname  # TODO(felixvd): This seems to be unused.
+          mapsToParamWithCustomAssignment:
+            param: 'object_uri'
+            assignment: "u'mujin:/%s.mujin.dae' % (targetname)"
+        envstate:
+          orderNumber: 0
+        state:  # TODO(felixvd): This seems to be unused.
+          orderNumber: 2
+        unit:
+          orderNumber: 3
+        timeout:
+          orderNumber: 4
+    parameters:
+      envstate:
+        description: 'A list of dictionaries for each instance object in world frame. Quaternion is specified in w,x,y,z order. e.g. [{''name'': ''target_0'', ''translation_'': [1,2,3], ''quat_'': [1,0,0,0], ''object_uri'':''mujin:/asdfas.mujin.dae''}, {''name'': ''target_1'', ''translation_'': [2,2,3], ''quat_'': [1,0,0,0]}]'
+        required: true
+      state:  # TODO(felixvd): This seems to be unused.
+        type: object
+      object_uri:
+        description: "Same as objectname, but in a Mujin URI format, e.g.: mujin:/OBJECTNAME.mujin.dae"
+        $ref: '#/components/targetname'
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+      unit:
+        $ref: '#/components/unit'
+        default: mm
+      callerid:
+        description: The name of the caller (only used internally)
+        type: string
+      detectionResultState:
+        description: Information about the detected objects (received from detectors)
+        type: object
+      targetUpdateNamePrefix:
+        type: string
+      cameranames:
+        type: array
+        items:
+          type: string
+      countOverlappingPoints:
+        type: boolean
+      overlapUpAxis:
+        $ref: '#/components/Vector3Schema'
+      zthresholdmult:
+        type: number
+      addUnpickableRegionAcrossShortEdgeDist:
+        type: boolean
+      sizeRoundUp:
+        description: "If False, then round down. (Default: True)"
+        type: boolean
+      sizePrecisionXYZ:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/binpickingParametersSchema/properties/randomBoxInfo/properties/sizePrecisionXYZ'
+      points:
+        description: The point cloud passed in along with the detection results. Used in selective cases to count point overlap of random box.
+        type: array
+        items:
+          type: number
+      pointsize:
+        description: Size of points in the point cloud.
+        type: number
+      pointcloudid:
+        type: string
+      locationName:
+        description: Name of the location to update.
+        type: string
+      containerName:
+        description: Name of the container to update. Requires locationName to be set. If containerName is empty, will use the container in locationName.
+        type: string
+      locationContainerId:
+        type: string
+      isFromStateSlaveNotify:
+        type: boolean
+      imageStartTimeStampMS:
+        type: integer
+      imageEndTimeStampMS:
+        type: integer
+      belowBoxOverlap:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/targetOverlapConstraintInfoSchema/properties/belowBoxOverlap'
+      ignoreOverlapPointsFromWall:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/targetOverlapConstraintInfoSchema/properties/ignoreOverlapPointsFromWall'
+      ignoreOverlapPointsFromNearbyTargets:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/targetOverlapConstraintInfoSchema/properties/ignoreOverlapPointsFromNearbyTargets'
+      castPointCloudShadowFromCamera:
+        description: If True, bottom parts of pointcloud obstacle are generated by casting shadow from camera. otherwise, vertical down (-z).
+        type: boolean
+      pointsProjectedDirection:
+        description: The negative direction in which the points were projected when creating the obstacles. If specified, then take into account when computing the overlap. When container up is +Z, then pointsProjectedDirection will be (0,0,1).
+        $ref: '#/components/Vector3Schema'
+      randomBoxOrigin:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/binpickingParametersSchema/properties/randomBoxInfo/properties/randomBoxOrigin'
+      rollStepDegree:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/binpickingParametersSchema/properties/randomBoxInfo/properties/rollStepDegree'
+      clampToContainer:
+        # TODO(felixvd): Is this right?
+        description: If True, crop to container dimensions.
+        type: boolean
+      medianFilterHalfSize:
+        description: If clampcontainer is True, this is used for filtering.
+        type: number
+      useEmptyRegionForCropping:
+        description: If clampcontainer is True, this is used for filtering.
+        type: boolean
+      cropContainerMarginsXYZXYZ:
+        $ref: '#/mujinbinpickingmanager.schema.containerschema/cropContainerMarginsXYZXYZ'
+      ioSignalsInfo:
+        $ref: '#/components/ioSignalsInfo'
+      addPointOffsetInfo:
+        $ref: '#/mujinbinpickingmanager.schema.containerschema/addPointOffsetInfoSchema'
+  MoveToHandPosition:
+    description: Computes the inverse kinematics and moves the manipulator to any one of the goals specified.
+    parameters:
+      closegripper:
+        default: 0
+        description: Whether to close gripper once the goal is reached. (deprecated)
+        orderNumber: 4
+        type: boolean
+      envclearance:
+        $ref: '#/components/envclearance'
+        orderNumber: 3
+      goals:
+        $ref: '#/components/goals'
+        description: 'Flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]'
+        orderNumber: 1
+        required: true
+        type: array
+      goaltype:
+        $ref: '#/components/goaltype'
+        orderNumber: 0
+        required: true
+      robotaccelmult:
+        $ref: '#/components/robotaccelmult'
+        orderNumber: 6
+      robotspeed:
+        $ref: '#/components/robotspeed'
+        orderNumber: 5
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 7
+      toolname:
+        $ref: '#/components/toolname'
+        orderNumber: 2
+      minimumgoalpaths:
+        $ref: '#/components/minimumgoalpaths'
+      chuckgripper:
+        type: boolean
+      currentlimitratios:
+        $ref: '#/components/moveJointsParameters/currentlimitratios'
+      instobjectname:
+        $ref: '#/components/Internal_MoveToParams/instobjectname'
+      ikparamname:
+        $ref: '#/components/Internal_MoveToParams/ikparamname'
+      ikparamoffset:
+        $ref: '#/components/Internal_MoveToParams/ikparamoffset'
+      pathPlannerParameters:
+        $ref: '#/components/pathPlannerParameters'
+      smootherParameters:
+        $ref: '#/components/smootherParameters'
+      ignoreGrabbingTarget:
+        $ref: '#/components/moveJointsParameters/ignoreGrabbingTarget'
+      jitter:
+        $ref: '#/components/moveJointsParameters/jitter'
+      unit:
+        $ref: '#/components/moveJointsParameters/unit'
+      maxJitterLinkDist:
+        $ref: '#/components/moveJointsParameters/maxJitterLinkDist'
+      execute:
+        $ref: '#/components/moveJointsParameters/execute'
+      filtertraj:
+        $ref: '#/components/moveJointsParameters/filtertraj'
+      executionFilterFactor:
+        $ref: '#/components/moveJointsParameters/executionFilterFactor'
+      departOffsetDir:
+        $ref: '#/components/moveJointsParameters/departOffsetDir'
+      departOffsetAwayFromGravity:
+        $ref: '#/components/moveJointsParameters/departOffsetAwayFromGravity'
+      departAccel:
+        $ref: '#/components/moveJointsParameters/departAccel'
+      moveStraightParams:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/moveStraightParamsSchema'
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  MoveToolLinear:
+    description: Moves the tool linear
+    parameters:
+      goals:
+        $ref: '#/components/goals'
+        orderNumber: 1
+        required: true
+      goaltype:
+        $ref: '#/components/goaltype'
+        orderNumber: 0
+        required: true
+      numspeedcandidates:
+        description: If speed/accel are not specified, the number of candiates to consider
+        orderNumber: 12
+        type: integer
+      plannername:
+        orderNumber: 9
+        type: string
+      robotspeed:
+        $ref: '#/components/robotspeed'
+        orderNumber: 4
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 3
+      toolname:
+        description: 'Tool name(s)'
+        $ref: '#/components/toolname'
+        type: string
+        orderNumber: 2
+      workaccel:
+        $ref: '#/components/workaccel'
+        orderNumber: 7
+      workignorefirstcollision:
+        orderNumber: 15
+        type: number
+      workignorefirstcollisionee:
+        description: time, necessary in case initial is in collision, has to be multiples of step length?
+        orderNumber: 13
+        type: number
+      workignorelastcollisionee:
+        description: time, necessary in case goal is in collision, has to be multiples of step length?
+        orderNumber: 14
+        type: number
+      workmaxdeviationangle:
+        description: How much the tool tip can rotationally deviate from the linear path. In deg.
+        orderNumber: 5
+        type: number
+      workminimumcompleteratio:
+        description: (DEPRECATED, UNUSED) In case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything.
+        orderNumber: 11
+        type: number
+      workminimumcompletetime:
+        description: (DEPRECATED, UNUSED) Set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
+        orderNumber: 10
+        type: number
+      workspeed:
+        $ref: '#/components/workspeed'
+        orderNumber: 6
+      worksteplength:
+        description: Discretization for planning MoveHandStraight, in seconds.
+        orderNumber: 8
+        type: number
+      ignoreGrabbingTarget:
+        $ref: '#/components/moveJointsParameters/ignoreGrabbingTarget'
+      currentlimitratios:
+        $ref: '#/components/moveJointsParameters/currentlimitratios'
+      instobjectname:
+        $ref: '#/components/Internal_MoveToParams/instobjectname'
+      ikparamname:
+        $ref: '#/components/Internal_MoveToParams/ikparamname'
+      execute:
+        $ref: '#/components/moveJointsParameters/execute'
+      moveStraightParams:
+        $ref: '#/mujinbinpickingmanager.schema.binpickingparametersschema/moveStraightParamsSchema'
+      $ref: [
+        '#/components/Internal_MoveCommandDecoratorParameters', 
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+  GetJointValues:
+    description: Gets the current robot joint values
+    parameters:
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 0
+      executetimeout:
+        $ref: '#/components/executetimeout'
+        default: 10
+        orderNumber: 1
+      unit:
+        $ref: '#/components/unit'
+        orderNumber: 2
+      $ref: [
+        '#/components/Internal_SetRobotClientParameters'
+        ]
+    returns:
+      description: 'Current joint values in a json dictionary with currentjointvalues: [0,0,0,0,0,0]'
+      type: object
+  # TODO(felixvd): Is this function really being used...? I think it is not, and should live in robotbridgeclient instead.
+  ExecuteTrajectory:
+    description: Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
+    parameters:
+      robotspeed:
+        $ref: '#/components/robotspeed'
+        orderNumber: 1
+      timeout:
+        $ref: '#/components/Internal_ExecuteCommandParameters/timeout'
+        default: 10
+        orderNumber: 2
+      trajectoryxml:
+        orderNumber: 0
+        required: true
+      kwargs:
+        description: 'TODO: Look up these undefined parameters and remove the kwargs call'

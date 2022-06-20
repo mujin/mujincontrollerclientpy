@@ -1,0 +1,33 @@
+# Components from `realtimerobotclient.py`
+
+components:
+  cameracontainername: 
+    description:
+    type: string
+  primarysensorname: 
+    description: Name of the primary sensor to be calibrated (attached to the robot)
+    type: string
+  secondarysensornames: 
+    description: Names of secondary sensors to be calibrated (assumed to be nearby the primary sensor)
+    type: array
+    items:
+      type: string
+  gridindex:
+    type: int
+    description: The index of the voxel 
+  calibboardvisibility: 
+    type: boolean
+  calibboardLinkName: 
+    type: string
+  calibboardGeomName: 
+    type: string
+    description:
+  minPatternTiltAngle: 
+    type: number
+    description: "The minimum tilt of the pattern in degrees. Default: 10 degrees"
+  maxPatternTiltAngle: 
+    type: number
+    description: "The maximum tilt of the pattern in degrees. Default: 30 degrees"
+  robot:
+    description: The name of the robot (modelName).
+    type: string
