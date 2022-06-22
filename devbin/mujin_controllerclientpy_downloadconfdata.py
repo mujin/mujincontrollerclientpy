@@ -17,7 +17,7 @@ def _ParseArguments():
     import argparse
     parser = argparse.ArgumentParser(description='Downloads all config files, currently used scene, and currently selected target env file from a controller')
     parser.add_argument('--loglevel', type=str, default=None, help='The python log level, e.g. DEBUG, VERBOSE, ERROR, INFO, WARNING, CRITICAL (default: %(default)s)')
-    parser.add_argument('--url', type=str, default='http://localhost', help='URL of the controller (default: %(default)s)')
+    parser.add_argument('--url', type=str, default='http://127.0.0.1', help='URL of the controller (default: %(default)s)')
     parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
     parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
     return parser.parse_args()
