@@ -21,6 +21,7 @@ setup(
         ('bin', [
             'bin/mujin_controllerclientpy_applyconfig.py',
             'bin/mujin_controllerclientpy_runshell.py',
+            'bin/mujin_controllerclientpy_downloadconfdata.py',
         ]),
     ],
     locale_dir='locale',
