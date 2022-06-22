@@ -1088,11 +1088,15 @@ class ControllerClient(object):
     # Backup restore
     #
 
-    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, timeout=600):
+    def Backup(self, saveconfig=True, savemedia=True, backupscenepks=None, saveapps=True, saveitl=True, savedetection=False, savecalibration=False, timeout=600):
         """Downloads a backup file
 
         :param saveconfig: Whether we want to include configs in the backup, defaults to True
         :param savemedia: Whether we want to include media files in the backup, defaults to True
+        :param saveapps: Whether we want to include web apps in the backup, defaults to True
+        :param saveitl: Whether we want to include itl programs in the backup, defaults to True
+        :param savedetection: Whether we want to include detection files in the backup, defaults to False
+        :param savecalibration: Whether we want to include calibration files in the backup, defaults to False
         :param backupscenepks: List of scenes to backup, defaults to None
         :param timeout: Amount of time in seconds to wait before failing, defaults to 600
         :raises ControllerClientError: If request wasn't successful
@@ -1101,6 +1105,10 @@ class ControllerClient(object):
         response = self._webclient.Request('GET', '/backup/', stream=True, params={
             'media': 'true' if savemedia else 'false',
             'config': 'true' if saveconfig else 'false',
+            'apps': 'true' if saveapps else 'false',
+            'itl': 'true' if saveitl else 'false',
+            'detection': 'true' if savedetection else 'false',
+            'calibration': 'true' if savecalibration else 'false',
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:

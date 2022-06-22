@@ -20,9 +20,10 @@ def _ParseArguments():
     parser.add_argument('--url', type=str, default='http://127.0.0.1', help='URL of the controller (default: %(default)s)')
     parser.add_argument('--username', type=str, default='mujin', help='Username to login with (default: %(default)s)')
     parser.add_argument('--password', type=str, default='mujin', help='Password to login with (default: %(default)s)')
+    parser.add_argument('--timeout', type=float, default=600, help='Timeout in seconds (default: %(default)s)')
     return parser.parse_args()
 
-def _GetControllerClient(url, username, password):
+def _CreateControllerClient(url, username, password):
     from mujincontrollerclient import controllerclientbase
 
     # create a controller client for the controller
@@ -56,7 +57,7 @@ def _GetScenes(controllerClient):
 
     return sceneList
 
-def _DownloadBackup(controllerClient, sceneList):
+def _DownloadBackup(controllerClient, sceneList, timeout=600.0):
     import re
     import tarfile
 
@@ -64,23 +65,24 @@ def _DownloadBackup(controllerClient, sceneList):
     response = controllerClient.Backup(      
         saveconfig=True,
         backupscenepks=sceneList,
-        timeout=600.0,
+        timeout=timeout,
     )
 
     # extract the response, use the name supplied by webstack
     archiveFilename = re.findall('filename=(.+)', response.headers['Content-Disposition'])[0].strip('"')
-    downloadFoldername = os.path.join(os.getcwd(), archiveFilename.rstrip('.tar.gz'))
-    log.info('saving downloaded data to %s', downloadFoldername)
+    downloadDirectory = os.path.join(os.getcwd(), archiveFilename.rstrip('.tar.gz'))
+    log.info('downloading and saving data to: %s', downloadDirectory)
     with tarfile.open(fileobj=response.raw, mode='r|gz') as tar:
-        tar.extractall(path=downloadFoldername)
+        tar.extractall(path=downloadDirectory)
+    log.info('download completed, data saved to: %s', downloadDirectory)
 
 def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    controllerClient = _GetControllerClient(options.url, options.username, options.password)
+    controllerClient = _CreateControllerClient(options.url, options.username, options.password)
     sceneList = _GetScenes(controllerClient)
-    _DownloadBackup(controllerClient, sceneList)
+    _DownloadBackup(controllerClient, sceneList, timeout=options.timeout)
 
 if __name__ == "__main__":
     _Main()
