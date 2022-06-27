@@ -543,6 +543,15 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def GetPackItemPoseInWorld(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """stops the packing computation thread thread started with StartPackFormationComputationThread
+        """
+        taskparameters = {
+            'command': 'GetPackItemPoseInWorld',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
     def SendPackFormationComputationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
