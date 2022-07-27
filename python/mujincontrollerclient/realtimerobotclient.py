@@ -998,7 +998,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         }
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
 
-    def SetRobotBridgeLockMode(self, islockmode, robotname=None, timeout=3, fireandforget=False):
+    def SetRobotBridgeLockMode(self, islockmode, robotname=None, timeout=3, fireandforget=False, usewebapi=False):
         """
 
         Args:
@@ -1011,7 +1011,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             'command': 'SetRobotBridgeLockMode',
             'islockmode': islockmode
         }
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget, usewebapi=usewebapi)
 
     def ResetSafetyFault(self, timeout=3, fireandforget=False):
         """
