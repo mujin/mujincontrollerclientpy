@@ -829,16 +829,19 @@ class ControllerClient(object):
     # File related
     #
 
-    def UploadFile(self, f, filename=None, timeout=10):
+    def UploadFile(self, f, filename=None, preservemodifiedat=False, timeout=10):
         """Uploads a file managed by file handle f
 
         Returns:
             (dict) json response
         """
+        headers = {}
+        if preservemodifiedat:
+            headers['X-Preserve-Modified-At'] = '1'
         data = {}
         if filename:
             data['filename'] = filename
-        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, headers=headers, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()
