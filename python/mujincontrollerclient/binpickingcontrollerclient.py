@@ -73,7 +73,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """
         if worksteplength is None:
             worksteplength = 0.01
-        assert(targetnamepattern is not None)
+        assert (targetnamepattern is not None)
         if regionname is None:
             regionname = self.regionname
         taskparameters = {
@@ -130,7 +130,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         """
         if worksteplength is None:
             worksteplength = 0.01
-        assert(targetnamepattern is not None)
+        assert (targetnamepattern is not None)
         if regionname is None:
             regionname = self.regionname
         taskparameters = {
