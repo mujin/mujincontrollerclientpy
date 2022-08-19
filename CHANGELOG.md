@@ -1,3 +1,8 @@
+# 0.15.6 (2022-08-19)
+
+- Added `X-Preserve-Modified-At` header support to `UploadFile` API.
+
+
 # 0.15.3 (2022-06-10)
 
 - Removed `mujin_controllerclientpy_registerscene.py` script that is deprecated.
