@@ -65,7 +65,7 @@ class ZmqSocketPool(object):
         self.SetDestroy()
 
         # At this point, all sockets should have been released
-        assert(self._acquirecount == self._releasecount)
+        assert (self._acquirecount == self._releasecount)
         sockets = list(self._pollingsockets.keys())
         while len(sockets) > 0:
             self._StopPollingSocket(sockets.pop())
@@ -74,7 +74,7 @@ class ZmqSocketPool(object):
         sockets = list(self._sockets.keys())
         while len(sockets) > 0:
             self._CloseSocket(sockets.pop())
-        assert(self._opencount == self._closecount)
+        assert (self._opencount == self._closecount)
 
         log.debug('Destroying ZMQ socket pool. sockets: opened = %d, closed = %d, acquired = %d, released = %d', self._opencount, self._closecount, self._acquirecount, self._releasecount)
 
@@ -103,7 +103,7 @@ class ZmqSocketPool(object):
         socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 2)  # The interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
         socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 2)  # The number of unacknowledged probes to send before considering the connection dead and notifying the application layer
         socket.connect(self._url)
-        assert(socket not in self._sockets)
+        assert (socket not in self._sockets)
         self._sockets[socket] = True
         self._opencount += 1
 
@@ -111,7 +111,7 @@ class ZmqSocketPool(object):
         return socket
 
     def _CloseSocket(self, socket):
-        assert(socket in self._sockets)
+        assert (socket in self._sockets)
         self._closecount += 1
         del self._sockets[socket]
         try:
@@ -121,12 +121,12 @@ class ZmqSocketPool(object):
             log.exception('Caught exception when closing socket: %s', e)
 
     def _StartPollingSocket(self, socket):
-        assert(socket not in self._pollingsockets)
+        assert (socket not in self._pollingsockets)
         self._pollingsockets[socket] = GetMonotonicTime()
         self._poller.register(socket, zmq.POLLIN | zmq.POLLOUT)
 
     def _StopPollingSocket(self, socket):
-        assert(socket in self._pollingsockets)
+        assert (socket in self._pollingsockets)
         self._poller.unregister(socket)
         del self._pollingsockets[socket]
 
@@ -409,7 +409,7 @@ class ZmqClient(object):
         self._CheckCallerThread('ReceiveCommand')
         
         # Should have called SendCommand with blockwait=False first
-        assert(self._socket is not None)
+        assert (self._socket is not None)
         releaseSocket = False
         try:
             # Receive phase
