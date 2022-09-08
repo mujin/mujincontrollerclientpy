@@ -936,7 +936,7 @@ class ControllerClient(object):
             'size': int(response.headers['Content-Length']),
         }
         if 'X-Content-SHA1' in response.headers:
-            result['X-Content-SHA1'] = response.headers['X-Content-SHA1']
+            result['hash'] = response.headers['X-Content-SHA1']
         return result
 
     def FlushCache(self, timeout=5):
