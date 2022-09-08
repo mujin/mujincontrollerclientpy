@@ -931,10 +931,13 @@ class ControllerClient(object):
         response = self._webclient.Request('HEAD', path, timeout=timeout)
         if response.status_code not in [200]:
             raise ControllerClientError(response.content.decode('utf-8'))
-        return {
+        result = {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
         }
+        if 'X-Content-SHA1' in response.headers:
+            result['X-Content-SHA1'] = response.headers['X-Content-SHA1']
+        return result
 
     def FlushCache(self, timeout=5):
         """Flush pending changes in cache to disk
