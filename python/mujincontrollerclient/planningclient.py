@@ -172,7 +172,7 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
                     except zmq.ZMQError as e:
                         log.exception('failed to receive from publisher: %s', e)
             if self._isokheartbeat:
-                log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
+                log.warn('%f secs since last heartbeat from controller %s' % (GetMonotonicTime() - lastheartbeatts, self._slaverequestid))
     
     def GetPublishedTaskState(self):
         """Return most recent published state. If publishing is disabled, then will return None

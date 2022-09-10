@@ -1052,28 +1052,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def ComputeRobotConfigsForGraspVisualization(self, targetname, graspname, robotname=None, toolname=None, unit='mm', usewebapi=False, timeout=10, **kwargs):
-        """Returns robot configs for grasp visualization
-
-        Args:
-            targetname (str):
-            graspname (str):
-            robotname (str, optional): Name of the robot
-            toolname (str, optional): Name of the manipulator. Default: self.toolname
-            unit (str, optional):  (Default: 'mm')
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
-            timeout (float, optional):  (Default: 10)
-        """
-        taskparameters = {
-            'command': 'ComputeRobotConfigsForGraspVisualization',
-            'targetname': targetname,
-            'graspname': graspname
-        }
-        if unit is not None:
-            taskparameters['unit'] = unit
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi, timeout=timeout)
-
     def ResetCacheTemplates(self, usewebapi=False, timeout=1, fireandforget=False, **kwargs):
         """Resets any cached templates
 
