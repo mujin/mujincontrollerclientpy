@@ -849,8 +849,11 @@ class ControllerClient(object):
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFile(self, filename, timeout=10):
-        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
+    def DeleteFile(self, filename, preservemodifiedat=False, timeout=10):
+        headers = {}
+        if preservemodifiedat:
+            headers['X-Preserve-Modified-At'] = '1'
+        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, headers=headers, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()['filename']
@@ -858,8 +861,11 @@ class ControllerClient(object):
                 log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFiles(self, filenames, timeout=10):
-        response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, timeout=timeout)
+    def DeleteFiles(self, filenames, preservemodifiedat=False, timeout=10):
+        headers = {}
+        if preservemodifiedat:
+            headers['X-Preserve-Modified-At'] = '1'
+        response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, headers=headers, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()['filenames']
