@@ -935,8 +935,10 @@ class ControllerClient(object):
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
         }
-        if 'X-Content-SHA1' in response.headers:
-            result['hash'] = response.headers['X-Content-SHA1']
+        for header in response.headers:
+            if header.upper() == 'X-Content-SHA1'.upper():
+                result['hash'] = response.headers[header]
+                break
         return result
 
     def FlushCache(self, timeout=5):
