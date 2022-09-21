@@ -408,3 +408,8 @@ class PlanningControllerClient(controllerclientbase.ControllerClient):
         configuration = {'startipython': True}
         configuration.update(kwargs)
         return self.Configure(configuration, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def StartRemotePDB(self, timeout=1, usewebapi=False, fireandforget=True, **kwargs):
+        configuration = {'startremotepdb': True}
+        configuration.update(kwargs)
+        return self.Configure(configuration, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
