@@ -492,8 +492,15 @@ class MujinResourceIdentifier(object):
             self._fragment = _EnsureUnicode(fragment)
 
     def _InitFromPartType(self, partType):
-        self._primaryKey = _Quote(partType + self._suffix)
-
+        if self._fragmentSeparator:
+            partTypeSegments = partType.rsplit(self._fragmentSeparator,1)
+            basePartType = partTypeSegments[0]
+            if len(partTypeSegments) > 1:
+                self._fragment = _EnsureUnicode(partTypeSegments[1])
+        else:
+            basePartType = partType
+        self._primaryKey = _Quote(basePartType + self._suffix)
+    
     def _InitFromFilename(self, filename):
         if self._mujinPath and filename.startswith(self._mujinPath):
             filename = filename[len(self._mujinPath):]
@@ -582,14 +589,18 @@ class MujinResourceIdentifier(object):
         if not self._mujinPath:
             return self.partType + self._suffix
         return os.path.join(self._mujinPath, self.partType + self._suffix)
-
+    
     @property
     def partType(self):
         suffix = _EnsureUTF8(self._suffix)
         if suffix and self._primaryKey.endswith(suffix):
-            return _Unquote(self._primaryKey[:-len(suffix)])
+            basePartType = _Unquote(self._primaryKey[:-len(suffix)])
         else:
-            return _Unquote(self._primaryKey)
+            basePartType = _Unquote(self._primaryKey)
+        if self._fragment:
+            return basePartType + self._fragmentSeparator + _EnsureUTF8(self._fragment)
+        
+        return basePartType
 
     @property
     def kwargs(self):
