@@ -79,7 +79,7 @@ SCHEME_FILE = u'file'
 
 
 def _Unquote(primaryKey):
-    assert(isinstance(primaryKey, six.binary_type))
+    assert (isinstance(primaryKey, six.binary_type))
     if six.PY3:
         # python3 unquote seems to be expecting unicode input
         return _EnsureUnicode(unquote(primaryKey.decode('ascii')))
@@ -88,7 +88,7 @@ def _Unquote(primaryKey):
 
 
 def _Quote(primaryKey):
-    assert(isinstance(primaryKey, six.text_type))
+    assert (isinstance(primaryKey, six.text_type))
     if six.PY3:
         # python3 quote seems to deal with unicode input
         return _EnsureUTF8(quote(primaryKey, safe=''))
@@ -177,15 +177,15 @@ def _UnparseURI(parts, fragmentSeparator):
             raise URIError(_('fragment separator %r not supported for current scheme: %r') % (fragmentSeparator, parts))
         return urlparse.urlunparse(parts)  # urlunparse will return unicode if any of the parts is unicode
 
-    assert(len(parts.netloc) == 0)
-    assert(len(parts.params) == 0)
-    assert(len(parts.query) == 0)
+    assert (len(parts.netloc) == 0)
+    assert (len(parts.params) == 0)
+    assert (len(parts.query) == 0)
     path = parts.path
     if path and not path.startswith(u'/'):
         path = u'/' + path
     fragment = parts.fragment
     if fragment:
-        assert(fragmentSeparator in (FRAGMENT_SEPARATOR_AT, FRAGMENT_SEPARATOR_SHARP))
+        assert (fragmentSeparator in (FRAGMENT_SEPARATOR_AT, FRAGMENT_SEPARATOR_SHARP))
         path = path + fragmentSeparator + fragment
     return scheme + u':' + path
 
@@ -434,24 +434,24 @@ class MujinResourceIdentifier(object):
         self.primaryKeySeparator = kwargs.pop('primaryKeySeparator', PRIMARY_KEY_SEPARATOR_EMPTY)
 
         if 'primaryKey' in kwargs:
-            assert('uri' not in kwargs)
-            assert('partType' not in kwargs)
-            assert('filename' not in kwargs)
+            assert ('uri' not in kwargs)
+            assert ('partType' not in kwargs)
+            assert ('filename' not in kwargs)
             self._InitFromPrimaryKey(_EnsureUTF8(kwargs.pop('primaryKey')))
         elif 'uri' in kwargs:
-            assert('partType' not in kwargs)
-            assert('filename' not in kwargs)
-            assert('primaryKey' not in kwargs)
+            assert ('partType' not in kwargs)
+            assert ('filename' not in kwargs)
+            assert ('primaryKey' not in kwargs)
             self._InitFromURI(_EnsureUnicode(kwargs.pop('uri')))
         elif 'partType' in kwargs:
-            assert('uri' not in kwargs)
-            assert('filename' not in kwargs)
-            assert('primaryKey' not in kwargs)
+            assert ('uri' not in kwargs)
+            assert ('filename' not in kwargs)
+            assert ('primaryKey' not in kwargs)
             self._InitFromPartType(_EnsureUnicode(kwargs.pop('partType')))
         elif 'filename' in kwargs:
-            assert('uri' not in kwargs)
-            assert('partType' not in kwargs)
-            assert('primaryKey' not in kwargs)
+            assert ('uri' not in kwargs)
+            assert ('partType' not in kwargs)
+            assert ('primaryKey' not in kwargs)
             self._InitFromFilename(_EnsureUnicode(kwargs.pop('filename')))
         else:
             raise URIError(_('Lack of parameters. initialization must include one of uri, primaryKey, partType or filename'))
@@ -492,8 +492,15 @@ class MujinResourceIdentifier(object):
             self._fragment = _EnsureUnicode(fragment)
 
     def _InitFromPartType(self, partType):
-        self._primaryKey = _Quote(partType + self._suffix)
-
+        if self._fragmentSeparator:
+            partTypeSegments = partType.rsplit(self._fragmentSeparator,1)
+            basePartType = partTypeSegments[0]
+            if len(partTypeSegments) > 1:
+                self._fragment = _EnsureUnicode(partTypeSegments[1])
+        else:
+            basePartType = partType
+        self._primaryKey = _Quote(basePartType + self._suffix)
+    
     def _InitFromFilename(self, filename):
         if self._mujinPath and filename.startswith(self._mujinPath):
             filename = filename[len(self._mujinPath):]
@@ -582,14 +589,18 @@ class MujinResourceIdentifier(object):
         if not self._mujinPath:
             return self.partType + self._suffix
         return os.path.join(self._mujinPath, self.partType + self._suffix)
-
+    
     @property
     def partType(self):
         suffix = _EnsureUTF8(self._suffix)
         if suffix and self._primaryKey.endswith(suffix):
-            return _Unquote(self._primaryKey[:-len(suffix)])
+            basePartType = _Unquote(self._primaryKey[:-len(suffix)])
         else:
-            return _Unquote(self._primaryKey)
+            basePartType = _Unquote(self._primaryKey)
+        if self._fragment:
+            return basePartType + self._fragmentSeparator + _EnsureUTF8(self._fragment)
+        
+        return basePartType
 
     @property
     def kwargs(self):
