@@ -598,7 +598,7 @@ class MujinResourceIdentifier(object):
         else:
             basePartType = _Unquote(self._primaryKey)
         if self._fragment:
-            return basePartType + self._fragmentSeparator + _EnsureUTF8(self._fragment)
+            return basePartType + self._fragmentSeparator + self._fragment
         
         return basePartType
 
