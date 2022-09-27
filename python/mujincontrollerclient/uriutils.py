@@ -586,16 +586,11 @@ class MujinResourceIdentifier(object):
 
     @property
     def filename(self):
-        fragment = _EnsureUTF8(self._fragment)
         suffix = _EnsureUTF8(self._suffix)
-        primaryKeySlice = self._primaryKey
-
-        if fragment and primaryKeySlice.endswith(fragment):
-            primaryKeySlice = primaryKeySlice[:-len(fragment)]
-        if suffix and primaryKeySlice.endswith(suffix):
-            primaryKeySlice = primaryKeySlice[:-len(suffix)]
-        basePartType = _Unquote(primaryKeySlice)
-
+        if suffix and self._primaryKey.endswith(suffix):
+            basePartType = _Unquote(self._primaryKey[:-len(suffix)])
+        else:
+            basePartType = _Unquote(self._primaryKey)
         if not self._mujinPath:
             return basePartType + self._suffix
         return os.path.join(self._mujinPath, basePartType + self._suffix)
