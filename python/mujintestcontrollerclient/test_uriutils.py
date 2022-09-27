@@ -65,7 +65,7 @@ def test_GetURIFromFilename(filename, mujinPath, expected):
 
 
 @pytest.mark.parametrize('primaryKey, primaryKeySeparator, expected', [
-    ('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', uriutils.PRIMARY_KEY_SEPARATOR_AT, u'测试_test.body0_motion.mujin.dae'),
+    ('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', uriutils.PRIMARY_KEY_SEPARATOR_AT, u'测试_test..mujin.dae'),
 ])
 def test_GetFilenameFromPrimaryKey(primaryKey, primaryKeySeparator, expected):
     assert uriutils.GetFilenameFromPrimaryKey(primaryKey, primaryKeySeparator=primaryKeySeparator) == expected
