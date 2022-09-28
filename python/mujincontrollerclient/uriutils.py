@@ -3,10 +3,14 @@
 
 """
 This file contains conversion functions between the following things:
+
 - URI (mujin:/somefolder/somefile.mujin.dae) (utf8/unicode+special urlquoted) (could have fragment) (file://abc/xxx.mujin.dae#body0_motion)
 - PrimaryKey (somefolder%2Fsomefile.mujin.dae) (ascii+urlquoted) (could have fragment) (mitsubishi%2Fmitsubishi-rv-7f.mujin.dae@body0_motion) (enforce return type to be str)
 - Filename (somefolder/somefile.mujin.dae) (utf8/unicode) (should not have fragment)
-- PartType (somefolder/somefile) (utf8/unicode) (should not have fragment)
+- PartType (somefolder/somefile) (utf8/unicode) (can have fragment)
+- EnvironmentID (somefolder/somefile) (utf8/unicode) (should not have fragment)
+- BodyID (body0_motion) (utf8/unicode) (same as fragment)
+
 All public functions in this file should be in the form of Get*From*, take fragementseparator as keyword argument as necessary, take allowfragment as necessary
 # All other functions should be internal to this file, prefixed with _
 
