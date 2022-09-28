@@ -65,7 +65,7 @@ def test_GetURIFromFilename(filename, mujinPath, expected):
 
 
 @pytest.mark.parametrize('primaryKey, primaryKeySeparator, expected', [
-    ('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', uriutils.PRIMARY_KEY_SEPARATOR_AT, u'测试_test..mujin.dae'),
+    ('%E6%B5%8B%E8%AF%95_test..mujin.dae@body0_motion', uriutils.PRIMARY_KEY_SEPARATOR_AT, u'测试_test.body0_motion.mujin.dae'),
 ])
 def test_GetFilenameFromPrimaryKey(primaryKey, primaryKeySeparator, expected):
     assert uriutils.GetFilenameFromPrimaryKey(primaryKey, primaryKeySeparator=primaryKeySeparator) == expected
@@ -114,7 +114,7 @@ def test_GetPartTypeFromFilename(filename, mujinPath, suffix, expected):
     assert uriutils.GetPartTypeFromFilename(filename, mujinPath=mujinPath, suffix=suffix) == expected
 
 @pytest.mark.parametrize('uri, fragmentSeparator,  expected', [
-    (u'mujin:/测试_test.mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test'),
+    (u'mujin:/测试_test.mujin.dae@body0_motion', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test@body0_motion'),
     (u'mujin:/测试_test.mujin.dae', uriutils.FRAGMENT_SEPARATOR_AT, u'测试_test'),
     (u'mujin:/test.mujin.dae', uriutils.FRAGMENT_SEPARATOR_AT, u'test'),
 ])
