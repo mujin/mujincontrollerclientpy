@@ -523,6 +523,14 @@ class MujinResourceIdentifier(object):
         self._fragment = _EnsureUnicode(value)
 
     @property
+    def bodyId(self):
+        return self._fragment
+
+    @bodyId.setter
+    def bodyId(self, value):
+        self._fragment = _EnsureUnicode(value)
+
+    @property
     def suffix(self):
         return self._suffix
 
@@ -585,27 +593,27 @@ class MujinResourceIdentifier(object):
         )
 
     @property
-    def filename(self):
+    def environmentId(self):
         suffix = _EnsureUTF8(self._suffix)
         if suffix and self._primaryKey.endswith(suffix):
-            basePartType = _Unquote(self._primaryKey[:-len(suffix)])
-        else:
-            basePartType = _Unquote(self._primaryKey)
+            return _Unquote(self._primaryKey[:-len(suffix)])
+        return _Unquote(self._primaryKey)
+
+    @environmentId.setter
+    def environmentId(self, value):
+        self._primaryKey = _Quote(_EnsureUnicode(value) + self._suffix)
+
+    @property
+    def filename(self):
         if not self._mujinPath:
-            return basePartType + self._suffix
-        return os.path.join(self._mujinPath, basePartType + self._suffix)
+            return self.environmentId + self._suffix
+        return os.path.join(self._mujinPath, self.environmentId + self._suffix)
     
     @property
     def partType(self):
-        suffix = _EnsureUTF8(self._suffix)
-        if suffix and self._primaryKey.endswith(suffix):
-            basePartType = _Unquote(self._primaryKey[:-len(suffix)])
-        else:
-            basePartType = _Unquote(self._primaryKey)
         if self._fragment:
-            return basePartType + self._fragmentSeparator + self._fragment
-        
-        return basePartType
+            return self.environmentId + self._fragmentSeparator + self._fragment
+        return self.environmentId
 
     @property
     def kwargs(self):
