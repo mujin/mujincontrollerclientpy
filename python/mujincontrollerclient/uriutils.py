@@ -3,10 +3,14 @@
 
 """
 This file contains conversion functions between the following things:
+
 - URI (mujin:/somefolder/somefile.mujin.dae) (utf8/unicode+special urlquoted) (could have fragment) (file://abc/xxx.mujin.dae#body0_motion)
 - PrimaryKey (somefolder%2Fsomefile.mujin.dae) (ascii+urlquoted) (could have fragment) (mitsubishi%2Fmitsubishi-rv-7f.mujin.dae@body0_motion) (enforce return type to be str)
 - Filename (somefolder/somefile.mujin.dae) (utf8/unicode) (should not have fragment)
-- PartType (somefolder/somefile) (utf8/unicode) (should not have fragment)
+- PartType (somefolder/somefile) (utf8/unicode) (can have fragment)
+- EnvironmentID (somefolder/somefile) (utf8/unicode) (should not have fragment)
+- BodyID (body0_motion) (utf8/unicode) (same as fragment)
+
 All public functions in this file should be in the form of Get*From*, take fragementseparator as keyword argument as necessary, take allowfragment as necessary
 # All other functions should be internal to this file, prefixed with _
 
@@ -523,6 +527,14 @@ class MujinResourceIdentifier(object):
         self._fragment = _EnsureUnicode(value)
 
     @property
+    def bodyId(self):
+        return self._fragment
+
+    @bodyId.setter
+    def bodyId(self, value):
+        self._fragment = _EnsureUnicode(value)
+
+    @property
     def suffix(self):
         return self._suffix
 
@@ -585,22 +597,27 @@ class MujinResourceIdentifier(object):
         )
 
     @property
+    def environmentId(self):
+        suffix = _EnsureUTF8(self._suffix)
+        if suffix and self._primaryKey.endswith(suffix):
+            return _Unquote(self._primaryKey[:-len(suffix)])
+        return _Unquote(self._primaryKey)
+
+    @environmentId.setter
+    def environmentId(self, value):
+        self._primaryKey = _Quote(_EnsureUnicode(value) + self._suffix)
+
+    @property
     def filename(self):
         if not self._mujinPath:
-            return self.partType + self._suffix
-        return os.path.join(self._mujinPath, self.partType + self._suffix)
+            return self.environmentId + self._suffix
+        return os.path.join(self._mujinPath, self.environmentId + self._suffix)
     
     @property
     def partType(self):
-        suffix = _EnsureUTF8(self._suffix)
-        if suffix and self._primaryKey.endswith(suffix):
-            basePartType = _Unquote(self._primaryKey[:-len(suffix)])
-        else:
-            basePartType = _Unquote(self._primaryKey)
         if self._fragment:
-            return basePartType + self._fragmentSeparator + _EnsureUTF8(self._fragment)
-        
-        return basePartType
+            return self.environmentId + self._fragmentSeparator + self._fragment
+        return self.environmentId
 
     @property
     def kwargs(self):
