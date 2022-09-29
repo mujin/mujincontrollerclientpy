@@ -35,7 +35,7 @@ class ControllerWebClient(object):
     _isok = False  # Flag to stop
     _session = None  # Requests session object
 
-    def __init__(self, baseurl, username, password, locale=None, author=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None, preservemodifiedat=False):
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -66,6 +66,9 @@ class ControllerWebClient(object):
         # Set author header
         self.SetAuthor(author)
 
+        # Set preserve modified at header
+        self.SetPreserveModifiedAt(preservemodifiedat)
+
     def __del__(self):
         self.Destroy()
 
@@ -90,6 +93,9 @@ class ControllerWebClient(object):
     def SetAuthor(self, author=None):
         if author is not None and len(author) > 0:
             self._headers['X-Author'] = author
+
+    def SetPreserveModifiedAt(self, preservemodifiedat):
+        self._headers['X-Preserve-Modified-At'] = '1'
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:

@@ -1,6 +1,6 @@
 # 0.15.7 (2022-08-19)
 
-- Added `X-Preserve-Modified-At` header support to `UploadFile` API.
+- Added `X-Preserve-Modified-At` header support.
 
 
 # 0.15.3 (2022-06-10)

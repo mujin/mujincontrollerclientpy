@@ -829,19 +829,15 @@ class ControllerClient(object):
     # File related
     #
 
-    def UploadFile(self, f, filename=None, preservemodifiedat=False, timeout=10):
+    def UploadFile(self, f, filename=None, timeout=10):
         """Uploads a file managed by file handle f
-
         Returns:
             (dict) json response
         """
-        headers = {}
-        if preservemodifiedat:
-            headers['X-Preserve-Modified-At'] = '1'
         data = {}
         if filename:
             data['filename'] = filename
-        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, headers=headers, timeout=timeout)
+        response = self._webclient.Request('POST', '/fileupload', files={'file': f}, data=data, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()
@@ -849,11 +845,8 @@ class ControllerClient(object):
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFile(self, filename, preservemodifiedat=False, timeout=10):
-        headers = {}
-        if preservemodifiedat:
-            headers['X-Preserve-Modified-At'] = '1'
-        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, headers=headers, timeout=timeout)
+    def DeleteFile(self, filename, timeout=10):
+        response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()['filename']
@@ -861,11 +854,8 @@ class ControllerClient(object):
                 log.exception('failed to delete file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'))
 
-    def DeleteFiles(self, filenames, preservemodifiedat=False, timeout=10):
-        headers = {}
-        if preservemodifiedat:
-            headers['X-Preserve-Modified-At'] = '1'
-        response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, headers=headers, timeout=timeout)
+    def DeleteFiles(self, filenames, timeout=10):
+        response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, timeout=timeout)
         if response.status_code in (200,):
             try:
                 return response.json()['filenames']
