@@ -114,12 +114,13 @@ class ControllerClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, preservemodifiedat=False):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, additionalHeaders=None):
         """Logs into the Mujin controller.
 
         :param controllerurl: URL of the mujin controller, e.g. http://controller14
         :param controllerusername: Username of the mujin controller, e.g. testuser
         :param controllerpassword: Password of the mujin controller
+        :param additionalHeaders: Additional HTTP headers to be included in requests
         """
 
         # Parse controllerurl
@@ -146,7 +147,7 @@ class ControllerClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, preservemodifiedat=preservemodifiedat)
+        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, additionalHeaders=additionalHeaders)
 
     def __del__(self):
         self.Destroy()
@@ -927,15 +928,11 @@ class ControllerClient(object):
         response = self._webclient.Request('HEAD', path, timeout=timeout)
         if response.status_code not in [200]:
             raise ControllerClientError(response.content.decode('utf-8'))
-        result = {
+        return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
+            'hash': response.headers.get('X-Content-SHA1'),
         }
-        for header in response.headers:
-            if header.upper() == 'X-Content-SHA1'.upper():
-                result['hash'] = response.headers[header]
-                break
-        return result
 
     def FlushCache(self, timeout=5):
         """Flush pending changes in cache to disk

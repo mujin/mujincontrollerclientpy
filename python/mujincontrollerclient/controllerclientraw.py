@@ -35,7 +35,7 @@ class ControllerWebClient(object):
     _isok = False  # Flag to stop
     _session = None  # Requests session object
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, preservemodifiedat=False):
+    def __init__(self, baseurl, username, password, locale=None, author=None, additionalHeaders=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -47,6 +47,9 @@ class ControllerWebClient(object):
 
         # Use basic auth
         self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
+
+        # Add additional headers
+        self._headers.update(additionalHeaders or {})
 
         # Set referer
         self._headers['Referer'] = baseurl
@@ -65,9 +68,6 @@ class ControllerWebClient(object):
 
         # Set author header
         self.SetAuthor(author)
-
-        # Set preserve modified at header
-        self.SetPreserveModifiedAt(preservemodifiedat)
 
     def __del__(self):
         self.Destroy()
@@ -93,10 +93,8 @@ class ControllerWebClient(object):
     def SetAuthor(self, author=None):
         if author is not None and len(author) > 0:
             self._headers['X-Author'] = author
-
-    def SetPreserveModifiedAt(self, preservemodifiedat):
-        if preservemodifiedat:
-            self._headers['X-Preserve-Modified-At'] = '1'
+        else:
+            self._headers.pop('X-Author', None)
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
