@@ -95,7 +95,8 @@ class ControllerWebClient(object):
             self._headers['X-Author'] = author
 
     def SetPreserveModifiedAt(self, preservemodifiedat):
-        self._headers['X-Preserve-Modified-At'] = '1'
+        if preservemodifiedat:
+            self._headers['X-Preserve-Modified-At'] = '1'
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
