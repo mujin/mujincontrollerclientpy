@@ -1,3 +1,8 @@
+# 0.15.8 (2022-08-19)
+
+- Allow controller client user to supply additional headers to be included in http requests.
+
+
 # 0.15.3 (2022-06-10)
 
 - Removed `mujin_controllerclientpy_registerscene.py` script that is deprecated.
