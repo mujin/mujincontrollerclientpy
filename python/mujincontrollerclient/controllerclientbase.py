@@ -114,7 +114,7 @@ class ControllerClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, preservemodifiedat=False):
         """Logs into the Mujin controller.
 
         :param controllerurl: URL of the mujin controller, e.g. http://controller14
@@ -146,7 +146,7 @@ class ControllerClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author)
+        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, preservemodifiedat=preservemodifiedat)
 
     def __del__(self):
         self.Destroy()

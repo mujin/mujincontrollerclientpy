@@ -1,4 +1,4 @@
-# 0.15.7 (2022-08-19)
+# 0.15.8 (2022-08-19)
 
 - Added `X-Preserve-Modified-At` header support.
 
