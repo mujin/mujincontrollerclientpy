@@ -114,12 +114,13 @@ class ControllerClient(object):
     controllerIp = ''  # Hostname of the controller web server
     controllerPort = 80  # Port of the controller web server
 
-    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None):
+    def __init__(self, controllerurl='http://127.0.0.1', controllerusername='', controllerpassword='', author=None, additionalHeaders=None):
         """Logs into the Mujin controller.
 
         :param controllerurl: URL of the mujin controller, e.g. http://controller14
         :param controllerusername: Username of the mujin controller, e.g. testuser
         :param controllerpassword: Password of the mujin controller
+        :param additionalHeaders: Additional HTTP headers to be included in requests
         """
 
         # Parse controllerurl
@@ -146,7 +147,7 @@ class ControllerClient(object):
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
         }
-        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author)
+        self._webclient = controllerclientraw.ControllerWebClient(self.controllerurl, self.controllerusername, self.controllerpassword, author=author, additionalHeaders=additionalHeaders)
 
     def __del__(self):
         self.Destroy()
@@ -831,7 +832,6 @@ class ControllerClient(object):
 
     def UploadFile(self, f, filename=None, timeout=10):
         """Uploads a file managed by file handle f
-
         Returns:
             (dict) json response
         """
@@ -931,6 +931,7 @@ class ControllerClient(object):
         return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
+            'hash': response.headers.get('X-Content-SHA1'),
         }
 
     def FlushCache(self, timeout=5):

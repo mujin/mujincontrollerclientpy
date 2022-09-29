@@ -45,7 +45,7 @@ class ControllerGraphClientBase(object):
         """
         if timeout is None:
             timeout = 5.0
-
+        queryFields = _StringifyQueryFields(self.typeDatabase, returnType, fields)
         queryParameters = ', '.join([
             '$%s: %s' % (parameterName, parameterType)
             for parameterName, parameterType, parameterValue in parameterNameTypeValues
@@ -57,7 +57,6 @@ class ControllerGraphClientBase(object):
             for parameterName, parameterType, parameterValue in parameterNameTypeValues
         ])
         if queryArguments:
-            queryFields = _StringifyQueryFields(self.typeDatabase, returnType, fields)
             if queryFields:
                 queryFields = ' %s' % queryFields
             queryArguments = '(%s)' % queryArguments
