@@ -732,14 +732,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional):  (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
         """
-        if jointindices is None:
-            jointindices = range(len(jointvalues))
-            log.warn(u'No jointindices specified. Moving joints with default jointindices: %s', jointindices)
-
         taskparameters = {
             'command': 'MoveJoints',
             'goaljoints': list(jointvalues),
-            'jointindices': list(jointindices),
             'execute': execute,
         }
         if envclearance is not None:
@@ -747,6 +742,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
+
+        if jointindices is not None:
+            taskparameters['jointindices'] = list(jointindices)
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
