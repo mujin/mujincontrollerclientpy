@@ -1,3 +1,8 @@
+# 0.16.0 (2022-10-07)
+
+- Remove `ExecuteTrajectory` method, to avoid dangerous usage. Instead, an ITL program (e.g. with `Move`) should be executed to ensure that the trajectory is collision-free.
+
+
 # 0.15.9 (2022-09-30)
 
 - Regenerate graph client.

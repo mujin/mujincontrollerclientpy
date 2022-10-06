@@ -133,20 +133,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
 
-    def ExecuteTrajectory(self, trajectoryxml, robotspeed=None, timeout=10, **kwargs):
-        """Executes a trajectory on the robot from a serialized Mujin Trajectory XML file.
-
-        Args:
-            trajectoryxml:
-            robotspeed (float, optional):
-            timeout (float, optional):  (Default: 10)
-        """
-        taskparameters = {'command': 'ExecuteTrajectory',
-                          'trajectory': trajectoryxml,
-                          }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, timeout=timeout)
-
     def GetJointValues(self, timeout=10, **kwargs):
         """Gets the current robot joint values
 
