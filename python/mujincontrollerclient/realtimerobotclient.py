@@ -8,7 +8,7 @@ import logging
 log = logging.getLogger(__name__)
 
 class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
-    """Mujin controller client for RealtimeRobotControllerClient task"""
+    """Mujin controller client for realtimerobot task"""
     _robotname = None  # Optional name of the robot selected
     _robotspeed = None  # Speed of the robot, e.g. 0.4
     _robotaccelmult = None  # Current robot accel mult
@@ -162,10 +162,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            executetimeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit (str, optional): The unit of the given values. (Default: 'mm')
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
 
         Returns:
             dict: Current joint values in a json dictionary with currentjointvalues: [0,0,0,0,0,0]
@@ -181,32 +177,19 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             goaltype (str): Type of the goal, e.g. translationdirection5d
-            goals (list): Flat list of goals, e.g. two 5D ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-            toolname (str, optional): Tool name(s)
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
-            workmaxdeviationangle (float, optional): How much the tool tip can rotationally deviate from the linear path. In deg.
-            workspeed (float, optional): [anglespeed, transspeed] in deg/s and mm/s
-            workaccel (float, optional): [angleaccel, transaccel] in deg/s^2 and mm/s^2
-            worksteplength (float, optional): Discretization for planning MoveHandStraight, in seconds.
-            plannername (str, optional):
-            workminimumcompletetime (float, optional): (DEPRECATED, UNUSED) Set to trajduration - 0.016s. EMU_MUJIN example requires at least this much
-            workminimumcompleteratio (float, optional): (DEPRECATED, UNUSED) In case the duration of the trajectory is now known, can specify in terms of [0,1]. 1 is complete everything.
-            numspeedcandidates (int, optional): If speed/accel are not specified, the number of candiates to consider
-            workignorefirstcollisionee (float, optional): time, necessary in case initial is in collision, has to be multiples of step length?
-            workignorelastcollisionee (float, optional): time, necessary in case goal is in collision, has to be multiples of step length?
-            workignorefirstcollision (float, optional):
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotaccelmult:
-            ionames:
-            ignoreGrabbingTarget (bool, optional):
-            currentlimitratios (list, optional): The joints' current limt ratios.
-            instobjectname (str, optional): If goaltype is not set and both instobjectname and ikparamname are set, use ikparamname of instobjectname as target position.
-            ikparamname (str, optional): If goaltype is not set and both instobjectname and ikparamname are set, use ikparamname of instobjectname as target position.
-            execute:
-            moveStraightParams (dict, optional): Parameters used for linear movement like grasp approach, grasp depart, etc.
+            goals (list[float]): Flat list of goals, e.g. two 5D ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+            toolname (str, optional): Name of the manipulator. Default: self.toolname
+            timeout (float, optional):  (Default: 10)
+            robotspeed (float, optional):
+            workmaxdeviationangle (float): How much the tool tip can rotationally deviate from the linear path. In deg.
+            workspeed (float): [anglespeed, transspeed] in deg/s and mm/s
+            workaccel (float): [angleaccel, transaccel] in deg/s^2 and mm/s^2
+            worksteplength (float): Discretization for planning MoveHandStraight, in seconds.
+            plannername (str):
+            numspeedcandidates (int): If speed/accel are not specified, the number of candiates to consider
+            workignorefirstcollisionee (float): time, necessary in case initial is in collision, has to be multiples of step length?
+            workignorelastcollisionee (float): time, necessary in case goal is in collision, has to be multiples of step length?
+            workignorefirstcollision (float):
         """
         taskparameters = {
             'command': 'MoveToolLinear',
@@ -221,35 +204,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             goaltype (str): Type of the goal, e.g. translationdirection5d
-            goals (list): Flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
-            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
-            envclearance (float, optional): Environment clearance in millimeters
-            closegripper (bool, optional): Whether to close gripper once the goal is reached. (Default: 0)
-            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
-            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            ionames:
-            minimumgoalpaths (int, optional): Number of solutions the planner must provide before it is allowed to finish.
-            chuckgripper (bool, optional):
-            currentlimitratios (list, optional): The joints' current limt ratios.
-            instobjectname (str, optional): If goaltype is not set and both instobjectname and ikparamname are set, use ikparamname of instobjectname as target position.
-            ikparamname (str, optional): If goaltype is not set and both instobjectname and ikparamname are set, use ikparamname of instobjectname as target position.
-            ikparamoffset (list, optional):
-            pathPlannerParameters:
-            smootherParameters:
-            ignoreGrabbingTarget (bool, optional):
-            jitter (float, optional):
-            maxJitterLinkDist:
-            execute:
-            filtertraj (bool, optional):
-            executionFilterFactor (float, optional):
-            departOffsetDir (list, optional): Direction in which to apply the offset when departing from the pick/place operation.
-            departOffsetAwayFromGravity (float, optional): Overridden by departOffsetDir
-            departAccel (float, optional):
-            moveStraightParams (dict, optional): Parameters used for linear movement like grasp approach, grasp depart, etc.
+            goals (list[float]): Flat list of goals, e.g. two 5d ik goals: [380,450,50,0,0,1, 380,450,50,0,0,-1]
+            toolname (str, optional): Name of the manipulator. Default: self.toolname
+            envclearance (float): Clearance in millimeter. Default: self.envclearances
+            closegripper: Whether to close gripper once the goal is reached. Default: 0
+            robotspeed (float, optional):
+            robotaccelmult (float, optional):
+            timeout (float, optional):  (Default: 10)
         """
         taskparameters = {
             'command': 'MoveToHandPosition',
@@ -265,42 +226,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             envstate: A list of dictionaries for each instance object in world frame. Quaternion is specified in w,x,y,z order. e.g. [{'name': 'target_0', 'translation_': [1,2,3], 'quat_': [1,0,0,0], 'object_uri':'mujin:/asdfas.mujin.dae'}, {'name': 'target_1', 'translation_': [2,2,3], 'quat_': [1,0,0,0]}]
-            targetname (str, optional): Name of the target object
-            state (dict, optional):
-            unit (str, optional): The unit of the given values. (Default: 'mm')
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            callerid (str, optional): The name of the caller (only used internally)
-            detectionResultState (dict, optional): Information about the detected objects (received from detectors)
-            targetUpdateNamePrefix (str, optional):
-            cameranames (list, optional):
-            countOverlappingPoints (bool, optional):
-            overlapUpAxis (list, optional):
-            zthresholdmult (float, optional):
-            addUnpickableRegionAcrossShortEdgeDist (bool, optional):
-            sizeRoundUp (bool, optional): If False, then round down. (Default: True)
-            sizePrecisionXYZ (list, optional): mm (x,y,z) for rounding up incoming boxes from the detector. This allows previous grasping models to be cached and re-used since the sizes will be multiples of the current precision.
-            points (list, optional): The point cloud passed in along with the detection results. Used in selective cases to count point overlap of random box.
-            pointsize (float, optional): Size of points in the point cloud.
-            pointcloudid (str, optional):
-            locationName (str, optional): Name of the location to update.
-            containerName (str, optional): Name of the container to update. Requires locationName to be set. If containerName is empty, will use the container in locationName.
-            locationContainerId (str, optional):
-            isFromStateSlaveNotify (bool, optional):
-            imageStartTimeStampMS (int, optional):
-            imageEndTimeStampMS (int, optional):
-            belowBoxOverlap (float, optional): mm, Threshold on how much to ignore the relative heights of two neighboring targets to determine if the candidate is *below* the current pickup target. Positive value the pickup target is allowed to be under the other non-pickup targets by this amount, and still be pickable. When two targets are deemed to be overlapping on the face orthogonal to overlapUpAxis based on neighOverlapThresh, then check the heights of the targets to make sure that one target is really above the other. Sometimes detection error can cause two targets on the same height to be overlapped a little, but that doesn't mean that one target is on top of the other. (Default: 0)
-            ignoreOverlapPointsFromWall (float, optional): mm, distance from the container inner walls within which pointcloud points do not count towards overlapping points (Default: 0)
-            ignoreOverlapPointsFromNearbyTargets (float, optional): mm, amount of target extents reduction when counting the number of overlapping pointcloud points. This is so that pointcloud near the edges of the target (can come from noises from nearby targets, for example) can be ignored. (Default: 0)
-            castPointCloudShadowFromCamera (bool, optional): If True, bottom parts of pointcloud obstacle are generated by casting shadow from camera. otherwise, vertical down (-z).
-            pointsProjectedDirection (list, optional): The negative direction in which the points were projected when creating the obstacles. If specified, then take into account when computing the overlap. When container up is +Z, then pointsProjectedDirection will be (0,0,1).
-            randomBoxOrigin (list, optional): Specifies where to place the origin of the incoming box detections. By default, this is [0,0,1], which means the origin will be at the center of the +Z (top) face.
-            rollStepDegree (float, optional): Step of 6D grasp rotation around z axis in degrees, defaults to 45 degrees. (Default: 90)
-            clampToContainer (bool, optional): If True, crop to container dimensions.
-            medianFilterHalfSize (float, optional): If clampcontainer is True, this is used for filtering.
-            useEmptyRegionForCropping (bool, optional): If clampcontainer is True, this is used for filtering.
-            cropContainerMarginsXYZXYZ (list, optional): Margin defining an axis aligned bounding box to limit point cloud data for the container. Values are measured from the interior of container edges. Positive value means cropping, negative value means additional margin. 
-            ioSignalsInfo (dict, optional): Struct for dictating if any IO signals should be written on receiving detection results
-            addPointOffsetInfo (dict, optional): Special offsets from pointcloud
+            targetname (optional):
+            state (optional):
+            unit (str, optional): Unit of envstate. Default: mm
+            timeout (float, optional):  (Default: 10)
         """
         taskparameters = {
             'command': 'UpdateObjects',
@@ -371,7 +300,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
 
         Returns:
-            Transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
+            dict: Transform of the object in a json dictionary, e.g. {'translation': [100,200,300], 'rotationmat': [[1,0,0],[0,1,0],[0,0,1]], 'quaternion': [1,0,0,0]}
 
         """
         taskparameters = {
@@ -391,10 +320,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             targetname (str): Name of the target object
-            translation (list): List of x,y,z values of the object in millimeters.
+            translation (list[float]): List of x,y,z values of the object in millimeters.
             unit (str, optional): The unit of the given values. (Default: 'mm')
-            rotationmat (list, optional): List specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
-            quaternion (list, optional): List specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0].
+            rotationmat (list[float], optional): List specifying the rotation matrix in row major format, e.g. [1,0,0,0,1,0,0,0,1]
+            quaternion (list[float], optional): List specifying the quaternion in w,x,y,z format, e.g. [1,0,0,0].
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
         """
         taskparameters = {
@@ -463,7 +392,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             sensornames (list, optional):
             unit (str, optional): The unit of the given values. (Default: 'mm')
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            ignoreMissingObjects (bool, optional): If False, will raise an error if the object is not found in the scene. Default: True.
         """
         taskparameters = {
             'command': 'GetInstObjectAndSensorInfo',
@@ -483,7 +411,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             instobjecturi (str, optional):
             unit (str, optional): The unit of the given values. (Default: 'mm')
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            instobjectpose (list, optional): Pose to be assigned to the retrieved object. 7-element list
         """
         taskparameters = {
             'command': 'GetInstObjectInfoFromURI',
@@ -524,12 +451,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             cycleIndex: The cycle index to track the locations for
             locationReplaceInfos: A dict that should have the keys: name, containerDynamicProperties, rejectContainerIds, uri, pose, cycleIndex
             removeLocationNames (list, optional):
-            doRemoveOnlyDynamic: 
-            minRobotBridgeTimeStampUS (int, optional): The minimum expected time stamp.
-            dynamicObstacleBaseName (str, optional):
-            targetUpdateBaseName (str, optional):
-            ioSignalsInfo (dict, optional): Struct for dictating if any IO signals should be written on receiving detection results
-            unit (str, optional): The unit of the given values. (Default: 'mm')
+            doRemoveOnlyDynamic (bool, optional):
         """
         taskparameters = {
             'command': 'SetLocationTracking',
@@ -546,7 +468,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
             resetAllLocations (bool, optional): If True, then will reset all the locations
             resetLocationName (str, optional): Resets only the location with matching name
-            resetLocationNames (list, optional): Resets only locations with matching name
+            resetLocationNames (list[str], optional): Resets only locations with matching name
             checkIdAndResetLocationName: (locationName, containerId) - only reset the location if the container id matches
 
         Returns:
@@ -583,7 +505,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             containerName (str): Name of the container
             containerId (str): ID of the container
             containerType (str): Type of the container
-            trackingCycleIndex: If specified, then the cycle with same cycleIndex will update location tracking in the same call.
+            trackingCycleIndex (optional): If specified, then the cycle with same cycleIndex will update location tracking in the same call.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
@@ -624,11 +546,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             prefix (str, optional): (DEPRECATED)
-            removeNamePrefixes (list, optional): Names of prefixes to match with when removing items
+            removeNamePrefixes (list[str], optional): Names of prefixes to match with when removing items
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            removeLocationNames (list, optional):
+            removeLocationNames (list[str], optional):
             doRemoveOnlyDynamic (bool): If True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
 
         Returns:
@@ -651,11 +573,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Gets the recent trajectories executed on the binpicking server. The internal server keeps trajectories around for 10 minutes before clearing them.
 
         Args:
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             startindex (int): Start of the trajectory to get. If negative, will start counting from the end. For example, -1 is the last element, -2 is the second to last.
             num (int): Number of trajectories from startindex to return. If 0 will return all the trajectories starting from startindex
             includejointvalues (bool, optional): If True, will include timedjointvalues. If False, will just give back the trajectories.
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            saverawtrajectories (bool, optional): If True, will save the raw trajectories.
 
         Returns:
             dict: With structure:
@@ -688,10 +609,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             grippername (str, optional): Name of the gripper.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'ChuckGripper',
@@ -709,15 +626,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             targetname (str): Name of the target object.
-            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
-            pulloutdist (float, optional): Distance to move away along the tool direction after releasing.
-            deletetarget (int, optional): If 1, removes the target object from the environment after releasing. (Default: 1)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'UnchuckGripper',
@@ -735,10 +643,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'CalibrateGripper',
@@ -756,10 +660,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'StopGripper',
@@ -778,13 +678,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            toolname (str, optional): Name of the manipulator. Defaults to currently selected tool
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'MoveGripper',
@@ -803,12 +696,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'ExecuteRobotProgram',
@@ -842,12 +729,9 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            robotname (str, optional): Name of the robot
+            robotname (str, optional): Name of the robot waiting to extract the hand from.
             filename (str, optional): File name to save on the file system. e.g. /tmp/robotgripper/mujin.dae
             manipname (str, optional): Name of the manipulator.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'SaveGripper',
@@ -861,36 +745,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         Args:
             jointConfigurationStates:
             robotname (str, optional): Name of the robot
-            startJointConfigurationStates:
+            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
+            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
+            execute:  (Default: 1)
+            startJointConfigurationStates (optional):
+            envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
             jointStates (list, optional): List[{'jointName':str, 'jointValue':float}]
             jointindices (list, optional): List of corresponding joint indices, default is range(len(jointvalues))
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
-            constraintToolDirection (list, optional):
-            departOffsetDir (list, optional): Direction in which to apply the offset when departing from the pick/place operation.
-            departOffsetAwayFromGravity (float, optional): Overridden by departOffsetDir
-            trajname (str, optional):
-            disablebodies (bool, optional):
-            ignoreGrabbingTarget (bool, optional):
-            jointthresh (float, optional):
-            envclearance:
-            jitter (float, optional):
-            execute:
-            executionFilterFactor (float, optional):
-            filtertraj (bool, optional):
-            currentlimitratios (list, optional): The joints' current limt ratios.
-            goalJointThreshold (list, optional): Threshold of the sum of abs joint differences between what the robot is able to achieve and where the goal is, in degrees. If not within this threshold, robot tries to reach goal, during some time.
-            goalWorkspaceThreshold (float, optional): Threshold in mm. If the robot manipulator is within this threshold to the goal position, then trajectory is assumed to be successful.
-            calibrategripper (bool, optional):
-            departAccel (float, optional):
-            maxManipAccel (float, optional):
-            maxJitterLinkDist:
         """
         taskparameters = {
             'command': 'MoveJointsToJointConfigurationStates',
@@ -911,40 +774,15 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Moves the robot to desired joint angles specified in jointvalues
 
         Args:
-            goaljoints (list): List of joint values to move to.
-            jointindices (list, optional): List of corresponding joint indices, default is range(len(jointvalues))
+            jointvalues: List of joint values
+            jointindices: List of corresponding joint indices, default is range(len(jointvalues))
             robotname (str, optional): Name of the robot
-            startvalues (list, optional): The robot joint values to start the motion from.
+            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
+            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
+            execute:  (Default: 1)
+            startvalues (list[float], optional): The robot joint values to start the motion from.
+            envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
-            robotProgramName (str, optional):
-            jointvalues (list): (DEPRECATED: use goaljoints) List of joint values to move to.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
-            constraintToolDirection (list, optional):
-            departOffsetDir (list, optional): Direction in which to apply the offset when departing from the pick/place operation.
-            departOffsetAwayFromGravity (float, optional): Overridden by departOffsetDir
-            trajname (str, optional):
-            disablebodies (bool, optional):
-            ignoreGrabbingTarget (bool, optional):
-            jointthresh (float, optional):
-            envclearance:
-            jitter (float, optional):
-            execute:
-            executionFilterFactor (float, optional):
-            filtertraj (bool, optional):
-            currentlimitratios (list, optional): The joints' current limt ratios.
-            goalJointThreshold (list, optional): Threshold of the sum of abs joint differences between what the robot is able to achieve and where the goal is, in degrees. If not within this threshold, robot tries to reach goal, during some time.
-            goalWorkspaceThreshold (float, optional): Threshold in mm. If the robot manipulator is within this threshold to the goal position, then trajectory is assumed to be successful.
-            calibrategripper (bool, optional):
-            departAccel (float, optional):
-            maxManipAccel (float, optional):
-            maxJitterLinkDist:
-            forceTorqueBasedEstimatorParameters (dict, optional): A set of parameters for force-torque based estimation.
         """
         if jointindices is None:
             jointindices = range(len(jointvalues))
@@ -972,37 +810,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             positionConfigurationName (str, optional): If specified, the name of position configuration to move to. If it does not exist, will raise an error.
             positionConfigurationCandidateNames (list, optional): If specified, goes to the first position that is defined for the robot. If no positions exist, returns without moving the robot.
             robotname (str, optional): Name of the robot
-            startvalues (list, optional): The robot joint values to start the motion from.
+            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
+            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
+            execute:  (Default: 1)
+            startvalues (list[float], optional): The robot joint values to start the motion from.
+            envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
-            constraintToolDirection (list, optional):
-            departOffsetDir (list, optional): Direction in which to apply the offset when departing from the pick/place operation.
-            departOffsetAwayFromGravity (float, optional): Overridden by departOffsetDir
-            trajname (str, optional):
-            disablebodies (bool, optional):
-            ignoreGrabbingTarget (bool, optional):
-            jointthresh (float, optional):
-            envclearance:
-            jitter (float, optional):
-            execute:
-            executionFilterFactor (float, optional):
-            filtertraj (bool, optional):
-            currentlimitratios (list, optional): The joints' current limt ratios.
-            goalJointThreshold (list, optional): Threshold of the sum of abs joint differences between what the robot is able to achieve and where the goal is, in degrees. If not within this threshold, robot tries to reach goal, during some time.
-            goalWorkspaceThreshold (float, optional): Threshold in mm. If the robot manipulator is within this threshold to the goal position, then trajectory is assumed to be successful.
-            calibrategripper (bool, optional):
-            departAccel (float, optional):
-            maxManipAccel (float, optional):
-            maxJitterLinkDist:
-            startJointConfigurationStates (list, optional): List of dicts for each joint.
-            robotProgramName (str, optional):
-            forceTorqueBasedEstimatorParameters (dict, optional): A set of parameters for force-torque based estimation.
 
         Returns:
             dictionary of keys: goalPositionName, goalConfiguration
@@ -1027,13 +840,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             ioname (str, optional): One IO name to read
-            ionames (list, optional): A list of the IO names to read
+            ionames (list[str], optional): A list of the IO names to read
             robotname (str, optional): Name of the robot
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'GetRobotBridgeIOVariables',
@@ -1056,10 +866,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             robotname (str, optional): Name of the robot
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            forceasync (bool, optional):
         """
         taskparameters = {
             'command': 'SetRobotBridgeIOVariables',
@@ -1105,12 +911,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             unit (str, optional): The unit of the given values. (Default: mm)
             randomBoxInfo (dict, optional): info structure for maintaining grasp parameters for random box picking. Used when picking up randomized boxes (targetIsRandomBox is True), Keys are: usefaces, dictFacePriorities, boxDirAngle, toolTranslationOffsets
             freeincvalue (float, optional): The discretization of the free joints of the robot when computing ik.
-            freeinc (float, optional): The discretization of the free joints of the robot when computing ik.
-            applyapproachoffset (bool, optional):
-            inPlaneAngleDeviation (float, optional):
-            outOfPlaneAngleDeviation (float, optional):
-            searchfreeparams (bool, optional):
-            returnClosestToCurrent (bool, optional):
+            freeinc (float, optional): (deprecated) The discretization of the free joints of the robot when computing ik.
+            applyapproachoffset (bool, optional): 
+            inPlaneAngleDeviation (float, optional): 
+            outOfPlaneAngleDeviation (float, optional): 
+            searchfreeparams (bool, optional): 
+            returnClosestToCurrent (bool, optional): 
             filteroptionslist (list, optional): A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions. Overrides filteroptions.
             filteroptions (int, optional): OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked
 
@@ -1141,9 +947,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'ShutdownRobotBridge',
@@ -1156,10 +959,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            ionames (list, optional): A list of IO names to read/write
         """
         taskparameters = {
             'command': 'GetRobotBridgeState',
@@ -1173,9 +972,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'ClearRobotBridgeError',
@@ -1188,9 +984,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'SetRobotBridgePause',
@@ -1203,9 +996,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'SetRobotBridgeResume',
@@ -1226,19 +1016,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             toolname (str, optional): Name of the manipulator. Defaults to self.toolname
             robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
             robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
-            canJogInCheckMode (bool, optional): If True, then allow jogging even if in check mode. (Default: False)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
+            canJogInCheckMode: if true, then allow jogging even if in check mode. By default it is false.
+            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            jogtype (str, optional): One of 'joints', 'world', 'robot', 'tool'. (DEPRECATED: set this as a field in robotJogParameters instead)
+            jogtype (str): One of 'joints', 'world', 'robot', 'tool'
             checkSelfCollisionWhileJogging (bool, optional):
             force (bool, optional): If true, forces the velocities to be set.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotJogParameters (dict, optional): A dictionary. Includes field 'jogtype' (One of 'joints', 'world', 'robot', 'tool').
-            simulationtimestep (float, optional): Time step of the simulation.
-            plotDirection (bool, optional): If True, plot the direction.
         """
         taskparameters = {
             'command': 'SetJogModeVelocities',
@@ -1256,9 +1040,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'EndJogMode',
@@ -1289,7 +1070,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             robotname (str, optional): Name of the robot
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 3)
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
         """
         taskparameters = {
             'command': 'SetRobotBridgeLockMode',
@@ -1347,11 +1127,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             unit (str, optional): The unit of the given values. (Default: 'mm')
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            approachoffset (float, optional):
-            departoffsetdir (list, optional): Direction in which to apply the offset when departing from the pick/place operation.
-            departoffsetintool (list, optional):
-            shadowrobotname (str, optional):
-            shadowrobottoolname (str, optional):
         """
         taskparameters = {
             'command': 'ComputeRobotConfigsForGraspVisualization',
@@ -1418,7 +1193,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             amplitude (float): The amplitude.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            kwargs:
         """
         taskparameters = {
             'command': 'RunMotorControlTuningStepTest',
@@ -1437,12 +1211,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             amplitude (float): The amplitude.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'RunMotorControlTuningMaximulLengthSequence',
@@ -1461,18 +1229,12 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             freqMax (float): The maximum frequency in Hz
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 120)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'RunMotorControlTuningDecayingChirp',
             'jointName': jointName,
-            'amplitude': amplitude,
             'freqMax': freqMax,
+            'amplitude': amplitude,
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
@@ -1485,12 +1247,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             amplitude (float): The amplitude.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 20)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'RunMotorControlTuningGaussianImpulse',
@@ -1508,12 +1264,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             amplitude (float): The amplitude.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 60)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'RunMotorControlTuningBangBangResponse',
@@ -1529,12 +1279,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         Args:
             timeout (float): Time in seconds after which the command is assumed to have failed. (Default: 4.0)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'RunDynamicsIdentificationTest',
@@ -1548,15 +1292,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         Args:
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            jointName (str, optional): The name of the joint.
-            minJointAngle (float, optional): The joint angle to start the dynamics identification test at.
-            maxJointAngle (float, optional): The joint angle to finish the dynamics identification test at.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'GetTimeToRunDynamicsIdentificationTest',
@@ -1570,7 +1305,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         Args:
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            kwargs:
         """
         taskparameters = {
             'command': 'GetInertiaChildJointStartValues',
@@ -1584,14 +1318,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         Args:
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            jointName (str, optional): The name of the joint.
-            unit (str, optional): The unit of the given values. (Default: 'mm')
-            envclearance (float, optional): Environment clearance in millimeters
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'CalculateTestRangeFromCollision',
@@ -1616,16 +1342,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Gets motor control parameters as a name-value dict, e.g.: {'J1':{'KP':1}, 'J2':{'KV':2}}
 
         Args:
-            jointName (str):
+            jointName (str): The name of the joint.
             parameterName (str):
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'GetMotorControlParameter',
@@ -1652,17 +1372,11 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """Sets motor control parameter
 
         Args:
-            jointName (str):
+            jointName (str): The name of the joint.
             parameterName (str): The name of the parameter to set.
             parameterValue: The value to assign to the parameter.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
-            robotspeed:
-            robotaccelmult:
-            ionames:
         """
         taskparameters = {
             'command': 'SetMotorControlParameter',
@@ -1716,14 +1430,13 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             bodieslist:
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
-            replaceInfos (list, optional): list of dicts with keys: name, uri, containerDynamicProperties
-            testLocationName (str, optional): If specified, will test if the container in this location matches testLocationContainerId, and only execute the replace if it matches and testLocationContainerId is not empty.
-            testLocationContainerId (str, optional): containerId used for testing logic with testLocationName
-            removeNamePrefixes (list, optional): Names of prefixes to match with when removing items
-            removeLocationNames (list, optional):
-            doRemoveOnlyDynamic (bool, optional): If True, then remove objects that were added through dynamic means like UpdateObjects/UpdateEnvironmentState
-            unit (str, optional): The unit of the given values. (Default: 'mm')
+            timeout (float, optional):  (Default: 10)
+            replaceInfos (list[dict]): list of dicts with keys: name, uri, containerDynamicProperties
+            testLocationName (str): If specified, will test if the container in this location matches testLocationContainerId, and only execute the replace if it matches and testLocationContainerId is not empty.
+            testLocationContainerId (str): containerId used for testing logic with testLocationName
+            removeNamePrefixes:
+            removeLocationNames:
+            doRemoveOnlyDynamic:
         """
         taskparameters = {
             'command': 'ReplaceBodies',
@@ -1740,9 +1453,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 4.0)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            unit:
-            robotBridgeConnectionInfo:
-            locationCollisionInfos (dict, optional): List of external collision IOs to be computed and sent in realtime.
         """
         taskparameters = {
             'command': 'GetState',
