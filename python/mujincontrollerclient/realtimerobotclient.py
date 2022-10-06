@@ -1347,7 +1347,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
     
-    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
+    def ReplaceBodies(self, bodieslist, timeout=10, replaceInfos=None, **kwargs):
         """Replaces bodies in the environment with new uris
 
         Args:
@@ -1363,8 +1363,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {
             'command': 'ReplaceBodies',
             'bodieslist': bodieslist, # for back compatibility for now
-            'replaceInfos': bodieslist,
         }
+        taskparameters['replaceInfos'] = bodieslist
+        if replaceInfos is not None:
+            taskparameters['replaceInfos'] = replaceInfos
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
