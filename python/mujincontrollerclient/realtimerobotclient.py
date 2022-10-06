@@ -1233,18 +1233,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetInertiaChildJointStartValues(self, usewebapi=False, timeout=10, **kwargs):
-        """
-
-        Args:
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
-            timeout (float, optional):  (Default: 10)
-        """
-        taskparameters = dict()
-        taskparameters['command'] = 'GetInertiaChildJointStartValues'
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
     def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
         """
 

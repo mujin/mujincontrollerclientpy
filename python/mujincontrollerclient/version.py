@@ -1,3 +1,3 @@
-__version__ = '0.15.9'
+__version__ = '0.16'
 
 # Do not forget to update CHANGELOG.md
