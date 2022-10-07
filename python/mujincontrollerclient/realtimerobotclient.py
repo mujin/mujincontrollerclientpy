@@ -822,10 +822,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """Given the name of a Kinbody, computes the manipulator (TCP) position in the kinbody frame to generate values for an IKParameterization.
+        """Given the name of a Kinbody, computes the manipulator (TCP) position in the Kinbody frame to generate values for an IKParameterization.
 
         Args:
-            name (str): Name of the Kinbody (the robot).
+            name (str): Name of the Kinbody.
             robotname (str, optional): Name of the robot.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
