@@ -826,7 +826,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
 
         Args:
             name (str): Name of the Kinbody (the robot).
-            robotname (str, optional): (unused) Name of the robot.
+            robotname (str, optional): Name of the robot.
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             jointvalues (list, optional): If given, the robot's joints are set to these values before calculating the manipulator (TCP) position. If not set, uses the current values.
