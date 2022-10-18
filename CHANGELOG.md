@@ -1,3 +1,7 @@
+# 0.16 (2022-10-06)
+
+- Remove `GetInertiaChildJointStartValues`
+
 # 0.15.9 (2022-09-30)
 
 - Regenerate graph client.
