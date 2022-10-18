@@ -1277,7 +1277,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            timeout (float): Time in seconds after which the command is assumed to have failed. (Default: 4.0)
+            timeout (float): Time in seconds after which the command is assumed to have failed.
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
         """
         taskparameters = {
@@ -1450,7 +1450,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
 
         Args:
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 4.0)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10.0)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
             fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
         """
