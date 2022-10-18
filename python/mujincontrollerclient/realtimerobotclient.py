@@ -808,19 +808,14 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, usewebapi=usewebapi)
     
     def ComputeIkParamPosition(self, name, robotname=None, timeout=10, usewebapi=None, **kwargs):
-        """
+        """Given the name of a Kinbody, computes the manipulator (TCP) position in the Kinbody frame to generate values for an IKParameterization.
 
         Args:
-            name (str):
-            robotname (str, optional): Name of the robot
-            timeout (float, optional):  (Default: 10)
+            name (str): Name of the Kinbody.
+            robotname (str, optional): Name of the robot.
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ.
-            limit (int): Number of solutions to return
-            ikparamnames (list[str]): The ikparameter names, also contains information about the grasp like the preshape
-            targetname (str): The target object name that the ikparamnames belong to
-            freeincvalue (float): The discretization of the free joints of the robot when computing ik.
-            filteroptionslist (list[str]): A list of filter option strings. Can be: CheckEnvCollisions, IgnoreCustomFilters, IgnoreEndEffectorCollisions, IgnoreEndEffectorEnvCollisions, IgnoreEndEffectorSelfCollisions, IgnoreJointLimits, IgnoreSelfCollisions
-            filteroptions (int): OpenRAVE IkFilterOptions bitmask. By default this is 1, which means all collisions are checked
+            jointvalues (list, optional): If given, the robot's joints are set to these values before calculating the manipulator (TCP) position. If not set, uses the current values.
         """
         taskparameters = {
             'command': 'ComputeIkParamPosition',
@@ -1219,18 +1214,6 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
 
-    def GetInertiaChildJointStartValues(self, usewebapi=False, timeout=10, **kwargs):
-        """
-
-        Args:
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: False)
-            timeout (float, optional):  (Default: 10)
-        """
-        taskparameters = dict()
-        taskparameters['command'] = 'GetInertiaChildJointStartValues'
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
-
     def CalculateTestRangeFromCollision(self, usewebapi=False, timeout=10, **kwargs):
         """
 
@@ -1333,7 +1316,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         """
         return self.ExecuteCommand({'command': 'StopProfiling'}, usewebapi=usewebapi, timeout=timeout)
     
-    def ReplaceBodies(self, bodieslist, timeout=10, **kwargs):
+    def ReplaceBodies(self, bodieslist, timeout=10, replaceInfos=None, **kwargs):
         """Replaces bodies in the environment with new uris
 
         Args:
@@ -1349,8 +1332,10 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
         taskparameters = {
             'command': 'ReplaceBodies',
             'bodieslist': bodieslist, # for back compatibility for now
-            'replaceInfos': bodieslist,
         }
+        taskparameters['replaceInfos'] = bodieslist
+        if replaceInfos is not None:
+            taskparameters['replaceInfos'] = replaceInfos
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
