@@ -178,6 +178,11 @@ class ControllerClient(object):
         self._webclient.Request('POST', '/restartserver/', timeout=1)
         # No reason to check response since it's probably an error (server is restarting after all)
 
+    def ShutdownController(self):
+        """Shuts down controller
+        """
+        self._webclient.Request('POST', '/halt/', timeout=1)
+
     def IsLoggedIn(self):
         return True
 
