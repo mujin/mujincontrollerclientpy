@@ -1109,7 +1109,7 @@ class ControllerGraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='ListTools', parameterNameTypeValues=parameterNameTypeValues, returnType='ListToolsReturnValue', fields=fields, timeout=timeout)
 
-    def Ping(self, host, size=None, timeout=None, ttl=None, fields=None, timeout=None):
+    def Ping(self, host, size=None, ttl=None, fields=None, timeout=None):
         """Ping a remote host.
 
         Args:
@@ -1126,7 +1126,6 @@ class ControllerGraphQueries:
         parameterNameTypeValues = [
             ('host', 'String!', host),
             ('size', 'Int', size),
-            ('timeout', 'String', timeout),
             ('ttl', 'Int', ttl),
         ]
         return self._CallSimpleGraphAPI('query', operationName='Ping', parameterNameTypeValues=parameterNameTypeValues, returnType='PingReturnValue', fields=fields, timeout=timeout)
@@ -1145,7 +1144,7 @@ class ControllerGraphQueries:
         ]
         return self._CallSimpleGraphAPI('query', operationName='QueryAvailableUpgrades', parameterNameTypeValues=parameterNameTypeValues, returnType='HypervisorAvailableUpgrade', fields=fields, timeout=timeout)
 
-    def Telnet(self, host, port, data=None, timeout=None, fields=None, timeout=None):
+    def Telnet(self, host, port, data=None, fields=None, timeout=None):
         """Telnet to a remote host using TCP.
 
         Args:
@@ -1163,7 +1162,6 @@ class ControllerGraphQueries:
             ('host', 'String!', host),
             ('port', 'Int!', port),
             ('data', 'Data', data),
-            ('timeout', 'String', timeout),
         ]
         return self._CallSimpleGraphAPI('query', operationName='Telnet', parameterNameTypeValues=parameterNameTypeValues, returnType='TelnetReturnValue', fields=fields, timeout=timeout)
 
