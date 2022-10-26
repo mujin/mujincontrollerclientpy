@@ -100,15 +100,19 @@ def _DiscoverMethods(queryOrMutationType, typeDatabase):
     return methods    
 
 def _PrintMethod(queryOrMutation, operationName, parameters, description, returnType):
+    builtinParameterNames = ('fields', 'timeout')
     print('    def %s(self, %s):' % (operationName, ', '.join([
         '%s=None' % parameter['parameterName'] if parameter['parameterNullable'] else parameter['parameterName']
         for parameter in parameters
+        if parameter['parameterName'] not in builtinParameterNames
     ] + ['fields=None', 'timeout=None'])))
     if description:
         print('        """%s' % description)
         print('')
         print('        Args:')
         for parameter in parameters:
+            if parameter['parameterName'] in builtinParameterNames:
+                continue
             isOptionalString = ", optional" if parameter['parameterNullable'] else ""
             print('            %s (%s%s): %s' % (parameter['parameterName'], _FormatTypeForDocstring(parameter['parameterType']), isOptionalString, _IndentNewlines(parameter['parameterDescription'])))
         print('            fields (list or dict, optional): Specifies a subset of fields to return.')
@@ -119,6 +123,8 @@ def _PrintMethod(queryOrMutation, operationName, parameters, description, return
         print('        """')
     print('        parameterNameTypeValues = [')
     for parameter in parameters:
+        if parameter['parameterName'] in builtinParameterNames:
+            continue
         print('            (\'%s\', \'%s\', %s),' % (parameter['parameterName'], parameter['parameterType'], parameter['parameterName']))
     print('        ]')
     print('        return self._CallSimpleGraphAPI(\'%s\', operationName=\'%s\', parameterNameTypeValues=parameterNameTypeValues, returnType=\'%s\', fields=fields, timeout=timeout)' % (queryOrMutation, operationName, returnType['baseTypeName']))
