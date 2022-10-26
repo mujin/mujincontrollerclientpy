@@ -283,6 +283,10 @@ class ControllerClient(object):
         assert (usewebapi)
         return self._webclient.APICall('DELETE', u'scene/%s/' % scenepk, timeout=timeout)
 
+    def DeleteAllScenes(self, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'scene/', timeout=timeout)
+
     #
     # InstObject related
     #
@@ -1084,6 +1088,10 @@ class ControllerClient(object):
     def DeleteITLProgram(self, programName, usewebapi=True, timeout=5):
         assert (usewebapi)
         self._webclient.APICall('DELETE', u'itl/%s/' % programName, timeout=timeout)
+
+    def DeleteAllITLPrograms(self, usewebapi=True, timeout=5):
+        assert(usewebapi)
+        return self._webclient.APICall('DELETE', u'itl/', timeout=timeout)
 
     #
     # Backup restore
