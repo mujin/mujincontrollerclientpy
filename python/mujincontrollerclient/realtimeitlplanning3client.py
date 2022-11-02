@@ -156,7 +156,7 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         """checks existence of itl program
         returns true if exists, exception is thrown otherwise
         """
-        assert (usewebapi)
+        assert usewebapi
 
         # not doing try-except to let user decide how to handle different exceptions
         self._webclient.APICall('GET', u'itl/%s/' % programName, timeout=timeout)
