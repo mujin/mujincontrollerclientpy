@@ -6935,7 +6935,7 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'link': 'Link', # Link!
         },
 
-        # Parameters to be overwritten for the plan.
+        # Parameters to be overwritten for for the plan from source container to intermediate position.
         'CycleOverwriteParameters': {
             # mm. The distance between the approach point P1 where the linear (slow) approach motion starts and the grasp point P2 where the robot stops and the gripper opens/closes to grasp the target item. 
             # 
@@ -6981,7 +6981,7 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'placedTargetRemainingTranslationRange': 'Float', # [Float!]
         },
 
-        # Parameters to be overwritten for the plan from intermediate destination to the final destination.
+        # Parameters to be overwritten for for the plan from source container to intermediate position.
         'CycleOverwriteParametersInput': {
             # mm. The distance between the approach point P1 where the linear (slow) approach motion starts and the grasp point P2 where the robot stops and the gripper opens/closes to grasp the target item. 
             # 
@@ -10662,8 +10662,6 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
 
         # A set of values related to the latest model processing state
         'ModelProcessorProperties': {
-            # Used for "CADSimplification" to hold the highResolutionMesh file hash used to generate the results.
-            'highResolutionMeshHash': 'String', # String
             # Model processor parameters
             'modelProcessorParameters': 'ModelProcessorProperties_ModelProcessorParameters', # ModelProcessorProperties_ModelProcessorParameters
             # Model processor results
@@ -10672,20 +10670,14 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'parentIds': 'String', # [String!]!
             # Whether the data is in resolved mode, exposed to API but not saved internally.
             'resolveReferences': 'Boolean', # Boolean!
-            # Used for "CADSimplification" to hold the source file hash used to generate the results.
-            'sourceFileHash': 'String', # String
         },
 
         # A set of values related to the latest model processing state
         'ModelProcessorPropertiesInput': {
-            # Used for "CADSimplification" to hold the highResolutionMesh file hash used to generate the results.
-            'highResolutionMeshHash': 'String', # String
             # Model processor parameters
             'modelProcessorParameters': 'ModelProcessorPropertiesInput_ModelProcessorParameters', # ModelProcessorPropertiesInput_ModelProcessorParameters
             # Model processor results
             'modelProcessorResults': 'ModelProcessorPropertiesInput_ModelProcessorResults', # ModelProcessorPropertiesInput_ModelProcessorResults
-            # Used for "CADSimplification" to hold the source file hash used to generate the results.
-            'sourceFileHash': 'String', # String
         },
 
         # Model processor parameters
@@ -10704,6 +10696,10 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
 
         # Model processor results
         'ModelProcessorPropertiesInput_ModelProcessorResults': {
+            # Used for "CADSimplification" to hold the highResolutionMesh file hash used to generate the results.
+            'highResolutionMeshHash': 'String', # String
+            # Used for "CADSimplification" to hold the source file hash used to generate the results.
+            'sourceFileHash': 'String', # String
             # Model processor parameters
             'usedModelProcessorParameters': 'ModelProcessorPropertiesInput_ModelProcessorResults_UsedModelProcessorParameters', # ModelProcessorPropertiesInput_ModelProcessorResults_UsedModelProcessorParameters
         },
@@ -10738,6 +10734,10 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
 
         # Model processor results
         'ModelProcessorProperties_ModelProcessorResults': {
+            # Used for "CADSimplification" to hold the highResolutionMesh file hash used to generate the results.
+            'highResolutionMeshHash': 'String', # String
+            # Used for "CADSimplification" to hold the source file hash used to generate the results.
+            'sourceFileHash': 'String', # String
             # Model processor parameters
             'usedModelProcessorParameters': 'ModelProcessorProperties_ModelProcessorResults_UsedModelProcessorParameters', # ModelProcessorProperties_ModelProcessorResults_UsedModelProcessorParameters
         },
@@ -10803,7 +10803,7 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'referenceObjectPks': 'String', # [String!]!
         },
 
-        # Parameters used for linear movement like grasp approach, grasp depart, etc.
+        # Parameters used for linear movement when have to do dynamic replanning during execution. The parameters should be more loose than moveStraightParameters since the robot might be very close to thresholds and fail.
         'MoveStraightParameters': {
             # rad, Check that the expected quaternion and real quaternion angles don't differ by more than this amount. The default value is 0.891, which is cos(27 deg) or cos(0.15*pi).
             'cosDeltaAngleThresh': 'Float', # Float
@@ -10851,7 +10851,7 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'worksteplength': 'Float', # Float
         },
 
-        # Parameters used for linear movement like grasp approach, grasp depart, etc.
+        # Parameters used for linear movement when have to do dynamic replanning during execution. The parameters should be more loose than moveStraightParameters since the robot might be very close to thresholds and fail.
         'MoveStraightParametersInput': {
             # rad, Check that the expected quaternion and real quaternion angles don't differ by more than this amount. The default value is 0.891, which is cos(27 deg) or cos(0.15*pi).
             'cosDeltaAngleThresh': 'Float', # Float
