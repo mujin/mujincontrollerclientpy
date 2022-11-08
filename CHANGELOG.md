@@ -1,3 +1,8 @@
+# 0.16.5 (2022-11-01)
+
+- Add `UploadFiles` to support mult-file upload.
+
+
 # 0.16.3 (2022-11-07)
 
 - Regenerate graph client.
@@ -6,7 +11,6 @@
 # 0.16.2 (2022-11-07)
 
 - Regenerate graph client.
-
 
 # 0.16.1 (2022-10-07)
 

@@ -850,6 +850,29 @@ class ControllerClient(object):
                 log.exception('failed to upload file: %s', e)
         raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
+    def UploadFiles(self, files, timeout=60):
+        """Uploads a list of files
+
+        Args:
+            files (list): list of files in the form of [
+                    ('myObject.mujin.msgpack', fileLikeObj),
+                    ('files/myObject/subfolder/test.jpg', fileLikeObj),
+                    ('files/myObject/subfolder/test2.jpg', fileLikeObj),
+                ]
+        Returns:
+            (dict) json response
+        """
+        response = self._webclient.Request('POST', '/fileupload', files=[
+            ('files', (filename, f))
+            for filename, f in files
+        ], timeout=timeout)
+        if response.status_code in (200,):
+            try:
+                return response.json()
+            except Exception as e:
+                log.exception('failed to upload files: %s', e)
+        raise ControllerClientError(response.content.decode('utf-8'))
+
     def DeleteFile(self, filename, timeout=10):
         response = self._webclient.Request('POST', '/file/delete/', data={'filename': filename}, timeout=timeout)
         if response.status_code in (200,):
