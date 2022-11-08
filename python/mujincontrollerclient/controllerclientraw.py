@@ -204,7 +204,7 @@ class ControllerWebClient(object):
         # repsonse must be 200 OK
         statusCode = response.status_code
         if statusCode != 200:
-            raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode)
+            raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
 
         # decode the response content
         content = None
@@ -217,9 +217,9 @@ class ControllerWebClient(object):
         # raise any error returned
         if content is not None and 'errors' in content and len(content['errors']) > 0:
             message = content['errors'][0].get('message', raw)
-            raise ControllerGraphClientException(message, statusCode=statusCode, content=content)
+            raise ControllerGraphClientException(message, statusCode=statusCode, content=content, response=response)
 
         if content is None or 'data' not in content:
-            raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode)
+            raise ControllerGraphClientException(_('Unexpected server response %d: %s') % (statusCode, raw), statusCode=statusCode, response=response)
 
         return content['data']
