@@ -192,7 +192,7 @@ class ControllerClient(object):
         assert usewebapi
         response = self._webclient.Request('HEAD', u'/u/%s/' % self.controllerusername, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('failed to ping controller, status code is: %d') % response.status_code)
+            raise ControllerClientError(_('Failed to ping controller, status code is %d') % response.status_code, response=response)
         return response
 
     def GetServerVersion(self, timeout=5):
@@ -215,7 +215,7 @@ class ControllerClient(object):
         """
         response = self._webclient.Request('POST', '/loglevel/', json={'componentLevels': componentLevels}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('failed to set webstack log level, status code is: %d') % response.status_code)
+            raise ControllerClientError(_('failed to set webstack log level, status code is: %d') % response.status_code, response=response)
 
     #
     # Scene related
@@ -848,7 +848,7 @@ class ControllerClient(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to upload file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
+        raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
     def UploadFiles(self, files, timeout=60):
         """Uploads a list of files
@@ -880,7 +880,7 @@ class ControllerClient(object):
                 return response.json()['filename']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
+        raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
     def DeleteFiles(self, filenames, timeout=10):
         response = self._webclient.Request('POST', '/file/delete/', data={'filenames': filenames}, timeout=timeout)
@@ -889,7 +889,7 @@ class ControllerClient(object):
                 return response.json()['filenames']
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
+        raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
     def ListFiles(self, dirname='', timeout=2):
         response = self._webclient.Request('GET', '/file/list/', params={'dirname': dirname}, timeout=timeout)
@@ -898,14 +898,14 @@ class ControllerClient(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to delete file: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
+        raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
     def FileExists(self, path, timeout=5):
         """Check if a file exists on server
         """
         response = self._webclient.Request('HEAD', u'/u/%s/%s' % (self.controllerusername, path.rstrip('/')), timeout=timeout)
         if response.status_code not in [200, 301, 404]:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return response.status_code != 404
 
     def DownloadFile(self, filename, ifmodifiedsince=None, timeout=5):
@@ -920,7 +920,7 @@ class ControllerClient(object):
         if ifmodifiedsince and response.status_code == 304:
             return response
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(response.content.decode('utf-8'), response=response)
         return response
 
     def FlushAndDownloadFile(self, filename, timeout=5):
@@ -930,7 +930,7 @@ class ControllerClient(object):
         """
         response = self._webclient.Request('GET', '/file/download/', params={'filename': filename}, stream=True, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(response.content.decode('utf-8'), response=response)
         return response
 
     def FlushAndHeadFile(self, filename, timeout=5):
@@ -940,7 +940,7 @@ class ControllerClient(object):
         """
         response = self._webclient.Request('HEAD', '/file/download/', params={'filename': filename}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
@@ -954,7 +954,7 @@ class ControllerClient(object):
         path = u'/u/%s/%s' % (self.controllerusername, filename.rstrip('/'))
         response = self._webclient.Request('HEAD', path, timeout=timeout)
         if response.status_code not in [200]:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(_('Failed to check file existence, status code is %d') % response.status_code, response=response)
         return {
             'modified': datetime.datetime(*email.utils.parsedate(response.headers['Last-Modified'])[:6]),
             'size': int(response.headers['Content-Length']),
@@ -966,7 +966,7 @@ class ControllerClient(object):
         """
         response = self._webclient.Request('POST', '/flushcache/', timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
     #
     # Log related
@@ -986,7 +986,7 @@ class ControllerClient(object):
 
         response = self._webclient.Request('GET', '/log/user/%s/' % category, params=params, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to retrieve user log, status code is %d') % response.status_code, response=response)
         return response.json()
 
     #
@@ -996,7 +996,7 @@ class ControllerClient(object):
     def QueryScenePKsByBarcodes(self, barcodes, timeout=2):
         response = self._webclient.Request('GET', '/query/barcodes/', params={'barcodes': ','.join(barcodes)})
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to query scenes based on barcode, status code is %d') % response.status_code, response=response)
         return response.json()
 
     #
@@ -1006,7 +1006,7 @@ class ControllerClient(object):
     def ReportStats(self, data, timeout=5):
         response = self._webclient.Request('POST', '/stats/', data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to upload stats, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to upload stats, status code is %d') % response.status_code, response=response)
 
     #
     # Config.
@@ -1022,7 +1022,7 @@ class ControllerClient(object):
             path = '/config/%s/' % filename
         response = self._webclient.Request('GET', path, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to retrieve configuration from controller, status code is %d') % response.status_code, response=response)
         return response.json()
 
     def SetConfig(self, data, filename=None, timeout=5):
@@ -1035,7 +1035,7 @@ class ControllerClient(object):
             path = '/config/%s/' % filename
         response = self._webclient.Request('PUT', path, data=json.dumps(data), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code not in (200, 202):
-            raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to set configuration to controller, status code is %d') % response.status_code, response=response)
 
     def DeleteConfig(self, filename, timeout=5):
         """Delete configuration file on controller.
@@ -1044,12 +1044,12 @@ class ControllerClient(object):
         path = '/config/%s/' % filename
         response = self._webclient.Request('DELETE', path, timeout=timeout)
         if response.status_code not in (200, 204):
-            raise ControllerClientError(_('Failed to delete configuration on controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to delete configuration on controller, status code is %d') % response.status_code, response=response)
 
     def GetSystemInfo(self, timeout=3):
         response = self._webclient.Request('GET', '/systeminfo/')
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code)
+            raise ControllerClientError(_('Failed to retrieve system info from controller, status code is %d') % response.status_code, response=response)
         return response.json()
 
     #
@@ -1067,7 +1067,7 @@ class ControllerClient(object):
             'referenceobjectpks': referenceobjectpks,
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to add referenceobjectpks %r to scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code))
+            raise ControllerClientError(_('Failed to add referenceobjectpks %r to scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
 
     def ModifySceneRemoveReferenceObjectPK(self, scenepk, referenceobjectpk, timeout=5):
         return self.ModifySceneRemoveReferenceObjectPKs(scenepk, [referenceobjectpk], timeout=timeout)
@@ -1081,7 +1081,7 @@ class ControllerClient(object):
             'referenceobjectpks': referenceobjectpks,
         }), headers={'Content-Type': 'application/json'}, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(_('Failed to remove referenceobjectpks %r from scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code))
+            raise ControllerClientError(_('Failed to remove referenceobjectpks %r from scene %r, status code is %d') % (referenceobjectpks, scenepk, response.status_code), response=response)
 
     #
     # ITL program related
@@ -1144,7 +1144,7 @@ class ControllerClient(object):
             'backupScenePks': ','.join(backupscenepks) if backupscenepks else None,
         }, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(response.content.decode('utf-8'), response=response)
         return response
 
     def Restore(self, file, restoreconfig=True, restoremedia=True, timeout=600):
@@ -1166,7 +1166,7 @@ class ControllerClient(object):
                 return response.json()
             except Exception as e:
                 log.exception('failed to restore: %s', e)
-        raise ControllerClientError(response.content.decode('utf-8'))
+        raise ControllerClientError(response.content.decode('utf-8'), response=response)
 
     #
     # Debugging related
@@ -1191,5 +1191,5 @@ class ControllerClient(object):
         # custom http call because APICall currently only supports json
         response = self._webclient.Request('GET', '/api/v1/debug/%s/download/' % debugresourcepk, stream=True, timeout=timeout)
         if response.status_code != 200:
-            raise ControllerClientError(response.content.decode('utf-8'))
+            raise ControllerClientError(response.content.decode('utf-8'), response=response)
         return response
