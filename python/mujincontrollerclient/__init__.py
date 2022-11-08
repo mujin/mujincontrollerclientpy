@@ -149,11 +149,13 @@ class ControllerGraphClientException(ClientExceptionBase):
 
     _statusCode = None
     _content = None
+    _response = None
 
-    def __init__(self, message='', statusCode=None, content=None):
+    def __init__(self, message='', statusCode=None, content=None, response=None):
         super(ControllerGraphClientException, self).__init__(message)
         self._statusCode = statusCode
         self._content = content
+        self._response = response
 
     @property
     def statusCode(self):
@@ -162,3 +164,7 @@ class ControllerGraphClientException(ClientExceptionBase):
     @property
     def content(self):
         return self._content
+
+    @property
+    def response(self):
+        return self._response
