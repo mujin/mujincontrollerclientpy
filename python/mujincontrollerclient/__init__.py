@@ -127,7 +127,16 @@ class AuthenticationError(ClientExceptionBase):
 
 
 class ControllerClientError(ClientExceptionBase):
-    pass
+
+    _response = None # http response that resulted in the error
+
+    def __init__(self, message='', response=None):
+        super(ControllerClientError, self).__init__(message)
+        self._response = response
+
+    @property
+    def response(self):
+        return self._response
 
 
 class URIError(ClientExceptionBase):
