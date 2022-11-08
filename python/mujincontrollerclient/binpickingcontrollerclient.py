@@ -543,6 +543,35 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
+    def GetPackItemPoseInWorld(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+        """
+        """
+        taskparameters = {
+            'command': 'GetPackItemPoseInWorld',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
+    def ManuallyPlacePackItem(self, packFormationComputationResult=None, inputPartIndex=None, placeLocationNames=None, placedTargetPrefix=None, orderNumber=None, numLeftToPick=None, timeout=10, usewebapi=None, fireandforget=False):
+        """
+        Places an item according to the pack formation assuming the item is placed manually and updates robotbridge state
+        """
+        taskparameters = {
+            'command': 'ManuallyPlacePackItem',
+            'packFormationComputationResult': packFormationComputationResult,
+            'inputPartIndex': inputPartIndex,
+            'placeLocationNames': placeLocationNames,
+        }
+        if orderNumber is not None:
+            taskparameters['orderNumber'] = orderNumber
+        if numLeftToPick is not None:
+            taskparameters['numLeftToPick'] = numLeftToPick
+        if numLeftToPick is not None:
+            taskparameters['numLeftToPick'] = numLeftToPick
+        if placedTargetPrefix:
+            taskparameters['placedTargetPrefix'] = placedTargetPrefix
+        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+
     def SendPackFormationComputationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
