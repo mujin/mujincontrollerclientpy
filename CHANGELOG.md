@@ -1,10 +1,16 @@
+# 0.16.7 (2022-11-08)
+
+- Regenerate graph client.
+
+
 # 0.16.6 (2022-11-01)
 
 - Add `GetPackItemPoseInWorld` to support manual order processing.
 
+
 # 0.16.5 (2022-11-01)
 
-- Add `UploadFiles` to support mult-file upload.
+- Add `UploadFiles` to support multi-file upload.
 
 
 # 0.16.3 (2022-11-07)
