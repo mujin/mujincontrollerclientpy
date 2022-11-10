@@ -1,3 +1,8 @@
+# 0.16.8 (2022-11-10)
+
+- Regenerate graph client.
+
+
 # 0.16.7 (2022-11-08)
 
 - Regenerate graph client.
