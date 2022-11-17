@@ -30,7 +30,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             regionname: name of the bin, e.g. container1
             toolname: name of the manipulator, e.g. 2BaseZ
             envclearance: environment clearance in millimeters, e.g. 20
-            usewebapi: whether to use webapi for controller commands
             robotaccelmult: optional multiplier for forcing the acceleration
         """
         super(BinpickingControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
@@ -96,7 +95,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
 
-    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=None, toolname=None, robotspeed=None, timeout=10, usewebapi=None, **kwargs):
+    def StartPickAndPlaceThread(self, goaltype=None, goals=None, targetnamepattern=None, approachoffset=30, departoffsetdir=[0, 0, 50], destdepartoffsetdir=[0, 0, 30], deletetarget=0, debuglevel=4, movetodestination=1, worksteplength=None, regionname=None, envclearance=None, toolname=None, robotspeed=None, timeout=10, **kwargs):
         """Start a background loop to continuously pick up objects with the targetnamepattern and place them down at the goals. The loop will check new objects arriving in and move the robot as soon as it finds a feasible grasp. The thread can be quit with StopPickPlaceThread.
 
         :param desttargetname: The destination target name where the destination goal ikparams come from
@@ -150,9 +149,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['orderedgoals'] = goals
             taskparameters['goaltype'] = goaltype
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, toolname=toolname, timeout=timeout)
 
-    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, finishCode=None, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPickPlaceThread(self, resetExecutionState=True, resetStatusPickPlace=False, finishCode=None, timeout=10, fireandforget=False, **kwargs):
         """stops the pick and place thread started with StartPickAndPlaceThread
         :param resetExecutionState: if True, then reset the order state variables. By default True
         :param resetStatusPickPlace: if True, then reset the statusPickPlace field of hte planning slave. By default False.
@@ -165,7 +164,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'finishCode': finishCode
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
     
     def GetPickPlaceStatus(self, timeout=10, **kwargs):
         """gets the status of the pick and place thread
@@ -248,7 +247,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, usewebapi=True, **kwargs):
+    def MoveToDropOff(self, dropOffInfo, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, **kwargs):
         """Moves the robot to desired joint angles.
 
         Args:
@@ -260,7 +259,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             startvalues (list[float], optional):
             envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional):  (Default: 10)
-            usewebapi (bool, optional): If True, send command through Web API. Otherwise, through ZMQ. (Default: True)
         """
         taskparameters = {
             'command': 'MoveToDropOff',
@@ -273,7 +271,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['startvalues'] = list(startvalues)
 
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout)
 
     ####################
     # scene commands
@@ -360,7 +358,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def SendStateTrigger(self, stateTrigger, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def SendStateTrigger(self, stateTrigger, timeout=10, fireandforget=False, **kwargs):
         """
         :param stateTrigger: a string that represents a unique trigger
         """
@@ -369,12 +367,12 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'stateTrigger': stateTrigger,
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
     
-    def GetBinpickingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GetBinpickingState(self, timeout=10, fireandforget=False, **kwargs):
         taskparameters = {'command': 'GetBinpickingState'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
     
     def SetStopPickPlaceAfterExecutionCycle(self, timeout=10, **kwargs):
         """Sets the cycle for stopping after the current pick cycle finishes.
@@ -390,7 +388,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
     
-    def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, usewebapi=False, timeout=100, **kwargs):
+    def PutPartsBack(self, trajectoryxml, numparts, toolname=None, grippervalues=None, timeout=100, **kwargs):
         """runs saved planningresult trajs
         """
         taskparameters = {
@@ -402,9 +400,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         if grippervalues is not None:
             taskparameters['grippervalues'] = grippervalues
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None, usewebapi=True,
+    def GenerateGraspModelFromIkParams(self, graspsetname, targeturi, toolname, robotname=None,
                                        timeout=10, **kwargs):
         """
         Generate grasp model ik for given setup
@@ -412,7 +410,6 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         :param targeturi: str. uri of target scene like '4902201402644.mujin.dae'
         :param toolname: str. Name of manipulator of the robot like 'suction0'
         :param robotname:
-        :param usewebapi:
         :param timeout:
         :return:
         """
@@ -424,16 +421,14 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'toolname': toolname
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, usewebapi=usewebapi,
-                                   timeout=timeout)
+        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, timeout=timeout)
 
-    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, ikparamnames=None, usewebapi=True, timeout=10, **kwargs):
+    def CheckGraspModelIk(self, graspsetname, targeturi, toolname, ikparamnames=None, timeout=10, **kwargs):
         """
         Check if grasp model is generated for given setup
         :param graspsetname: str. Name of graspset like 'all5d'
         :param targeturi: str. uri of target scene like 'mujin:4902201402644.mujin.dae'
         :param toolname: str. Name of manipulator of the robot like 'suction0'
-        :param usewebapi:
         :return:
         """
         taskparameters = {
@@ -444,9 +439,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'ikparamnames': ikparamnames,
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SetCurrentLayoutDataFromPLC(self, containername, containerLayoutSize, destObstacleName, ioVariableName, timeout=10, usewebapi=True, **kwargs):
+    def SetCurrentLayoutDataFromPLC(self, containername, containerLayoutSize, destObstacleName, ioVariableName, timeout=10, **kwargs):
         """
         sets current layout from plc
         """
@@ -458,25 +453,25 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'destObstacleName': destObstacleName
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=False)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=False)
 
-    def ClearVisualization(self, timeout=10, usewebapi=True, fireandforget=False, **kwargs):
+    def ClearVisualization(self, timeout=10, fireandforget=False, **kwargs):
         """
         clears visualization
         """
         taskparameters = {'command': 'ClearVisualization'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def GetPlanStatistics(self, timeout=1, usewebapi=True, fireandforget=False, **kwargs):
+    def GetPlanStatistics(self, timeout=1, fireandforget=False, **kwargs):
         """
         get plan and execute statistics of the last pick and place
         """
         taskparameters = {'command': 'GetPlanStatistics'}
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def SetCurrentLayoutDataSendOnObjectUpdateData(self, doUpdate, containername=None, containerLayoutSize=None, ioVariableName=None, usewebapi=False, fireandforget=True, **kwargs):
+    def SetCurrentLayoutDataSendOnObjectUpdateData(self, doUpdate, containername=None, containerLayoutSize=None, ioVariableName=None, fireandforget=True, **kwargs):
         """
         Sets currentLayoutDataSendOnObjectUpdateData structure
         :param doUpdate: if True then currentLayoutData will be send on every ObjectUpdate, else currentLayoutDataSendOnObjectUpdate structure is reset
@@ -492,9 +487,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         if ioVariableName is not None:
             taskparameters['ioVariableName'] = ioVariableName
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, fireandforget=fireandforget)
 
-    def StartPackFormationComputationThread(self, timeout=10, debuglevel=4, toolname=None, usewebapi=None, **kwargs):
+    def StartPackFormationComputationThread(self, timeout=10, debuglevel=4, toolname=None, **kwargs):
         """Start a background loop to copmute packing formation.
         """
         taskparameters = {
@@ -502,27 +497,27 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'debuglevel': debuglevel,
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, toolname=toolname, timeout=timeout)
 
-    def StopPackFormationComputationThread(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def StopPackFormationComputationThread(self, timeout=10, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
             'command': 'StopPackFormationComputationThread',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def VisualizePackingState(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def VisualizePackingState(self, timeout=10, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
             'command': 'VisualizePackingState',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def VisualizePackFormationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def VisualizePackFormationResult(self, timeout=10, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         :param initializeCameraPosition: bool. reset camera position
         """
@@ -531,28 +526,28 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'VisualizePackFormationResult',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     
-    def GetPackFormationSolution(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GetPackFormationSolution(self, timeout=10, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
             'command': 'GetPackFormationSolution',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def GetPackItemPoseInWorld(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GetPackItemPoseInWorld(self, timeout=10, fireandforget=False, **kwargs):
         """
         """
         taskparameters = {
             'command': 'GetPackItemPoseInWorld',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def ManuallyPlacePackItem(self, packFormationComputationResult=None, inputPartIndex=None, placeLocationNames=None, placedTargetPrefix=None, orderNumber=None, numLeftToPick=None, timeout=10, usewebapi=None, fireandforget=False):
+    def ManuallyPlacePackItem(self, packFormationComputationResult=None, inputPartIndex=None, placeLocationNames=None, placedTargetPrefix=None, orderNumber=None, numLeftToPick=None, timeout=10, fireandforget=False):
         """
         Places an item according to the pack formation assuming the item is placed manually and updates robotbridge state
         """
@@ -570,18 +565,18 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['numLeftToPick'] = numLeftToPick
         if placedTargetPrefix:
             taskparameters['placedTargetPrefix'] = placedTargetPrefix
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def SendPackFormationComputationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def SendPackFormationComputationResult(self, timeout=10, fireandforget=False, **kwargs):
         """stops the packing computation thread thread started with StartPackFormationComputationThread
         """
         taskparameters = {
             'command': 'SendPackFormationComputationResult',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def GetLatestPackFormationResultList(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def GetLatestPackFormationResultList(self, timeout=10, fireandforget=False, **kwargs):
         """
         Gets latest pack formation computation result
         """
@@ -589,9 +584,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'GetLatestPackFormationResultList',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def ClearPackingStateVisualization(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def ClearPackingStateVisualization(self, timeout=10, fireandforget=False, **kwargs):
         """
         Clear packing visualization
         """
@@ -599,9 +594,9 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'ClearPackingStateVisualization',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def ValidatePackFormationResultList(self, packFormationResultList, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
+    def ValidatePackFormationResultList(self, packFormationResultList, timeout=10, fireandforget=False, **kwargs):
         """
         Validates pack formation result list and compute info (fillRatio, packageDimensions, packedItemsInfo, etc) about it .
         kwargs should be packing parameters
@@ -612,10 +607,10 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'packFormationResultList': packFormationResultList
         }
         taskparameters.update(kwargs)
-        ret = self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
+        ret = self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
         return ret 
 
-    def ComputeSamePartPackResultBySimulation(self, timeout=100, usewebapi=None, **kwargs):
+    def ComputeSamePartPackResultBySimulation(self, timeout=100, **kwargs):
         """
         Compute pack formation for single part type.
         """
@@ -623,4 +618,4 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             'command': 'ComputeSamePartPackResultBySimulation',
         }
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)

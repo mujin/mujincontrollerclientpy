@@ -23,7 +23,6 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         :param controllerusername: Username of the mujin controller, e.g. testuser
         :param controllerpassword: Password of the mujin controller
         :param scenepk: Primary key (pk) of the bin picking task scene, e.g. irex2013.mujin.dae
-        :param usewebapi: Whether to use webapi for controller commands
         """
         super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
@@ -42,7 +41,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters['robot'] = self.robot
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def SampleCalibrationConfiguration(self, cameracontainername, primarysensorname, secondarysensornames, gridindex, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
         taskparameters = {
@@ -58,7 +57,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         taskparameters.update(kwargs)
         if self.robot is not None:
             taskparameters['robot'] = self.robot
-        return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=True)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def ReloadModule(self, **kwargs):
         return self.ExecuteCommand({

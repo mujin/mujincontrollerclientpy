@@ -5,7 +5,7 @@ import os
 import argparse
 
 import mujincontrollerclient
-from mujincontrollerclient import controllerclientbase, urlparse, json, binpickingcontrollerclient
+from mujincontrollerclient import controllerwebclientv1, urlparse, json, binpickingcontrollerclient
 
 import logging
 log = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ if __name__ == "__main__":
             username = urlobj.username
         if urlobj.password is not None:
             password = urlobj.password
-        self = controllerclientbase.ControllerClient(options.url, username, password)
+        self = controllerwebclientv1.ControllerWebClientV1(options.url, username, password)
     else:
         raise BaseException('No uri defined')
     
