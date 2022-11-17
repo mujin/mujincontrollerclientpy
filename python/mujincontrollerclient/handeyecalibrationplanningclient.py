@@ -12,7 +12,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient):
+class HandEyeCalibrationPlanningClient(planningclient.PlanningServerClient):
     """Mujin controller client for the hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
@@ -24,7 +24,7 @@ class HandEyeCalibrationControllerClient(planningclient.PlanningControllerClient
         :param controllerpassword: Password of the mujin controller
         :param scenepk: Primary key (pk) of the bin picking task scene, e.g. irex2013.mujin.dae
         """
-        super(HandEyeCalibrationControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
+        super(HandEyeCalibrationPlanningClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
 
     def ComputeCalibrationPoses(self, cameracontainername, primarysensorname, secondarysensornames, numsamples, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):

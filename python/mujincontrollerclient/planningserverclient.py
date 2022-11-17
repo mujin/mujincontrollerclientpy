@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2012-2016 MUJIN Inc
 """
-Planning client
+Client to connect to Mujin Controller's planning server.
 """
 
 # System imports
@@ -11,7 +11,7 @@ import os
 import time
 
 # Mujin imports
-from . import APIServerError, GetMonotonicTime, controllerwebclientv1
+from . import APIServerError, GetMonotonicTime, webstackclient
 from . import zmqclient
 from . import zmq
 from . import urlparse
@@ -66,7 +66,7 @@ def ParseControllerInfo(controllerUrl, username, password):
     controllerpassword = controllerpassword or password
     return controllerUrl, controllerusername, controllerpassword, controllerPort, controllerIp
 
-class PlanningControllerClient(object):
+class PlanningServerClient(object):
     """Mujin controller client for planning tasks
     """
     _userinfo = None  # A dict storing user info, like locale
@@ -191,7 +191,6 @@ class PlanningControllerClient(object):
     def GetCommandSocketRaw(self):
         return self._commandsocket
 
-    # TODO(felixvd): Does this really work? Is this not only Webstack?
     def DeleteJobs(self, timeout=5):
         """Cancels all jobs"""
         if self._configsocket is not None:
@@ -235,10 +234,10 @@ class PlanningControllerClient(object):
     
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
-        sceneuri = controllerwebclientv1.GetURIFromPrimaryKey(scenepk)
+        sceneuri = webstackclient.GetURIFromPrimaryKey(scenepk)
         # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
-        scenefilename = controllerwebclientv1.GetFilenameFromURI(sceneuri, mujinpath)[1]
+        scenefilename = webstackclient.GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujin', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
     
     #
@@ -318,7 +317,7 @@ class PlanningControllerClient(object):
                                 If component name is empty string, it sets the root logger.
                                 If level name is empty string, it unsets the level previously set.
         """
-        super(PlanningControllerClient, self).SetLogLevel(componentLevels, timeout=timeout)
+        super(PlanningServerClient, self).SetLogLevel(componentLevels, timeout=timeout)
         configuration = {
             'command': 'setloglevel',
             'componentLevels': componentLevels

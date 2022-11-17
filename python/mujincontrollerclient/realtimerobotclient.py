@@ -7,7 +7,7 @@ from . import planningclient
 import logging
 log = logging.getLogger(__name__)
 
-class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
+class RealtimeRobotPlanningClient(planningclient.PlanningServerClient):
     """Mujin controller client for realtimerobot task"""
     _robotname = None  # Optional name of the robot selected
     _robotspeed = None  # Speed of the robot, e.g. 0.4
@@ -32,7 +32,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             controllerusername (str): Username for the Mujin controller, e.g. testuser
             controllerpassword (str): Password for the Mujin controller
         """
-        super(RealtimeRobotControllerClient, self).__init__(**kwargs)
+        super(RealtimeRobotPlanningClient, self).__init__(**kwargs)
         self._robotname = robotname
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
@@ -138,7 +138,7 @@ class RealtimeRobotControllerClient(planningclient.PlanningControllerClient):
             if envclearance is not None:
                 taskparameters['envclearance'] = envclearance
 
-        return super(RealtimeRobotControllerClient, self).ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
+        return super(RealtimeRobotPlanningClient, self).ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
 
     def GetJointValues(self, timeout=10, **kwargs):
         """Gets the current robot joint values

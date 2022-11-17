@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2017 MUJIN Inc.
-# Mujin controller client for bin picking task
+# Mujin planning client for ITL task (v3)
 
 # mujin imports
 from . import realtimerobotclient
@@ -10,7 +10,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
+class RealtimeITLPlanning3Client(realtimerobotclient.RealtimeRobotPlanningClient):
     """Mujin controller client for realtimeitlplanning3 task
     """
 
@@ -31,7 +31,7 @@ class RealtimeITLPlanning3ControllerClient(realtimerobotclient.RealtimeRobotCont
         :param envclearance: Environment clearance in millimeters, e.g. 20
         :param robotaccelmult: Optional multiplier for forcing the acceleration
         """
-        super(RealtimeITLPlanning3ControllerClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
+        super(RealtimeITLPlanning3Client, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
 
     def SetJointValues(self, jointvalues, robotname=None, timeout=10, **kwargs):
         taskparameters = {

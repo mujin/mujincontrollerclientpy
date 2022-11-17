@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2015 MUJIN Inc.
-# Mujin controller client for bin picking task
+# Mujin planning server client for binpicking task
 
 # mujin imports
 from . import realtimerobotclient
@@ -10,8 +10,8 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClient):
-    """mujin controller client for bin picking task
+class BinpickingPlanningClient(realtimerobotclient.RealtimeRobotPlanningClient):
+    """Mujin planning server client for binpicking task.
     """
     tasktype = 'binpicking'
 
@@ -32,7 +32,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             envclearance: environment clearance in millimeters, e.g. 20
             robotaccelmult: optional multiplier for forcing the acceleration
         """
-        super(BinpickingControllerClient, self).__init__(tasktype=self.tasktype, **kwargs)
+        super(BinpickingPlanningClient, self).__init__(tasktype=self.tasktype, **kwargs)
 
         # bin picking task
         self.regionname = regionname
