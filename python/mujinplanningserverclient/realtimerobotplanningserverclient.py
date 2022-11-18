@@ -2,12 +2,12 @@
 # Copyright (C) 2012-2015 MUJIN Inc
 
 from . import json
-from . import planningclient
+from . import planningserverclient
 
 import logging
 log = logging.getLogger(__name__)
 
-class RealtimeRobotPlanningClient(planningclient.PlanningServerClient):
+class RealtimeRobotPlanningServerClient(planningserverclient.PlanningServerClient):
     """Mujin controller client for realtimerobot task"""
     _robotname = None  # Optional name of the robot selected
     _robotspeed = None  # Speed of the robot, e.g. 0.4
@@ -18,21 +18,21 @@ class RealtimeRobotPlanningClient(planningclient.PlanningServerClient):
     def __init__(self, robotname='', robotspeed=None, robotaccelmult=None, envclearance=10.0, robotBridgeConnectionInfo=None, **kwargs):
         """
         Args:
-            robotname (str): Name of the robot selected. Optional (can be empty)
-            robotspeed (str, optional): Speed of the robot, e.g. 0.4.
-            robotaccelmult (str, optional): Current robot acceleration multiplication.
-            envclearance (str): Environment clearance in millimeter, e.g. 20
-            robotBridgeConnectionInfo (str, optional): dict holding the connection info for the robot bridge.
-            taskzmqport (int): Port of the task's ZMQ server, e.g. 7110
-            taskheartbeatport (int): Port of the task's ZMQ server's heartbeat publisher, e.g. 7111
-            taskheartbeattimeout (float): Seconds until reinitializing task's ZMQ server if no heartbeat is received, e.g. 7
-            tasktype (str): Type of the task, e.g. 'binpicking', 'handeyecalibration', 'itlrealtimeplanning3'
-            scenepk (str): Primary key (pk) of the scene, e.g. irex_demo.mujin.dae
             controllerurl (str): URL of the mujin controller, e.g. http://controller14
             controllerusername (str): Username for the Mujin controller, e.g. testuser
             controllerpassword (str): Password for the Mujin controller
+            robotname (str, optional): Name of the robot, e.g. VP-5243I
+            scenepk (str, optional): Primary key (pk) of the scene, e.g. irex_demo.mujin.dae
+            robotspeed (float, optional): Speed of the robot, e.g. 0.4
+            robotaccelmult (float, optional): Optional multiplier for the robot acceleration.
+            tasktype (str, optional): Type of the task, e.g. 'binpicking', 'handeyecalibration', 'itlrealtimeplanning3'
+            envclearance (str, optional): Environment clearance in millimeter, e.g. 20
+            robotBridgeConnectionInfo (str, optional): dict holding the connection info for the robot bridge.
+            taskzmqport (int, optional): Port of the task's ZMQ server, e.g. 7110
+            taskheartbeatport (int, optional): Port of the task's ZMQ server's heartbeat publisher, e.g. 7111
+            taskheartbeattimeout (float, optional): Seconds until reinitializing task's ZMQ server if no heartbeat is received, e.g. 7
         """
-        super(RealtimeRobotPlanningClient, self).__init__(**kwargs)
+        super(RealtimeRobotPlanningServerClient, self).__init__(**kwargs)
         self._robotname = robotname
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
@@ -104,7 +104,7 @@ class RealtimeRobotPlanningClient(planningclient.PlanningServerClient):
                 - error (dict): optional error info
                 - desc (str): error message
                 - type (str): error type
-                    - errorcode (str): error code
+                - errorcode (str): error code
         """
         if robotname is None:
             robotname = self._robotname
@@ -138,7 +138,7 @@ class RealtimeRobotPlanningClient(planningclient.PlanningServerClient):
             if envclearance is not None:
                 taskparameters['envclearance'] = envclearance
 
-        return super(RealtimeRobotPlanningClient, self).ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
+        return super(RealtimeRobotPlanningServerClient, self).ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
 
     def GetJointValues(self, timeout=10, **kwargs):
         """Gets the current robot joint values

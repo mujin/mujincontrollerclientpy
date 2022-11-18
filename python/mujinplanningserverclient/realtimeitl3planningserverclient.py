@@ -3,35 +3,37 @@
 # Mujin planning client for ITL task (v3)
 
 # mujin imports
-from . import realtimerobotclient
+from . import realtimerobotplanningserverclient
 
 # logging
 import logging
 log = logging.getLogger(__name__)
 
 
-class RealtimeITLPlanning3Client(realtimerobotclient.RealtimeRobotPlanningClient):
-    """Mujin controller client for realtimeitlplanning3 task
+class RealtimeITL3PlanningServerClient(realtimerobotplanningserverclient.RealtimeRobotPlanningServerClient):
+    """Mujin planning server client for realtimeitlplanning3 task
     """
 
     def __init__(self, **kwargs):
         """Logs into the mujin controller, initializes realtimeitlplanning3 task, and sets up parameters
-        :param controllerurl: URL of the mujin controller, e.g. http://controller13
-        :param controllerusername: Username of the mujin controller, e.g. testuser
-        :param controllerpassword: Password of the mujin controller
-        :param taskzmqport: Port of the realtimeitlplanning3 task's zmq server, e.g. 7110
-        :param taskheartbeatport: Port of the realtimeitlplanning3 task's zmq server's heartbeat publisher, e.g. 7111
-        :param taskheartbeattimeout: Seconds until reinitializing realtimeitlplanning3 task's zmq server if no heartbeat is received, e.g. 7
-        :param scenepk: Primary key (pk) of the bin picking task scene, e.g. komatsu_ntc.mujin.dae
-        :param robotname: Name of the robot, e.g. VP-5243I
-        :param robotspeed: Speed of the robot, e.g. 0.4
-        :param regionname: Name of the bin, e.g. container1
-        :param targetname: Name of the target, e.g. plasticnut-center
-        :param toolname: Name of the manipulator, e.g. 2BaseZ
-        :param envclearance: Environment clearance in millimeters, e.g. 20
-        :param robotaccelmult: Optional multiplier for forcing the acceleration
+
+        Args:
+            controllerurl (str): URL of the mujin controller, e.g. http://controller13
+            controllerusername (str): Username of the mujin controller, e.g. testuser
+            controllerpassword (str): Password of the mujin controller
+            robotname (str, optional): Name of the robot, e.g. VP-5243I
+            scenepk (str, optional): Primary key (pk) of the bin picking task scene, e.g. komatsu_ntc.mujin.dae
+            robotspeed (float, optional): Speed of the robot, e.g. 0.4
+            regionname (str, optional): Name of the bin, e.g. container1
+            targetname (str, optional): Name of the target, e.g. plasticnut-center
+            toolname (str, optional): Name of the manipulator, e.g. 2BaseZ
+            envclearance (float, optional): Environment clearance in millimeters, e.g. 20
+            robotaccelmult (float, optional): Optional multiplier for the robot acceleration.
+            taskzmqport (int, optional): Port of the task's zmq server, e.g. 7110
+            taskheartbeatport (int, optional): Port of the task's zmq server's heartbeat publisher, e.g. 7111
+            taskheartbeattimeout (float, optional): Seconds until reinitializing the task's zmq server if no heartbeat is received, e.g. 7
         """
-        super(RealtimeITLPlanning3Client, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
+        super(RealtimeITL3PlanningServerClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
 
     def SetJointValues(self, jointvalues, robotname=None, timeout=10, **kwargs):
         taskparameters = {

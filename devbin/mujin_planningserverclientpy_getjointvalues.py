@@ -4,8 +4,8 @@ import sys
 import os
 import argparse
 
-import mujincontrollerclient
-from mujincontrollerclient import controllerwebclientv1, urlparse, json, binpickingcontrollerclient
+from mujinwebstackclient import webstackclient, urlparse, WebstackClientError
+from mujinplanningserverclient import binpickingplanningserverclient
 
 import logging
 log = logging.getLogger(__name__)
@@ -30,23 +30,23 @@ if __name__ == "__main__":
             username = urlobj.username
         if urlobj.password is not None:
             password = urlobj.password
-        self = controllerwebclientv1.ControllerWebClientV1(options.url, username, password)
+        self = webstackclient.WebstackClient(options.url, username, password)
     else:
         raise BaseException('No uri defined')
     
     userconf = self.GetConfig()
     robotname = userconf.get('robotname', None)
     if robotname is None:
-        raise mujincontrollerclient.ControllerClientError('Failed to get robotname from the config!')
+        raise WebstackClientError('Failed to get robotname from the config!')
     robots = userconf.get('robots', None)
     devices = userconf.get('devices', None)
 
     sceneuri = userconf['sceneuri']
     scenebasename = os.path.split(sceneuri)[1]
 
-    binpickingclient = binpickingcontrollerclient.BinpickingControllerClient(controllerurl=options.url, controllerusername=username, controllerpassword=password, scenepk=scenebasename, robotname=robotname, envclearance=userconf.get('envclearance', 20.0), robotspeed=userconf.get('robotspeed', 0.1), robotaccelmult=userconf.get('robotaccelmult', 0.01), taskzmqport=7110, taskheartbeatport=None, taskheartbeattimeout=10.0, robotBridgeConnectionInfo=None, slaverequestid=slaverequestid)
+    binpickingplanningserverclient = binpickingplanningserverclient.BinpickingPlanningServerClient(controllerurl=options.url, controllerusername=username, controllerpassword=password, scenepk=scenebasename, robotname=robotname, envclearance=userconf.get('envclearance', 20.0), robotspeed=userconf.get('robotspeed', 0.1), robotaccelmult=userconf.get('robotaccelmult', 0.01), taskzmqport=7110, taskheartbeatport=None, taskheartbeattimeout=10.0, robotBridgeConnectionInfo=None, slaverequestid=slaverequestid)
 
-    ret = binpickingclient.GetJointValues()
+    ret = binpickingplanningserverclient.GetJointValues()
     currentjointvalues = ret['currentjointvalues']
     log.info('currentjointvalues=%r', currentjointvalues)
 

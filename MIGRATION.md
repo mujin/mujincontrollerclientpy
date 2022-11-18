@@ -1,5 +1,3 @@
-# From mujincontrollerclientpy to mujinplanningclient and mujinwebclient
+# From mujincontrollerclientpy to mujinplanningserverclient (0.1.0):
 
-## realtimeitlplanning3client
-
-- `CheckITLProgramExists` has been removed. Use the webclient's `GetProgram` instead.
+- `CheckITLProgramExists` has been removed from `realtimeitlplanning3client`. Use webstackclient's `GetProgram` instead.

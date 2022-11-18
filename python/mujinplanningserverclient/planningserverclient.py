@@ -11,10 +11,11 @@ import os
 import time
 
 # Mujin imports
-from . import APIServerError, GetMonotonicTime, webstackclient
+from mujinwebstackclient import APIServerError, webstackclient
+from mujinwebstackclient import urlparse
+from . import GetMonotonicTime
 from . import zmqclient
 from . import zmq
-from . import urlparse
 
 # Logging
 import logging
