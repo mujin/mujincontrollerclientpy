@@ -94,8 +94,8 @@ class PlanningServerClient(object):
 
     def __init__(
         self,
-        taskzmqport=7110,
-        taskheartbeatport=7111,
+        taskzmqport=11000,
+        taskheartbeatport=11001,
         taskheartbeattimeout=7.0,
         tasktype="realtimerobottask3",
         scenepk="",
@@ -104,13 +104,13 @@ class PlanningServerClient(object):
         controllerurl='http://127.0.0.1',
         controllerusername='',
         controllerpassword='',
-        **ignoredArgs  # TODO(felixvd): This should be removed to avoid calls with unnecessary arguments
+        **ignoredArgs  # Other keyword args are not used, but extra arguments is allowed for easy initialization from a dictionary
     ):
         """Logs into the Mujin controller and initializes the connection to the planning server (using ZMQ).
 
         Args:
-            taskzmqport (int, optional): Port of the task's ZMQ server, e.g. 7110
-            taskheartbeatport (int, optional): Port of the task's ZMQ server's heartbeat publisher, e.g. 7111
+            taskzmqport (int, optional): Port of the task's ZMQ server
+            taskheartbeatport (int, optional): Port of the task's ZMQ server's heartbeat publisher
             taskheartbeattimeout (float, optional): Seconds until reinitializing task's ZMQ server if no heartbeat is received, e.g. 7
             tasktype (str, optional): Type of the task, e.g. 'binpicking', 'handeyecalibration', 'itlrealtimeplanning3'
             scenepk (str, optional): Primary key (pk) of the scene, e.g. irex_demo.mujin.dae
