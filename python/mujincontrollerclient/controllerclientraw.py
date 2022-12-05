@@ -35,7 +35,7 @@ class ControllerWebClient(object):
     _isok = False  # Flag to stop
     _session = None  # Requests session object
 
-    def __init__(self, baseurl, username, password, locale=None, author=None, additionalHeaders=None):
+    def __init__(self, baseurl, username, password, locale=None, author=None, userAgent=None, additionalHeaders=None):
         self._baseurl = baseurl
         self._username = username
         self._password = password
@@ -69,6 +69,9 @@ class ControllerWebClient(object):
         # Set author header
         self.SetAuthor(author)
 
+        # Set user agent header
+        self.SetUserAgent(userAgent)
+
     def __del__(self):
         self.Destroy()
 
@@ -95,6 +98,12 @@ class ControllerWebClient(object):
             self._headers['X-Author'] = author
         else:
             self._headers.pop('X-Author', None)
+
+    def SetUserAgent(self, userAgent=None):
+        if userAgent is not None and len(userAgent) > 0:
+            self._headers['User-Agent'] = userAgent
+        else:
+            self._headers.pop('User-Agent', None)
 
     def Request(self, method, path, timeout=5, headers=None, **kwargs):
         if timeout < 1e-6:
