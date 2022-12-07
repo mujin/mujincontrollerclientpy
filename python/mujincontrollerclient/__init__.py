@@ -11,7 +11,7 @@ except ImportError:
     import json  # noqa: F401
 
 try:
-    import urllib.parse as urlparse  # noqa: F401
+    from urllib import parse as urlparse  # noqa: F401
 except ImportError:
     import urlparse  # noqa: F401
 
@@ -33,8 +33,8 @@ import logging
 log = logging.getLogger(__name__)
 
 try:
-    import mujincommon.i18n
-    ugettext, ungettext = mujincommon.i18n.GetDomain('mujincontrollerclientpy').GetTranslationFunctions()
+    from mujincommon import i18n
+    ugettext, ungettext = i18n.GetDomain('mujincontrollerclientpy').GetTranslationFunctions()
 except ImportError:
     def ugettext(message):
         return message

@@ -15,8 +15,8 @@
 import traceback
 import os
 import requests
-import requests.auth
-import requests.adapters
+from requests import auth as requests_auth
+from requests import adapters as requests_adapters
 
 from . import _
 from . import json
@@ -46,7 +46,7 @@ class ControllerWebClient(object):
         self._session = requests.Session()
 
         # Use basic auth
-        self._session.auth = requests.auth.HTTPBasicAuth(self._username, self._password)
+        self._session.auth = requests_auth.HTTPBasicAuth(self._username, self._password)
 
         # Add additional headers
         self._headers.update(additionalHeaders or {})
@@ -60,8 +60,8 @@ class ControllerWebClient(object):
         self._session.cookies.set('csrftoken', self._headers['X-CSRFToken'], path='/')
 
         # Add retry to deal with closed keep alive connections
-        self._session.mount('https://', requests.adapters.HTTPAdapter(max_retries=3))
-        self._session.mount('http://', requests.adapters.HTTPAdapter(max_retries=3))
+        self._session.mount('https://', requests_adapters.HTTPAdapter(max_retries=3))
+        self._session.mount('http://', requests_adapters.HTTPAdapter(max_retries=3))
 
         # Set locale headers
         self.SetLocale(locale)
