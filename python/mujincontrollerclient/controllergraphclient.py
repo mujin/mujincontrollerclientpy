@@ -5904,7 +5904,8 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'enableExternalCollision': 'Boolean', # Boolean
             # In mm. The distance that the robot will stay away from geometry and objects in the scene, unless it is picking them.
             'envclearance': 'Float', # Float
-            # The fast detection mode for vision
+            # The fast detection mode for vision to return detection results faster by sacrificing the coverage of explained regions in a container.
+            # ("once": run fast detection once in the beginning of a cycle, "never": never run fast detection)
             'fastDetectionMode': 'String', # String
             # If True, then the robot will add a finish position to the cycle even if "finish" is not present, unless "ignoreFinishPosition" is True in the order cycle command. "ignoreFinishPosition" overrides this parameter.
             'forceMoveToFinish': 'Boolean', # Boolean
@@ -6115,7 +6116,8 @@ class ControllerGraphClient(ControllerGraphClientBase, ControllerGraphQueries, C
             'enableExternalCollision': 'Boolean', # Boolean
             # In mm. The distance that the robot will stay away from geometry and objects in the scene, unless it is picking them.
             'envclearance': 'Float', # Float
-            # The fast detection mode for vision
+            # The fast detection mode for vision to return detection results faster by sacrificing the coverage of explained regions in a container.
+            # ("once": run fast detection once in the beginning of a cycle, "never": never run fast detection)
             'fastDetectionMode': 'String', # String
             # If True, then the robot will add a finish position to the cycle even if "finish" is not present, unless "ignoreFinishPosition" is True in the order cycle command. "ignoreFinishPosition" overrides this parameter.
             'forceMoveToFinish': 'Boolean', # Boolean
