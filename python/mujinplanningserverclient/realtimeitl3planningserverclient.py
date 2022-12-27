@@ -18,7 +18,8 @@ class RealtimeITL3PlanningServerClient(realtimerobotplanningserverclient.Realtim
         """Logs into the mujin controller, initializes realtimeitlplanning3 task, and sets up parameters
 
         Args:
-            controllerurl (str): URL of the mujin controller, e.g. http://controller13
+            controllerip (str, optional): Ip or hostname of the mujin controller, e.g. controller14 or 172.17.0.2
+            controllerurl (str, optional): (Deprecated; use controllerip instead) URL of the mujin controller, e.g. http://controller14.
             controllerusername (str): Username of the mujin controller, e.g. testuser
             controllerpassword (str): Password of the mujin controller
             robotname (str, optional): Name of the robot, e.g. VP-5243I

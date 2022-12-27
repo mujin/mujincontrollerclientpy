@@ -18,7 +18,8 @@ class RealtimeRobotPlanningServerClient(planningserverclient.PlanningServerClien
     def __init__(self, robotname='', robotspeed=None, robotaccelmult=None, envclearance=10.0, robotBridgeConnectionInfo=None, **kwargs):
         """
         Args:
-            controllerurl (str): URL of the mujin controller, e.g. http://controller14
+            controllerip (str, optional): Ip or hostname of the mujin controller, e.g. controller14 or 172.17.0.2
+            controllerurl (str, optional): (Deprecated; use controllerip instead) URL of the mujin controller, e.g. http://controller14.
             controllerusername (str): Username for the Mujin controller, e.g. testuser
             controllerpassword (str): Password for the Mujin controller
             robotname (str, optional): Name of the robot, e.g. VP-5243I

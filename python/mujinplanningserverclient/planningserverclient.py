@@ -61,13 +61,11 @@ def ParseControllerInfo(controllerUrl, username, password):
     if ':' in netloc:
         hostname, port = netloc.split(':')
         controllerIp = hostname
-        controllerPort = int(port)
-    controllerPort = 80
 
     controllerUrl = urlparse.urlunparse((scheme, netloc, '', '', '', ''))
     controllerusername = controllerusername or username
     controllerpassword = controllerpassword or password
-    return controllerUrl, controllerusername, controllerpassword, controllerPort, controllerIp
+    return controllerUrl, controllerusername, controllerpassword, controllerIp
 
 class PlanningServerClient(object):
     """Mujin controller client for planning tasks
@@ -78,8 +76,7 @@ class PlanningServerClient(object):
     controllerusername = ''  # Username to login to the Mujin Controller
     controllerpassword = ''  # Password to login to the Mujin Controller
 
-    controllerIp = ''  # Hostname of the Mujin Controller web server
-    controllerPort = 80  # Port of the Mujin Controller web server
+    controllerIp = ''  # Hostname of the Mujin Controller
 
     _sceneparams = None
     scenepk = None  # The scenepk this controller is configured for
@@ -103,6 +100,7 @@ class PlanningServerClient(object):
         scenepk="",
         ctx=None,
         slaverequestid=None,
+        controllerip='',
         controllerurl='http://127.0.0.1',
         controllerusername='',
         controllerpassword='',
@@ -116,7 +114,8 @@ class PlanningServerClient(object):
             taskheartbeattimeout (float, optional): Seconds until reinitializing task's ZMQ server if no heartbeat is received, e.g. 7
             tasktype (str, optional): Type of the task, e.g. 'binpicking', 'handeyecalibration', 'itlrealtimeplanning3'
             scenepk (str, optional): Primary key (pk) of the scene, e.g. irex_demo.mujin.dae
-            controllerurl (str, optional): URL of the mujin controller, e.g. http://controller14
+            controllerip (str, optional): Ip or hostname of the mujin controller, e.g. controller14 or 172.17.0.2
+            controllerurl (str, optional): (Deprecated; use controllerip instead) URL of the mujin controller, e.g. http://controller14.
             controllerusername (str, optional): Username for the Mujin controller, e.g. testuser
             controllerpassword (str, optional): Password for the Mujin controller
         """
@@ -127,7 +126,13 @@ class PlanningServerClient(object):
         # Task
         self.tasktype = tasktype
 
-        self.controllerurl, self.controllerusername, self.controllerpassword, self.controllerPort, self.controllerIp = ParseControllerInfo(controllerurl, controllerusername, controllerpassword)
+        if controllerip:
+            self.contrllerIp = controllerip
+            self.controllerusername = controllerusername
+            self.controllerpassword = controllerpassword
+        else:
+            self.controllerurl, self.controllerusername, self.controllerpassword, self.controllerIp = ParseControllerInfo(controllerurl, controllerusername, controllerpassword)
+
         self._userinfo = {
             'username': self.controllerusername,
             'locale': os.environ.get('LANG', ''),
