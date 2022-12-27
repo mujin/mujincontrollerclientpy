@@ -72,11 +72,9 @@ class PlanningServerClient(object):
     """
     _userinfo = None  # A dict storing user info, like locale
 
-    controllerurl = ''  # Mujin Controller URL
     controllerusername = ''  # Username to login to the Mujin Controller
     controllerpassword = ''  # Password to login to the Mujin Controller
-
-    controllerIp = ''  # Hostname of the Mujin Controller
+    controllerIp = ''  # IP/Host name of the Mujin Controller
 
     _sceneparams = None
     scenepk = None  # The scenepk this controller is configured for
