@@ -4,7 +4,8 @@ import sys
 import os
 import argparse
 
-from mujinwebstackclient import webstackclient, urlparse, WebstackClientError
+from mujinwebstackclient import urlparse, WebstackClientError
+from mujinwebstackclient.webstackclient import WebstackClient
 from mujinplanningserverclient import binpickingplanningserverclient
 
 import logging
@@ -30,7 +31,7 @@ if __name__ == "__main__":
             username = urlobj.username
         if urlobj.password is not None:
             password = urlobj.password
-        self = webstackclient.WebstackClient(options.url, username, password)
+        self = WebstackClient(options.url, username, password)
     else:
         raise BaseException('No uri defined')
     

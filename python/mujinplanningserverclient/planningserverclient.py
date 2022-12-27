@@ -11,8 +11,10 @@ import os
 import time
 
 # Mujin imports
-from mujinwebstackclient import APIServerError, webstackclient
+from mujinwebstackclient import APIServerError
 from mujinwebstackclient import urlparse
+from mujinwebstackclient.webstackclient import GetURIFromPrimaryKey, GetFilenameFromURI
+
 from . import GetMonotonicTime
 from . import zmqclient
 from . import zmq
@@ -235,10 +237,10 @@ class PlanningServerClient(object):
     
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
-        sceneuri = webstackclient.GetURIFromPrimaryKey(scenepk)
+        sceneuri = GetURIFromPrimaryKey(scenepk)
         # for now (HACK) need to set the correct scenefilename. newer version of mujin controller need only scenepk, so remove scenefilename eventually
         mujinpath = os.path.join(os.environ.get('MUJIN_MEDIA_ROOT_DIR', '/var/www/media/u'), self.controllerusername)
-        scenefilename = webstackclient.GetFilenameFromURI(sceneuri, mujinpath)[1]
+        scenefilename = GetFilenameFromURI(sceneuri, mujinpath)[1]
         self._sceneparams = {'scenetype': 'mujin', 'sceneuri': sceneuri, 'scenefilename': scenefilename, 'scale': [1.0, 1.0, 1.0]}  # TODO: set scenetype according to the scene
     
     #
