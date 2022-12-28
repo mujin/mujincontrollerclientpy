@@ -5,15 +5,15 @@
 # System imports
 
 # Mujin imports
-from . import planningserverclient
+from . import planningclient
 
 # Logging
 import logging
 log = logging.getLogger(__name__)
 
 
-class HandEyeCalibrationPlanningServerClient(planningserverclient.PlanningServerClient):
-    """Mujin planning server client for the hand-eye calibration task
+class HandEyeCalibrationPlanningClient(planningclient.PlanningClient):
+    """Mujin planning client for the hand-eye calibration task
     """
     tasktype = 'handeyecalibration'
 
@@ -26,7 +26,7 @@ class HandEyeCalibrationPlanningServerClient(planningserverclient.PlanningServer
             controllerpassword (str): Password for the Mujin controller
             scenepk (str, optional): Primary key (pk) of the scene, e.g. irex_demo.mujin.dae
         """
-        super(HandEyeCalibrationPlanningServerClient, self).__init__(tasktype=self.tasktype, **kwargs)
+        super(HandEyeCalibrationPlanningClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
 
     def ComputeCalibrationPoses(self, cameracontainername, primarysensorname, secondarysensornames, numsamples, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):

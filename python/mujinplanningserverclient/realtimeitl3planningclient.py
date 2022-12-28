@@ -3,15 +3,15 @@
 # Mujin planning client for ITL task (v3)
 
 # mujin imports
-from . import realtimerobotplanningserverclient
+from . import realtimerobotplanningclient
 
 # logging
 import logging
 log = logging.getLogger(__name__)
 
 
-class RealtimeITL3PlanningServerClient(realtimerobotplanningserverclient.RealtimeRobotPlanningServerClient):
-    """Mujin planning server client for realtimeitlplanning3 task
+class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanningClient):
+    """Mujin planning client for realtimeitlplanning3 task
     """
 
     def __init__(self, **kwargs):
@@ -34,7 +34,7 @@ class RealtimeITL3PlanningServerClient(realtimerobotplanningserverclient.Realtim
             taskheartbeatport (int, optional): Port of the task's zmq server's heartbeat publisher, e.g. 7111
             taskheartbeattimeout (float, optional): Seconds until reinitializing the task's zmq server if no heartbeat is received, e.g. 7
         """
-        super(RealtimeITL3PlanningServerClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
+        super(RealtimeITL3PlanningClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
 
     def SetJointValues(self, jointvalues, robotname=None, timeout=10, **kwargs):
         taskparameters = {

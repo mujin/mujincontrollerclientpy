@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 # Copyright (C) 2013-2015 MUJIN Inc.
-# Mujin planning server client for binpicking task
+# Mujin planning client for binpicking task
 
 # mujin imports
-from . import realtimerobotplanningserverclient
+from . import realtimerobotplanningclient
 
 # logging
 import logging
 log = logging.getLogger(__name__)
 
 
-class BinpickingPlanningServerClient(realtimerobotplanningserverclient.RealtimeRobotPlanningServerClient):
-    """Mujin planning server client for binpicking task.
+class BinpickingPlanningClient(realtimerobotplanningclient.RealtimeRobotPlanningClient):
+    """Mujin planning client for binpicking task.
     """
     tasktype = 'binpicking'
 
@@ -35,7 +35,7 @@ class BinpickingPlanningServerClient(realtimerobotplanningserverclient.RealtimeR
             taskheartbeatport (int, optional): Port of the task's zmq server's heartbeat publisher, e.g. 7111
             taskheartbeattimeout (float, optional): Seconds until reinitializing the task's zmq server if no heartbeat is received, e.g. 7
         """
-        super(BinpickingPlanningServerClient, self).__init__(tasktype=self.tasktype, **kwargs)
+        super(BinpickingPlanningClient, self).__init__(tasktype=self.tasktype, **kwargs)
 
         # bin picking task
         self.regionname = regionname

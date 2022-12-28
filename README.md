@@ -4,7 +4,7 @@ This is a client library communicating with the Mujin Controller Planning Server
 
 ## Running on Linux
 
-Load mujinplanningserverclient as a module in Python.
+Load mujinplanningclient as a module in Python.
 
 ## Install on Linux
 

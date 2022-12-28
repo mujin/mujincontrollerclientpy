@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 try:
     import mujincommon.i18n
-    ugettext, ungettext = mujincommon.i18n.GetDomain('mujinplanningserverclientpy').GetTranslationFunctions()
+    ugettext, ungettext = mujincommon.i18n.GetDomain('mujinplanningclientpy').GetTranslationFunctions()
 except ImportError:
     def ugettext(message):
         return message

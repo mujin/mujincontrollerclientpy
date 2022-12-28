@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from mujinplanningserverclient.realtimerobotplanningserverclient import RealtimeRobotPlanningServerClient
+from mujinplanningclient.realtimerobotplanningclient import RealtimeRobotPlanningClient
 
 import logging
 log = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    self = RealtimeRobotPlanningServerClient(options.url, options.username, options.password)
+    self = RealtimeRobotPlanningClient(options.url, options.username, options.password)
 
     from IPython.terminal import embed
     ipshell = embed.InteractiveShellEmbed(config=embed.load_default_config())(local_ns=locals())

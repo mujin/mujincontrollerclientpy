@@ -67,7 +67,7 @@ def ParseControllerInfo(controllerUrl, username, password):
     controllerpassword = controllerpassword or password
     return controllerUrl, controllerusername, controllerpassword, controllerIp
 
-class PlanningServerClient(object):
+class PlanningClient(object):
     """Mujin controller client for planning tasks
     """
     _userinfo = None  # A dict storing user info, like locale
@@ -325,7 +325,7 @@ class PlanningServerClient(object):
                                 If component name is empty string, it sets the root logger.
                                 If level name is empty string, it unsets the level previously set.
         """
-        super(PlanningServerClient, self).SetLogLevel(componentLevels, timeout=timeout)
+        super(PlanningClient, self).SetLogLevel(componentLevels, timeout=timeout)
         configuration = {
             'command': 'setloglevel',
             'componentLevels': componentLevels

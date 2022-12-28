@@ -2,12 +2,12 @@
 # Copyright (C) 2012-2015 MUJIN Inc
 
 from . import json
-from . import planningserverclient
+from . import planningclient
 
 import logging
 log = logging.getLogger(__name__)
 
-class RealtimeRobotPlanningServerClient(planningserverclient.PlanningServerClient):
+class RealtimeRobotPlanningClient(planningclient.PlanningClient):
     """Mujin controller client for realtimerobot task"""
     _robotname = None  # Optional name of the robot selected
     _robotspeed = None  # Speed of the robot, e.g. 0.4
@@ -33,7 +33,7 @@ class RealtimeRobotPlanningServerClient(planningserverclient.PlanningServerClien
             taskheartbeatport (int, optional): Port of the task's ZMQ server's heartbeat publisher, e.g. 7111
             taskheartbeattimeout (float, optional): Seconds until reinitializing task's ZMQ server if no heartbeat is received, e.g. 7
         """
-        super(RealtimeRobotPlanningServerClient, self).__init__(**kwargs)
+        super(RealtimeRobotPlanningClient, self).__init__(**kwargs)
         self._robotname = robotname
         self._robotspeed = robotspeed
         self._robotaccelmult = robotaccelmult
@@ -139,7 +139,7 @@ class RealtimeRobotPlanningServerClient(planningserverclient.PlanningServerClien
             if envclearance is not None:
                 taskparameters['envclearance'] = envclearance
 
-        return super(RealtimeRobotPlanningServerClient, self).ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
+        return super(RealtimeRobotPlanningClient, self).ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget, respawnopts=respawnopts)
 
     def GetJointValues(self, timeout=10, **kwargs):
         """Gets the current robot joint values

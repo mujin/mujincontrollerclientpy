@@ -6,7 +6,7 @@ import argparse
 
 from mujinwebstackclient import urlparse, WebstackClientError
 from mujinwebstackclient.webstackclient import WebstackClient
-from mujinplanningserverclient import binpickingplanningserverclient
+from mujinplanningclient import binpickingplanningclient
 
 import logging
 log = logging.getLogger(__name__)
@@ -45,9 +45,9 @@ if __name__ == "__main__":
     sceneuri = userconf['sceneuri']
     scenebasename = os.path.split(sceneuri)[1]
 
-    binpickingplanningserverclient = binpickingplanningserverclient.BinpickingPlanningServerClient(controllerurl=options.url, controllerusername=username, controllerpassword=password, scenepk=scenebasename, robotname=robotname, envclearance=userconf.get('envclearance', 20.0), robotspeed=userconf.get('robotspeed', 0.1), robotaccelmult=userconf.get('robotaccelmult', 0.01), taskzmqport=7110, taskheartbeatport=None, taskheartbeattimeout=10.0, robotBridgeConnectionInfo=None, slaverequestid=slaverequestid)
+    binpickingplanningclient = binpickingplanningclient.BinpickingPlanningClient(controllerurl=options.url, controllerusername=username, controllerpassword=password, scenepk=scenebasename, robotname=robotname, envclearance=userconf.get('envclearance', 20.0), robotspeed=userconf.get('robotspeed', 0.1), robotaccelmult=userconf.get('robotaccelmult', 0.01), taskzmqport=7110, taskheartbeatport=None, taskheartbeattimeout=10.0, robotBridgeConnectionInfo=None, slaverequestid=slaverequestid)
 
-    ret = binpickingplanningserverclient.GetJointValues()
+    ret = binpickingplanningclient.GetJointValues()
     currentjointvalues = ret['currentjointvalues']
     log.info('currentjointvalues=%r', currentjointvalues)
 

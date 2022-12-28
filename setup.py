@@ -7,19 +7,19 @@ except (ImportError, SyntaxError):
     from distutils.dist import Distribution
 
 version = {}
-exec(open('python/mujinplanningserverclient/version.py').read(), version)
+exec(open('python/mujinplanningclient/version.py').read(), version)
 
 setup(
     distclass=Distribution,
-    name='mujinplanningserverclient',
+    name='mujinplanningclient',
     version=version['__version__'],
-    packages=['mujinplanningserverclient'],
-    package_dir={'mujinplanningserverclient': 'python/mujinplanningserverclient'},
+    packages=['mujinplanningclient'],
+    package_dir={'mujinplanningclient': 'python/mujinplanningclient'},
     data_files=[
         # using scripts= will cause the first line of the script being modified for python2 or python3
         # put the scripts in data_files will copy them as-is
         ('bin', [
-            'bin/mujin_planningserverclientpy_runshell.py',
+            'bin/mujin_planningclientpy_runshell.py',
         ]),
     ],
     locale_dir='locale',
