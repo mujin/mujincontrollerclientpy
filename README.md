@@ -1,4 +1,4 @@
-# Mujin Planningserver Python Client Library
+# Mujin Planning Client Python Library
 
 This is a client library communicating with the Mujin Controller Planning Server via ZMQ.
 
