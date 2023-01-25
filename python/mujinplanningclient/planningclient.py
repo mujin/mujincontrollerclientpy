@@ -202,7 +202,7 @@ class PlanningClient(object):
     def DeleteJobs(self, timeout=5):
         """Cancels all jobs"""
         if self._configsocket is not None:
-            self._SendConfigViaZMQ({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
+            self.SendConfig({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
 
     def _RunHeartbeatMonitorThread(self):
         while self._isok and self._isokheartbeat:
