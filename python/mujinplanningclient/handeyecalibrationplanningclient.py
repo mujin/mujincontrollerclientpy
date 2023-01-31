@@ -29,12 +29,11 @@ class HandEyeCalibrationPlanningClient(planningclient.PlanningClient):
         super(HandEyeCalibrationPlanningClient, self).__init__(tasktype=self.tasktype, **kwargs)
         self.robot = robot
 
-    def ComputeCalibrationPoses(self, cameracontainername, primarysensorname, secondarysensornames, numsamples, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
+    def ComputeCalibrationPoses(self, primarySensorSelectionInfo, secondarySensorSelectionInfos, numsamples, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
         taskparameters = {
             'command': 'ComputeCalibrationPoses',
-            'cameracontainername': cameracontainername,
-            'primarysensorname': primarysensorname,
-            'secondarysensornames': secondarysensornames,
+            'primarySensorSelectionInfo': primarySensorSelectionInfo,
+            'secondarySensorSelectionInfos': secondarySensorSelectionInfos,
             'numsamples': numsamples,
             'calibboardvisibility': calibboardvisibility,
             'calibboardLinkName': calibboardLinkName,
@@ -45,12 +44,11 @@ class HandEyeCalibrationPlanningClient(planningclient.PlanningClient):
             taskparameters['robot'] = self.robot
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def SampleCalibrationConfiguration(self, cameracontainername, primarysensorname, secondarysensornames, gridindex, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
+    def SampleCalibrationConfiguration(self, primarySensorSelectionInfo, secondarySensorSelectionInfos, gridindex, calibboardvisibility, calibboardLinkName=None, calibboardGeomName=None, timeout=3000, **kwargs):
         taskparameters = {
             'command': 'SampleCalibrationConfiguration',
-            'cameracontainername': cameracontainername,
-            'primarysensorname': primarysensorname,
-            'secondarysensornames': secondarysensornames,
+            'primarySensorSelectionInfo': primarySensorSelectionInfo,
+            'secondarySensorSelectionInfos': secondarySensorSelectionInfos,
             'gridindex': gridindex,
             'calibboardvisibility': calibboardvisibility,
             'calibboardLinkName': calibboardLinkName,
