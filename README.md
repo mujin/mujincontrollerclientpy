@@ -1,3 +1,9 @@
+# DEPRECATION NOTICE
+
+**This package is deprecated and will not be updated anymore.**
+
+Use [mujinwebstackclientpy](https://github.com/mujin/mujinwebstackclientpy) and [mujinplanningserverclientpy](https://github.com/mujin/mujinplanningserverclientpy) instead.
+
 # Mujin Controller Python Client Library
 
 ![Build status](https://github.com/mujin/mujincontrollerclientpy/actions/workflows/python.yml/badge.svg)
