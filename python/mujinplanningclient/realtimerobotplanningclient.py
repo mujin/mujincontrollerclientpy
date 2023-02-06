@@ -970,48 +970,6 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    #
-    # jogging related
-    #
-
-    def SetJogModeVelocities(self, movejointsigns, robotname=None, toolname=None, robotspeed=None, robotaccelmult=None, canJogInCheckMode=None, timeout=1, fireandforget=False, **kwargs):
-        """
-
-        Args:
-            movejointsigns (list): Joint signs used for jogging. If less than the number of joints, will be padded with zeros.
-            robotname (str, optional): Name of the robot
-            toolname (str, optional): Name of the manipulator. Defaults to self.toolname
-            robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
-            robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
-            canJogInCheckMode: if true, then allow jogging even if in check mode. By default it is false.
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
-            fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-            jogtype (str): One of 'joints', 'world', 'robot', 'tool'
-            checkSelfCollisionWhileJogging (bool, optional):
-            force (bool, optional): If true, forces the velocities to be set.
-        """
-        taskparameters = {
-            'command': 'SetJogModeVelocities',
-            'movejointsigns': movejointsigns,
-        }
-        if canJogInCheckMode is not None:
-            taskparameters['canJogInCheckMode'] = canJogInCheckMode
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, toolname=toolname, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout, fireandforget=fireandforget)
-
-    def EndJogMode(self, timeout=1, fireandforget=False, **kwargs):
-        """
-
-        Args:
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
-            fireandforget (bool, optional): If True, does not wait for the command to finish and returns immediately. The command remains queued on the server.
-        """
-        taskparameters = {
-            'command': 'EndJogMode',
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
-
     def SetRobotBridgeServoOn(self, servoon, robotname=None, timeout=3, fireandforget=False):
         """
 
