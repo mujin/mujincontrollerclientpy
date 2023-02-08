@@ -552,7 +552,7 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
-    def ManuallyPlacePackItem(self, packFormationComputationResult=None, inputPartIndex=None, placeLocationNames=None, placedTargetPrefix=None, orderNumber=None, numLeftToPick=None, timeout=10, usewebapi=None, fireandforget=False):
+    def ManuallyPlacePackItem(self, packFormationComputationResult=None, inputPartIndex=None, placeLocationNames=None, placedTargetPrefix=None, intMaxPackageTranslationOffsetXY=None, orderNumber=None, numLeftToPick=None, timeout=10, usewebapi=None, fireandforget=False):
         """
         Places an item according to the pack formation assuming the item is placed manually and updates robotbridge state
         """
@@ -570,6 +570,8 @@ class BinpickingControllerClient(realtimerobotclient.RealtimeRobotControllerClie
             taskparameters['numLeftToPick'] = numLeftToPick
         if placedTargetPrefix:
             taskparameters['placedTargetPrefix'] = placedTargetPrefix
+        if intMaxPackageTranslationOffsetXY is not None:
+            taskparameters['intMaxPackageTranslationOffsetXY'] = intMaxPackageTranslationOffsetXY
         return self.ExecuteCommand(taskparameters, timeout=timeout, usewebapi=usewebapi, fireandforget=fireandforget)
 
     def SendPackFormationComputationResult(self, timeout=10, usewebapi=None, fireandforget=False, **kwargs):
