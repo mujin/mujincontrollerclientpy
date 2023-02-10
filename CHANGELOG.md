@@ -1,6 +1,12 @@
+# 0.17.1 (2022-12-01)
+
+- Regenerate graph client.
+
+
 # 0.17.0 (2022-12-05)
 
 - Add `SetUserAgent` support.
+
 
 # 0.16.8 (2022-11-10)
 
