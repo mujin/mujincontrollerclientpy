@@ -298,7 +298,30 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def GetLinkParentInfo(self, objectName, linkName, unit='mm', timeout=10, **kwargs):
+        """gets the parent link transform and name
 
+        Args:
+            objectName (str): OpenRave Kinbody name
+            linkName (str, optional): OpenRave link name
+        
+        Returns:
+            name (str):
+            translation (list):
+            rotationmat (list):
+            quaternion (list):
+        
+        """
+        taskparameters = {
+            'command': 'GetLinkParentInfo',
+            'objectName': objectName,
+            'linkName': linkName,
+            'unit': unit,
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
     def SetTransform(self, targetname, translation, unit='mm', rotationmat=None, quaternion=None, timeout=10, **kwargs):
         """Sets the transform of an object. Rotation can be specified by either quaternion or rotation matrix.
 
