@@ -648,3 +648,12 @@ class BinpickingPlanningClient(realtimerobotplanningclient.RealtimeRobotPlanning
         }
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
+    
+    def HasDetectionObstacles(self, timeout=10, **kwargs):
+        """Checks to see if the detection obstacles have all arrived
+        """
+        taskparameters = {
+            'command': 'HasDetectionObstacles',
+        }
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
