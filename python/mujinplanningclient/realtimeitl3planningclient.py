@@ -73,6 +73,7 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         taskparameters = {
             'command': 'ExecuteTrajectoryStep',
             'reverse': reverse,
+            'envclearance': envclearance,
         }
         if robotspeed is not None:
             taskparameters['robotspeed'] = robotspeed
