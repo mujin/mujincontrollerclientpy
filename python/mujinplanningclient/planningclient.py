@@ -213,7 +213,7 @@ class PlanningClient(object):
             socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 2) # the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
             socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 2) # the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
             socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
-            socket.setsockopt(zmq.SUBSCRIBE, '')
+            socket.setsockopt(zmq.SUBSCRIBE, b'')
             poller = zmq.Poller()
             poller.register(socket, zmq.POLLIN)
             
