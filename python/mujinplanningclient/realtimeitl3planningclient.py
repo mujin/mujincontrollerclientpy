@@ -37,28 +37,65 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         super(RealtimeITL3PlanningClient, self).__init__(tasktype='realtimeitlplanning3', **kwargs)
 
     def SetJointValues(self, jointvalues, robotname=None, timeout=10, **kwargs):
+        """
+
+        Args:
+            jointvalues (list[float]):
+            robotname (str, optional): Name of the robot
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+        """
         taskparameters = {
             'command': 'SetJointValues',
             'jointvalues': jointvalues,
         }
+        if robotname is not None:
+            taskparameters['robotname'] = robotname
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout)
+        return self.ExecuteCommand(taskparameters, timeout=timeout)
 
     def GetITLState(self, robotname=None, timeout=10, fireandforget=False, **kwargs):
-        taskparameters = {'command': 'GetITLState'}
+        """
+
+        Args:
+            robotname (str, optional): Name of the robot
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
+        taskparameters = {
+            'command': 'GetITLState',
+        }
+        if robotname is not None:
+            taskparameters['robotname'] = robotname
         taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, robotname=robotname, timeout=timeout, fireandforget=fireandforget)
+        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def ExecuteTrajectory(self, identifier, trajectories, statevalues=None, stepping=False, istep=None, cycles=1, restorevalues=None, envclearance=15, robotspeed=None, robotaccelmult=None, timeout=10, fireandforget=False):
+        """
+
+        Args:
+            identifier:
+            trajectories:
+            statevalues:
+            stepping: (Default: False)
+            istep:
+            cycles: (Default: 1)
+            restorevalues:
+            envclearance (float, optional): Environment clearance in millimeters. (Default: 15)
+            robotspeed (float, optional): Value in (0,1] defining the percentage of speed the robot should move at.
+            robotaccelmult (float, optional): Value in (0,1] defining the percentage of acceleration the robot should move at.
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
         taskparameters = {
             'command': 'ExecuteTrajectory',
             'identifier': identifier,
             'trajectories': trajectories,
-            'statevalues': statevalues,
             'stepping': stepping,
-            'envclearance': envclearance,
             'cycles': cycles,
+            'envclearance': envclearance,
         }
+        if statevalues is not None:
+            taskparameters['statevalues'] = statevalues
         if istep is not None:
             taskparameters['istep'] = istep
         if restorevalues is not None:
@@ -70,6 +107,16 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def ExecuteTrajectoryStep(self, reverse=False, envclearance=15, robotspeed=None, robotaccelmult=None, timeout=10, fireandforget=False):
+        """
+
+        Args:
+            reverse (bool, optional):
+            envclearance (float, optional): Environment clearance in millimeters. (Default: 15)
+            robotspeed (float, optional): Value in (0,1] defining the percentage of speed the robot should move at.
+            robotaccelmult (float, optional): Value in (0,1] defining the percentage of acceleration the robot should move at.
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
         taskparameters = {
             'command': 'ExecuteTrajectoryStep',
             'reverse': reverse,
@@ -82,14 +129,38 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def PauseExecuteTrajectory(self, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'PauseExecuteTrajectory'}
+        """
+
+        Args:
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
+        taskparameters = {
+            'command': 'PauseExecuteTrajectory',
+        }
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def ResumeExecuteTrajectory(self, timeout=10, fireandforget=False):
-        taskparameters = {'command': 'ResumeExecuteTrajectory'}
+        """
+
+        Args:
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
+        taskparameters = {
+            'command': 'ResumeExecuteTrajectory',
+        }
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def ComputeRobotConfigsForCommandVisualization(self, executiongraph, commandindex=0, timeout=2, fireandforget=False, **kwargs):
+        """
+
+        Args:
+            executiongraph:
+            commandindex: (Default: 0)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 2)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
         taskparameters = {
             'command': 'ComputeRobotConfigsForCommandVisualization',
             'executiongraph': executiongraph,
@@ -99,6 +170,14 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def ComputeRobotJointValuesForCommandVisualization(self, program, commandindex=0, timeout=2, fireandforget=False, **kwargs):
+        """
+
+        Args:
+            program:
+            commandindex: (Default: 0)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 2)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
         taskparameters = {
             'command': 'ComputeRobotJointValuesForCommandVisualization',
             'program': program,
@@ -108,6 +187,12 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def PlotProgramWaypoints(self, timeout=1, fireandforget=True, **kwargs):
+        """
+
+        Args:
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server. (Default: True)
+        """
         taskparameters = {
             'command': 'PlotProgramWaypoints',
         }
@@ -115,6 +200,15 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def StartITLProgram(self, programName, robotspeed=None, robotaccelmult=None, timeout=10, fireandforget=False, **kwargs):
+        """
+
+        Args:
+            programName:
+            robotspeed:
+            robotaccelmult:
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
         taskparameters = {
             'command': 'StartITLProgram',
             'programName': programName,
@@ -127,7 +221,11 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def StopITLProgram(self, timeout=10, fireandforget=False, **kwargs):
-        """stops the itl program
+        """Stops the ITL program
+
+        Args:
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
         """
         taskparameters = {
             'command': 'StopITLProgram',
@@ -136,7 +234,14 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def GenerateExecutionGraph(self, programName, commandTimeout=0.2, totalTimeout=1.0, timeout=10, fireandforget=False, **kwargs):
-        """generate list of commands for the itl program
+        """Generates a list of commands for the ITL program.
+
+        Args:
+            programName:
+            commandTimeout: (Default: 0.2)
+            totalTimeout: (Default: 1.0)
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
         """
         taskparameters = {
             'command': 'GenerateExecutionGraph',
@@ -148,6 +253,13 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def PlotContacts(self, report={}, timeout=1, fireandforget=True, **kwargs):
+        """
+
+        Args:
+            report (dict, optional):
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
+            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
+        """
         taskparameters = {
             'command': 'PlotContacts',
             'report': report
@@ -156,14 +268,22 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
     def PopulateTargetInContainer(self, locationName, populateTargetUri, populateFnName, containerMetaData=None, timeout=20, **kwargs):
-        """Populate targets in container using populateFn
+        """Populates targets in container using populateFn.
+
+        Args:
+            locationName:
+            populateTargetUri:
+            populateFnName:
+            containerMetaData (dict, optional):
+            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 20)
         """
         taskparameters = {
             'command': 'PopulateTargetInContainer',
             'locationName': locationName,
             'populateTargetUri': populateTargetUri,
             'populateFnName': populateFnName,
-            'containerMetaData': containerMetaData,
         }
+        if containerMetaData is not None:
+            taskparameters['containerMetaData'] = containerMetaData
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
