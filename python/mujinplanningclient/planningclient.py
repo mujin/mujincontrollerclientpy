@@ -127,7 +127,7 @@ class PlanningClient(object):
         self.tasktype = tasktype
 
         if controllerip:
-            self.contrllerIp = controllerip
+            self.controllerIp = controllerip
             self.controllerusername = controllerusername
             self.controllerpassword = controllerpassword
         else:
