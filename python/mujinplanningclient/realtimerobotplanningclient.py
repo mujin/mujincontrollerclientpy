@@ -95,7 +95,7 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
             timeout (float, optional):  (Default: 10)
             fireandforget (bool, optional):  (Default: False)
             robotspeed (float, optional):
-
+        
         Returns:
             dict: Contains:
                 - robottype (str): robot type
@@ -776,7 +776,6 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
             envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
             jointStates (list, optional): List[{'jointName':str, 'jointValue':float}]
-            jointindices (list, optional): List of corresponding joint indices, default is range(len(jointvalues))
         """
         taskparameters = {
             'command': 'MoveJointsToJointConfigurationStates',
@@ -795,12 +794,12 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout)
 
-    def MoveJoints(self, jointvalues, jointindices=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, **kwargs):
+    def MoveJoints(self, jointvalues, robotJointNames=None, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startvalues=None, envclearance=None, timeout=10, **kwargs):
         """Moves the robot to desired joint angles specified in jointvalues
 
         Args:
             jointvalues: List of joint values
-            jointindices: List of corresponding joint indices, default is range(len(jointvalues))
+            robotJointNames (str, optional): List of corresponding joint names for jointvalues.
             robotname (str, optional): Name of the robot
             robotspeed (float, optional): Value in (0,1] setting the percentage of robot speed to move at
             robotaccelmult (float, optional): Value in (0,1] setting the percentage of robot acceleration to move at
@@ -809,22 +808,19 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
             envclearance (float, optional): Environment clearance in millimeters
             timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 10)
         """
-        if jointindices is None:
-            jointindices = range(len(jointvalues))
-            log.warn(u'No jointindices specified. Moving joints with default jointindices: %s', jointindices)
-
         taskparameters = {
             'command': 'MoveJoints',
             'goaljoints': list(jointvalues),
-            'jointindices': list(jointindices),
             'execute': execute,
         }
+        if robotJointNames is not None:
+            taskparameters['robotJointNames'] = robotJointNames
         if robotname is not None:
             taskparameters['robotname'] = robotname
-
+        
         if envclearance is not None:
             taskparameters['envclearance'] = envclearance
-
+        
         if startvalues is not None:
             taskparameters['startvalues'] = list(startvalues)
         taskparameters.update(kwargs)
