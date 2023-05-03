@@ -29,7 +29,7 @@ def _Main():
     options = _ParseArguments()
     _ConfigureLogging(options.loglevel)
 
-    self = RealtimeRobotPlanningClient(options.url, options.username, options.password)
+    self = RealtimeRobotPlanningClient(controllerurl=options.url, controllerusername=options.username, controllerpassword=options.password)
 
     from IPython.terminal import embed
     ipshell = embed.InteractiveShellEmbed(config=embed.load_default_config())(local_ns=locals())

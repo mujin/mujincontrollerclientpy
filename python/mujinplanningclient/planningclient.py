@@ -5,8 +5,6 @@ Client to connect to Mujin Controller's planning server.
 """
 
 # System imports
-import threading
-import weakref
 import os
 import time
 
@@ -15,9 +13,10 @@ from mujinwebstackclient import APIServerError
 from mujinwebstackclient import urlparse
 from mujinwebstackclient.webstackclient import GetURIFromPrimaryKey, GetFilenameFromURI
 
-from . import GetMonotonicTime
 from . import zmqclient
+from . import zmqsubscriber
 from . import zmq
+from . import json
 
 # Logging
 import logging
@@ -82,14 +81,13 @@ class PlanningClient(object):
     scenepk = None  # The scenepk this controller is configured for
     _ctx = None  # zmq context shared among all clients
     _ctxown = None  # zmq context owned by this class
-    _isok = False  # If False, client is about to be destroyed
-    _heartbeatthread = None  # Thread for monitoring controller heartbeat
-    _isokheartbeat = False  # If False, then stop heartbeat monitor
-    _taskstate = None  # Latest task status from heartbeat message
     _commandsocket = None  # zmq client to the command port
     _configsocket = None  # zmq client to the config port
     taskheartbeatport = None  # Port of the task's zmq server's heartbeat publisher, e.g. 7111
     taskheartbeattimeout = None  # Seconds until reinitializing task's zmq server if no heartbeat is received, e.g. 7
+
+    _subscriber = None # an instance of ZmqSubscriber
+    _callerid = None # caller identification string to be sent with every command
 
     def __init__(
         self,
@@ -104,6 +102,7 @@ class PlanningClient(object):
         controllerurl='http://127.0.0.1',
         controllerusername='',
         controllerpassword='',
+        callerid=None,
         **ignoredArgs  # Other keyword args are not used, but extra arguments is allowed for easy initialization from a dictionary
     ):
         """Logs into the Mujin controller and initializes the connection to the planning server (using ZMQ).
@@ -118,10 +117,10 @@ class PlanningClient(object):
             controllerurl (str, optional): (Deprecated; use controllerip instead) URL of the mujin controller, e.g. http://controller14.
             controllerusername (str, optional): Username for the Mujin controller, e.g. testuser
             controllerpassword (str, optional): Password for the Mujin controller
+            callerid (str, optional): Caller identifier to send to server on every command
         """
         self._slaverequestid = slaverequestid
         self._sceneparams = {}
-        self._isok = True
 
         # Task
         self.tasktype = tasktype
@@ -153,23 +152,19 @@ class PlanningClient(object):
 
             self.taskheartbeatport = taskheartbeatport
             self.taskheartbeattimeout = taskheartbeattimeout
-            if self.taskheartbeatport is not None:
-                self._isokheartbeat = True
-                self._heartbeatthread = threading.Thread(target=weakref.proxy(self)._RunHeartbeatMonitorThread)
-                self._heartbeatthread.start()
 
         self.SetScenePrimaryKey(scenepk)
+
+        self._callerid = callerid
 
     def __del__(self):
         self.Destroy()
 
     def Destroy(self):
         self.SetDestroy()
-
-        if self._heartbeatthread is not None:
-            self._isokheartbeat = False
-            self._heartbeatthread.join()
-            self._heartbeatthread = None
+        if self._subscriber is not None:
+            self._subscriber.Destroy()
+            self._subscriber = None
         if self._commandsocket is not None:
             self._commandsocket.Destroy()
             self._commandsocket = None
@@ -184,8 +179,6 @@ class PlanningClient(object):
             self._ctxown = None
 
     def SetDestroy(self):
-        self._isok = False
-        self._isokheartbeat = False
         commandsocket = self._commandsocket
         if commandsocket is not None:
             commandsocket.SetDestroy()
@@ -202,43 +195,25 @@ class PlanningClient(object):
     def DeleteJobs(self, timeout=5):
         """Cancels all jobs"""
         if self._configsocket is not None:
-            self.SendConfig({'command': 'cancel'}, slaverequestid=self._slaverequestid, timeout=timeout, fireandforget=False)
+            self.SendConfig({'command': 'cancel'}, timeout=timeout, fireandforget=False)
 
-    def _RunHeartbeatMonitorThread(self):
-        while self._isok and self._isokheartbeat:
-            log.info(u'subscribing to %s:%s' % (self.controllerIp, self.taskheartbeatport))
-            socket = self._ctx.socket(zmq.SUB)
-            socket.setsockopt(zmq.TCP_KEEPALIVE, 1) # turn on tcp keepalive, do these configuration before connect
-            socket.setsockopt(zmq.TCP_KEEPALIVE_IDLE, 2) # the interval between the last data packet sent (simple ACKs are not considered data) and the first keepalive probe; after the connection is marked to need keepalive, this counter is not used any further
-            socket.setsockopt(zmq.TCP_KEEPALIVE_INTVL, 2) # the interval between subsequential keepalive probes, regardless of what the connection has exchanged in the meantime
-            socket.setsockopt(zmq.TCP_KEEPALIVE_CNT, 2) # the number of unacknowledged probes to send before considering the connection dead and notifying the application layer
-            socket.connect('tcp://%s:%s' % (self.controllerIp, self.taskheartbeatport))
-            socket.setsockopt(zmq.SUBSCRIBE, b'')
-            poller = zmq.Poller()
-            poller.register(socket, zmq.POLLIN)
-            
-            lastheartbeatts = GetMonotonicTime()
-            while self._isokheartbeat and GetMonotonicTime() - lastheartbeatts < self.taskheartbeattimeout:
-                socks = dict(poller.poll(50))
-                if socket in socks and socks.get(socket) == zmq.POLLIN:
-                    try:
-                        reply = socket.recv_json(zmq.NOBLOCK)
-                        if 'slavestates' in reply:
-                            self._taskstate = reply.get('slavestates', {}).get('slaverequestid-%s'%self._slaverequestid, None)
-                            lastheartbeatts = GetMonotonicTime()
-                        else:
-                            self._taskstate = None
-                    except zmq.ZMQError as e:
-                        log.exception('failed to receive from publisher: %s', e)
-            if self._isokheartbeat:
-                log.warn('%f secs since last heartbeat from controller' % (GetMonotonicTime() - lastheartbeatts))
-    
-    def GetPublishedTaskState(self):
+    def GetPublishedServerState(self, timeout=2.0):
         """Return most recent published state. If publishing is disabled, then will return None
         """
-        if self._heartbeatthread is None or not self._isokheartbeat:
-            log.warn('Heartbeat thread not running taskheartbeatport=%s, so cannot get latest taskstate', self.taskheartbeatport)
-        return self._taskstate
+        if self._subscriber is None:
+            self._subscriber = zmqsubscriber.ZmqSubscriber('tcp://%s:%d' % (self.controllerIp, self.taskheartbeatport or (self.taskzmqport + 1)), ctx=self._ctx)
+        rawServerState = self._subscriber.SpinOnce(timeout=timeout)
+        if rawServerState is not None:
+            return json.loads(rawServerState)
+        return None
+
+    def GetPublishedTaskState(self, timeout=2.0):
+        """Return most recent published state. If publishing is disabled, then will return None
+        """
+        serverState = self.GetPublishedServerState(timeout=timeout)
+        if serverState is not None and 'slavestates' in serverState:
+            return serverState['slavestates'].get('slaverequestid-%s' % self._slaverequestid)
+        return None
     
     def SetScenePrimaryKey(self, scenepk):
         self.scenepk = scenepk
@@ -252,7 +227,7 @@ class PlanningClient(object):
     # Tasks related
     #
 
-    def ExecuteCommand(self, taskparameters, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None, checkpreempt=True):
+    def ExecuteCommand(self, taskparameters, slaverequestid=None, timeout=None, fireandforget=None, respawnopts=None, checkpreempt=True, forcereload=False):
         """Executes command with taskparameters via ZMQ.
 
         Args:
@@ -260,7 +235,8 @@ class PlanningClient(object):
             timeout (float): Timeout in seconds
             fireandforget (bool): Whether we should return immediately after sending the command. If True, return value is None.
             checkpreempt (bool): If a preempt function should be checked during execution.
-
+            forcereload (bool): If True, then force re-load the scene before executing the task
+        
         Returns:
             dict: Server response in JSON format. If fireandforget is True, then None.
         """
@@ -275,12 +251,17 @@ class PlanningClient(object):
                 'tasktype': self.tasktype,
                 'sceneparams': self._sceneparams,
                 'taskparameters': taskparameters,
+                'forcereload':forcereload,
             },
             'userinfo': self._userinfo,
             'slaverequestid': slaverequestid,
             'stamp': time.time(),
             'respawnopts': respawnopts,
         }
+        if self._callerid is not None:
+            command['callerid'] = self._callerid
+            if 'callerid' not in taskparameters:
+                taskparameters['callerid'] = self._callerid
         if self.tasktype == 'binpicking':
             command['fnname'] = '%s.%s' % (self.tasktype, command['fnname'])
         response = self._commandsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
@@ -303,7 +284,7 @@ class PlanningClient(object):
     # Config
     #
 
-    def Configure(self, configuration, timeout=None, fireandforget=None):
+    def Configure(self, configuration, timeout=None, fireandforget=None, slaverequestid=None):
         """Send a 'configure' command to the configsocket.
 
         Args:
@@ -315,9 +296,9 @@ class PlanningClient(object):
             dict: The 'output' field of the server response.
         """
         configuration['command'] = 'configure'
-        return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget)
+        return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def SetLogLevel(self, componentLevels, fireandforget=None, timeout=5):
+    def SetLogLevel(self, componentLevels, fireandforget=None, slaverequestid=None, timeout=5):
         """Set planning log level.
 
         Args:
@@ -330,7 +311,7 @@ class PlanningClient(object):
             'command': 'setloglevel',
             'componentLevels': componentLevels
         }
-        return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget)
+        return self.SendConfig(configuration, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
     def SendConfig(self, command, slaverequestid=None, timeout=None, fireandforget=None, checkpreempt=True):
         """Sends a config command via ZMQ to the planning server.
@@ -339,6 +320,8 @@ class PlanningClient(object):
             slaverequestid = self._slaverequestid
             
         command['slaverequestid'] = slaverequestid
+        if self._callerid is not None:
+            command['callerid'] = self._callerid
         response = self._configsocket.SendCommand(command, timeout=timeout, fireandforget=fireandforget, checkpreempt=checkpreempt)
         if fireandforget:
             # For fire and forget commands, no response will be available
@@ -353,11 +336,11 @@ class PlanningClient(object):
     # Viewer Parameters Related
     #
 
-    def SetViewerFromParameters(self, viewerparameters, timeout=10, fireandforget=True, **kwargs):
+    def SetViewerFromParameters(self, viewerparameters, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         viewerparameters.update(kwargs)
-        return self.Configure({'viewerparameters': viewerparameters}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewerparameters': viewerparameters}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, timeout=10, fireandforget=True, ispan=True, **kwargs):
+    def MoveCameraZoomOut(self, zoommult=0.9, zoomdelta=20, timeout=10, fireandforget=True, ispan=True, slaverequestid=None, **kwargs):
         viewercommand = {
             'command': 'MoveCameraZoomOut',
             'zoomdelta': float(zoomdelta),
@@ -365,9 +348,9 @@ class PlanningClient(object):
             'ispan': bool(ispan)
         }
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, timeout=10, fireandforget=True, ispan=True, **kwargs):
+    def MoveCameraZoomIn(self, zoommult=0.9, zoomdelta=20, timeout=10, fireandforget=True, slaverequestid=None, ispan=True, **kwargs):
         viewercommand = {
             'command': 'MoveCameraZoomIn',
             'zoomdelta': float(zoomdelta),
@@ -375,9 +358,9 @@ class PlanningClient(object):
             'ispan': bool(ispan)
         }
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=0.04, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraLeft(self, ispan=True, panangle=5.0, pandelta=0.04, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         viewercommand = {
             'command': 'MoveCameraLeft',
             'pandelta': float(pandelta),
@@ -385,9 +368,9 @@ class PlanningClient(object):
             'ispan': bool(ispan),
         }
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=0.04, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraRight(self, ispan=True, panangle=5.0, pandelta=0.04, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         viewercommand = {
             'command': 'MoveCameraRight',
             'pandelta': float(pandelta),
@@ -395,9 +378,9 @@ class PlanningClient(object):
             'ispan': bool(ispan),
         }
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraUp(self, ispan=True, angledelta=3.0, pandelta=0.04, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraUp(self, ispan=True, angledelta=3.0, pandelta=0.04, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         viewercommand = {
             'command': 'MoveCameraUp',
             'pandelta': float(pandelta),
@@ -405,9 +388,9 @@ class PlanningClient(object):
             'ispan': bool(ispan),
         }
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraDown(self, ispan=True, angledelta=3.0, pandelta=0.04, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraDown(self, ispan=True, angledelta=3.0, pandelta=0.04, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         viewercommand = {
             'command': 'MoveCameraDown',
             'pandelta': float(pandelta),
@@ -415,9 +398,9 @@ class PlanningClient(object):
             'ispan': bool(ispan),
         }
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def MoveCameraPointOfView(self, pointOfViewName, timeout=10, fireandforget=True, **kwargs):
+    def MoveCameraPointOfView(self, pointOfViewName, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         """
         Sends a command that moves the camera to one of the following point of view names:
         +x, -x, +y, -y, +z, -z.
@@ -428,9 +411,9 @@ class PlanningClient(object):
             'command': 'MoveCameraPointOfView',
             'axis': pointOfViewName,
         }
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, timeout=10, fireandforget=True, **kwargs):
+    def SetCameraTransform(self, pose=None, transform=None, distanceToFocus=0.0, timeout=10, fireandforget=True, slaverequestid=None, **kwargs):
         """Sets the camera transform
         
         Args:
@@ -445,14 +428,14 @@ class PlanningClient(object):
         if pose is not None:
             viewercommand['pose'] = [float(f) for f in pose]
         viewercommand.update(kwargs)
-        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure({'viewercommand': viewercommand}, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def StartIPython(self, timeout=1, fireandforget=True, **kwargs):
+    def StartIPython(self, timeout=1, fireandforget=True, slaverequestid=None, **kwargs):
         configuration = {'startipython': True}
         configuration.update(kwargs)
-        return self.Configure(configuration, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure(configuration, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)
 
-    def StartRemotePDB(self, timeout=1, fireandforget=True, **kwargs):
+    def StartRemotePDB(self, timeout=1, fireandforget=True, slaverequestid=None, **kwargs):
         configuration = {'startremotepdb': True}
         configuration.update(kwargs)
-        return self.Configure(configuration, timeout=timeout, fireandforget=fireandforget)
+        return self.Configure(configuration, timeout=timeout, fireandforget=fireandforget, slaverequestid=slaverequestid)

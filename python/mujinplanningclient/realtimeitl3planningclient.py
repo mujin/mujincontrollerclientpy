@@ -252,21 +252,6 @@ class RealtimeITL3PlanningClient(realtimerobotplanningclient.RealtimeRobotPlanni
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
 
-    def PlotContacts(self, report={}, timeout=1, fireandforget=True, **kwargs):
-        """
-
-        Args:
-            report (dict, optional):
-            timeout (float, optional): Time in seconds after which the command is assumed to have failed. (Default: 1)
-            fireandforget (bool, optional): If True, does not wait for the command to finish. The method returns immediately and the command remains queued on the server.
-        """
-        taskparameters = {
-            'command': 'PlotContacts',
-            'report': report
-        }
-        taskparameters.update(kwargs)
-        return self.ExecuteCommand(taskparameters, timeout=timeout, fireandforget=fireandforget)
-
     def PopulateTargetInContainer(self, locationName, populateTargetUri, populateFnName, containerMetaData=None, timeout=20, **kwargs):
         """Populates targets in container using populateFn.
 
