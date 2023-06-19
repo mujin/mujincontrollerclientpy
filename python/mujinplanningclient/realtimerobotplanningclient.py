@@ -763,6 +763,25 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
+    def MoveZac(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, **kwargs):
+        taskparameters = {
+            'command': 'MoveZac',
+            'sensorLinkName': sensorLinkName,
+            'goalJointConfigurationStates': jointConfigurationStates,
+            'execute': execute,
+        }
+        if robotname is not None:
+            taskparameters['robotname'] = robotname
+
+        if envclearance is not None:
+            taskparameters['envclearance'] = envclearance
+
+        if startJointConfigurationStates is not None:
+            taskparameters['startJointConfigurationStates'] = startJointConfigurationStates
+
+        taskparameters.update(kwargs)
+        return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout)
+
     def MoveJointsToJointConfigurationStates(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, **kwargs):
         """Moves the robot to desired joint angles specified in jointStates
 
