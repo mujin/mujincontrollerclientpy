@@ -306,7 +306,6 @@ class PlanningClient(object):
                                 If component name is empty string, it sets the root logger.
                                 If level name is empty string, it unsets the level previously set.
         """
-        super(PlanningClient, self).SetLogLevel(componentLevels, timeout=timeout)
         configuration = {
             'command': 'setloglevel',
             'componentLevels': componentLevels
