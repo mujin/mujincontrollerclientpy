@@ -766,7 +766,6 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
     def MoveZac(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, **kwargs):
         taskparameters = {
             'command': 'MoveZac',
-            'sensorLinkName': sensorLinkName,
             'goalJointConfigurationStates': jointConfigurationStates,
             'execute': execute,
         }
