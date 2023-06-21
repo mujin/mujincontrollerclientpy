@@ -763,10 +763,9 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, timeout=timeout)
 
-    def MoveZac(self, jointConfigurationStates, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, **kwargs):
+    def MoveZac(self, robotname=None, robotspeed=None, robotaccelmult=None, execute=1, startJointConfigurationStates=None, envclearance=None, timeout=10, **kwargs):
         taskparameters = {
             'command': 'MoveZac',
-            'goalJointConfigurationStates': jointConfigurationStates,
             'execute': execute,
         }
         if robotname is not None:
@@ -774,9 +773,6 @@ class RealtimeRobotPlanningClient(planningclient.PlanningClient):
 
         if envclearance is not None:
             taskparameters['envclearance'] = envclearance
-
-        if startJointConfigurationStates is not None:
-            taskparameters['startJointConfigurationStates'] = startJointConfigurationStates
 
         taskparameters.update(kwargs)
         return self.ExecuteCommand(taskparameters, robotspeed=robotspeed, robotaccelmult=robotaccelmult, timeout=timeout)
