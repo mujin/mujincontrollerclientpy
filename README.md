@@ -2,7 +2,7 @@
 
 **This package is deprecated and will not be updated anymore.**
 
-Use [mujinwebstackclientpy](https://github.com/mujin/mujinwebstackclientpy) and [mujinplanningserverclientpy](https://github.com/mujin/mujinplanningserverclientpy) instead.
+Use [mujinwebstackclientpy](https://github.com/mujin/mujinwebstackclientpy) and [mujinplanningclientpy](https://github.com/mujin/mujinplanningclientpy) instead.
 
 # Mujin Controller Python Client Library
 
